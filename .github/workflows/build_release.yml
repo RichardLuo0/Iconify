@@ -1,4 +1,4 @@
-name: Build release APK
+name: Build Release APK
 
 on:
   workflow_dispatch:
@@ -21,13 +21,6 @@ jobs:
 
       - name: Get application version name
         run: echo "VERSION_NAME=$(${{github.workspace}}/gradlew -q printVersionName)" >> $GITHUB_ENV
-
-      - name: Bump application version code
-        uses: chkfung/android-version-actions@v1.2.3
-        with:
-          gradlePath: app/build.gradle.kts
-          versionCode: ${{github.run_number}}
-          versionName: "${{ env.VERSION_NAME }} Dev (#${{github.run_number}})"
 
       - name: Write sign info
         run: |
