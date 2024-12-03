@@ -28,7 +28,7 @@ import de.robv.android.xposed.XposedHelpers.setObjectField
 import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam
 
 @SuppressLint("DiscouragedApi")
-class QSLightThemeA12(context: Context?) : ModPack(context!!) {
+class QSLightThemeA12(context: Context) : ModPack(context) {
 
     private var mBehindColors: Any? = null
     private var isDark: Boolean

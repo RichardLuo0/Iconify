@@ -850,6 +850,7 @@
     <string name="section_title_contributors">Участники проекта</string>
     <string name="info_contributor_desc">Вклад на github.</string>
     <string name="info_contributor_desc_2">Помощь мне в Telegram.</string>
+    <string name="total_contributions">Всего взносов: %d</string>
     <string name="section_title_translators">Переводчики</string>
     <string name="af_translation">Африканский перевод.</string>
     <string name="ar_translation">Перевод на арабский.</string>

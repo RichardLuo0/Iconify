@@ -35,7 +35,7 @@ import de.robv.android.xposed.callbacks.XC_LayoutInflated
 import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam
 
 @SuppressLint("DiscouragedApi")
-class Miscellaneous(context: Context?) : ModPack(context!!) {
+class Miscellaneous(context: Context) : ModPack(context) {
 
     private var hideQsCarrierGroup = false
     private var hideStatusIcons = false

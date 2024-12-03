@@ -46,7 +46,7 @@ import de.robv.android.xposed.callbacks.XC_LayoutInflated
 import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam
 
 @SuppressLint("DiscouragedApi")
-class Statusbar(context: Context?) : ModPack(context!!) {
+class Statusbar(context: Context) : ModPack(context) {
 
     private var mColoredStatusbarIcon = false
     private var sbClockSizeSwitch = false

@@ -850,6 +850,7 @@
     <string name="section_title_contributors">Közreműködők</string>
     <string name="info_contributor_desc">A githubon való közreműködésért.</string>
     <string name="info_contributor_desc_2">A Telegramban való segítségért.</string>
+    <string name="total_contributions">Az összes hozzájárulás: %d</string>
     <string name="section_title_translators">Fordítók</string>
     <string name="af_translation">Afrikai fordítás.</string>
     <string name="ar_translation">Arab fordítás.</string>

@@ -47,7 +47,7 @@ import de.robv.android.xposed.XposedHelpers.findClassIfExists
 import de.robv.android.xposed.XposedHelpers.getObjectField
 import de.robv.android.xposed.callbacks.XC_LoadPackage
 
-class LockscreenWidgets(context: Context?) : ModPack(context!!) {
+class LockscreenWidgets(context: Context) : ModPack(context) {
 
     // Parent
     private var mStatusViewContainer: ViewGroup? = null

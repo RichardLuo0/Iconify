@@ -60,7 +60,7 @@ import de.robv.android.xposed.XposedHelpers.setObjectField
 import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam
 
 @SuppressLint("DiscouragedApi")
-class QuickSettings(context: Context?) : ModPack(context!!) {
+class QuickSettings(context: Context) : ModPack(context) {
 
     private var fixQsTileColor = true
     private var fixNotificationColor = true

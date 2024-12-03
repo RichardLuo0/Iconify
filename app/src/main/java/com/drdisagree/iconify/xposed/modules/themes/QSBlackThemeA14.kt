@@ -39,7 +39,7 @@ import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam
 
 
 @SuppressLint("DiscouragedApi")
-class QSBlackThemeA14(context: Context?) : ModPack(context!!) {
+class QSBlackThemeA14(context: Context) : ModPack(context) {
 
     private var mBehindColors: Any? = null
     private var isDark: Boolean

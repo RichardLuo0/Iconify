@@ -850,6 +850,7 @@
     <string name="section_title_contributors">貢献者</string>
     <string name="info_contributor_desc">GitHub での貢献。</string>
     <string name="info_contributor_desc_2">Telegram での補助。</string>
+    <string name="total_contributions">Total Contributions: %d</string>
     <string name="section_title_translators">翻訳者</string>
     <string name="af_translation">アフリカーンス語訳</string>
     <string name="ar_translation">アラビア後翻訳。</string>

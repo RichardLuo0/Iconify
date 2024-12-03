@@ -89,7 +89,7 @@ import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 @SuppressLint("DiscouragedApi")
-class HeaderClockA14(context: Context?) : ModPack(context!!) {
+class HeaderClockA14(context: Context) : ModPack(context) {
 
     private var appContext: Context? = null
     private var showHeaderClock = false

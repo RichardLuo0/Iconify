@@ -850,6 +850,7 @@
     <string name="section_title_contributors">貢獻者</string>
     <string name="info_contributor_desc">在 Github 上的貢獻。</string>
     <string name="info_contributor_desc_2">在 Telegram 上協助我。</string>
+    <string name="total_contributions">Total Contributions: %d</string>
     <string name="section_title_translators">譯者</string>
     <string name="af_translation">Afrikaans translation.</string>
     <string name="ar_translation">阿拉伯語翻譯。</string>

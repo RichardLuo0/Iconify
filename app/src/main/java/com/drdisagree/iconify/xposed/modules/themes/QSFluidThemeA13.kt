@@ -48,7 +48,7 @@ import kotlin.math.max
 import kotlin.math.min
 
 @SuppressLint("DiscouragedApi")
-class QSFluidThemeA13(context: Context?) : ModPack(context!!) {
+class QSFluidThemeA13(context: Context) : ModPack(context) {
 
     val colorActive = intArrayOf(
         mContext.resources.getColor(

@@ -320,7 +320,10 @@ public class SliderPreference extends Preference {
 
         if (showResetButton) {
             mResetButton.setVisibility(View.VISIBLE);
-            mResetButton.setEnabled(isEnabled() && !Objects.equals(slider.getValues().get(0), defaultValue.get(0)));
+
+            if (!slider.getValues().isEmpty()) {
+                mResetButton.setEnabled(isEnabled() && !Objects.equals(slider.getValues().get(0), defaultValue.get(0)));
+            }
         } else {
             mResetButton.setVisibility(View.GONE);
         }

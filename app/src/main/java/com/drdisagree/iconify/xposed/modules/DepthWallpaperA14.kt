@@ -65,7 +65,7 @@ import java.util.concurrent.TimeUnit
 import kotlin.math.max
 
 @SuppressLint("DiscouragedApi")
-class DepthWallpaperA14(context: Context?) : ModPack(context!!) {
+class DepthWallpaperA14(context: Context) : ModPack(context) {
 
     private var showDepthWallpaper = false
     private var showCustomImages = false

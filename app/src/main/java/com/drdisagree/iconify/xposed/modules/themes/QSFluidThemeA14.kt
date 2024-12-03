@@ -50,7 +50,7 @@ import kotlin.math.max
 import kotlin.math.min
 
 @SuppressLint("DiscouragedApi")
-class QSFluidThemeA14(context: Context?) : ModPack(context!!) {
+class QSFluidThemeA14(context: Context) : ModPack(context) {
 
     private var wasDark: Boolean = SystemUtils.isDarkMode
     private var mSlider: SeekBar? = null

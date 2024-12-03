@@ -19,7 +19,7 @@ import de.robv.android.xposed.XposedHelpers.getIntField
 import de.robv.android.xposed.XposedHelpers.getObjectField
 import de.robv.android.xposed.callbacks.XC_LoadPackage
 
-class ControllersProvider(context: Context?) : ModPack(context!!) {
+class ControllersProvider(context: Context) : ModPack(context) {
 
     private var mBluetoothEnabled = false
 

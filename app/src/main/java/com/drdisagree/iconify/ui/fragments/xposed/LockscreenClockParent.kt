@@ -13,6 +13,7 @@ import android.widget.CompoundButton
 import android.widget.FrameLayout
 import androidx.lifecycle.lifecycleScope
 import com.drdisagree.iconify.BuildConfig
+import com.drdisagree.iconify.Iconify.Companion.appContext
 import com.drdisagree.iconify.R
 import com.drdisagree.iconify.common.Preferences.LSCLOCK_STYLE
 import com.drdisagree.iconify.common.Preferences.LSCLOCK_SWITCH
@@ -110,7 +111,7 @@ class LockscreenClockParent : BaseFragment() {
                         maxIndex,
                         getInt(LSCLOCK_STYLE, 0) == maxIndex,
                         LOCKSCREEN_CLOCK_LAYOUT + maxIndex,
-                        LayoutInflater.from(context).inflate(
+                        LayoutInflater.from(appContext).inflate(
                             resources.getIdentifier(
                                 LOCKSCREEN_CLOCK_LAYOUT + maxIndex,
                                 "layout",

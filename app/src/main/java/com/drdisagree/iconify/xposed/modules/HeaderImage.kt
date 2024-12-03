@@ -46,7 +46,7 @@ import java.io.File
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
-class HeaderImage(context: Context?) : ModPack(context!!) {
+class HeaderImage(context: Context) : ModPack(context) {
 
     private var showHeaderImage = false
     private var imageHeight = 140

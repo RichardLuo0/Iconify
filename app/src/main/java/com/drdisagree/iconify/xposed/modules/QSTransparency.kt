@@ -27,7 +27,7 @@ import de.robv.android.xposed.XposedHelpers.setObjectField
 import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam
 
 
-class QSTransparency(context: Context?) : ModPack(context!!) {
+class QSTransparency(context: Context) : ModPack(context) {
 
     private val keyguardAlpha = 0.85f
     private var qsTransparencyActive = false

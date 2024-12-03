@@ -45,7 +45,7 @@ import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 @SuppressLint("DiscouragedApi")
-class DepthWallpaper(context: Context?) : ModPack(context!!) {
+class DepthWallpaper(context: Context) : ModPack(context) {
 
     private var showDepthWallpaper = false
     private var showFadingAnimation = false

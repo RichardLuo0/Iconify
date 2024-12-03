@@ -12,7 +12,7 @@ import de.robv.android.xposed.XposedHelpers.callMethod
 import de.robv.android.xposed.XposedHelpers.findClass
 import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam
 
-class IconUpdater(context: Context?) : ModPack(context!!) {
+class IconUpdater(context: Context) : ModPack(context) {
 
     private var launcherModel: Any? = null
 

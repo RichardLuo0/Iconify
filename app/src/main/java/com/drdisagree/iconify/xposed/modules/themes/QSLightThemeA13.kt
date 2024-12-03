@@ -37,7 +37,7 @@ import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam
 import java.util.Arrays
 
 @SuppressLint("DiscouragedApi")
-class QSLightThemeA13(context: Context?) : ModPack(context!!) {
+class QSLightThemeA13(context: Context) : ModPack(context) {
 
     private var mBehindColors: Any? = null
     private var isDark: Boolean

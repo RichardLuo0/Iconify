@@ -12,7 +12,7 @@ import com.drdisagree.iconify.common.Const.SYSTEMUI_PACKAGE
 import com.drdisagree.iconify.xposed.ModPack
 import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam
 
-class HookCheck(context: Context?) : ModPack(context!!) {
+class HookCheck(context: Context) : ModPack(context) {
 
     private var intentFilter = IntentFilter()
     private var broadcastRegistered = false

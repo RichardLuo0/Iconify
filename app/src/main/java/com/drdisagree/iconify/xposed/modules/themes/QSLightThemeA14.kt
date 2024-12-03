@@ -42,7 +42,7 @@ import java.util.Arrays
 import java.util.function.Consumer
 
 @SuppressLint("DiscouragedApi")
-class QSLightThemeA14(context: Context?) : ModPack(context!!) {
+class QSLightThemeA14(context: Context) : ModPack(context) {
 
     private var mBehindColors: Any? = null
     private var isDark: Boolean

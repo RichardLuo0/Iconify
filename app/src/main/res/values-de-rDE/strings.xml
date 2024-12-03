@@ -851,6 +851,7 @@ transparent machen</string>
     <string name="section_title_contributors">Mitwirkende</string>
     <string name="info_contributor_desc">Für das Helfen auf GitHub.</string>
     <string name="info_contributor_desc_2">Für das assistieren auf Telegram.</string>
+    <string name="total_contributions">Total Contributions: %d</string>
     <string name="section_title_translators">Übersetzer</string>
     <string name="af_translation">Afrikaans Übersetzung.</string>
     <string name="ar_translation">Arabische Übersetzung.</string>

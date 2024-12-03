@@ -81,7 +81,7 @@ import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 @SuppressLint("DiscouragedApi")
-class LockscreenClock(context: Context?) : ModPack(context!!) {
+class LockscreenClock(context: Context) : ModPack(context) {
 
     private var showLockscreenClock = false
     private var showDepthWallpaper = false // was used in android 13 and below

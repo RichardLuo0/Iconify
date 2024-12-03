@@ -850,6 +850,7 @@
     <string name="section_title_contributors">Katkıda Bulunanlar</string>
     <string name="info_contributor_desc">GitHub\'dan destek olmak için.</string>
     <string name="info_contributor_desc_2">Telegram\'da bana yardım etmek için.</string>
+    <string name="total_contributions">Total Contributions: %d</string>
     <string name="section_title_translators">Çevirmenler</string>
     <string name="af_translation">Afrikaans çevirisi.</string>
     <string name="ar_translation">Arapça çeviri.</string>

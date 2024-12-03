@@ -35,7 +35,7 @@ import de.robv.android.xposed.XposedHelpers.findClass
 import de.robv.android.xposed.XposedHelpers.getObjectField
 import de.robv.android.xposed.callbacks.XC_LoadPackage
 
-class LockscreenWeather(context: Context?) : ModPack(context!!) {
+class LockscreenWeather(context: Context) : ModPack(context) {
 
     private var customLockscreenClock = false
     private var weatherEnabled = false

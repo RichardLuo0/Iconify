@@ -850,6 +850,7 @@
     <string name="section_title_contributors">người đóng góp</string>
     <string name="info_contributor_desc">Để đóng góp trên github.</string>
     <string name="info_contributor_desc_2">Vì đã hỗ trợ tôi trên điện tín.</string>
+    <string name="total_contributions">Total Contributions: %d</string>
     <string name="section_title_translators">Phiên dịch viên</string>
     <string name="af_translation">Afrikaans translation.</string>
     <string name="ar_translation">Arabic translation.</string>

@@ -153,7 +153,7 @@ import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam
 
 @Suppress("unused")
 @SuppressLint("DiscouragedApi")
-class BatteryStyleManager(context: Context?) : ModPack(context!!) {
+class BatteryStyleManager(context: Context) : ModPack(context) {
 
     private var defaultLandscapeBatteryEnabled = false
     private var frameColor = Color.WHITE

@@ -29,7 +29,7 @@ import kotlin.math.ceil
 import kotlin.properties.Delegates
 
 @SuppressLint("DiscouragedApi", "DefaultLocale")
-class VolumePanel(context: Context?) : ModPack(context!!) {
+class VolumePanel(context: Context) : ModPack(context) {
 
     private var showPercentage = false
     private var showWarning = true

@@ -92,7 +92,7 @@ import de.robv.android.xposed.callbacks.XC_LayoutInflated
 import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam
 
 @SuppressLint("DiscouragedApi")
-class BackgroundChip(context: Context?) : ModPack(context!!) {
+class BackgroundChip(context: Context) : ModPack(context) {
 
     private val mQsStatusIconsContainer = LinearLayout(mContext)
     private var mShowSBClockBg = false

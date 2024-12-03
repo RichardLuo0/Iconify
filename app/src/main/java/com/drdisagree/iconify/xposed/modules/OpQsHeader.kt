@@ -114,7 +114,7 @@ import kotlin.properties.Delegates
 import kotlin.random.Random
 
 @Suppress("DiscouragedApi")
-class OpQsHeader(context: Context?) : ModPack(context!!) {
+class OpQsHeader(context: Context) : ModPack(context) {
 
     // Preferences
     private var showOpQsHeaderView = false
