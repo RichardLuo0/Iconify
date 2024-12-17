@@ -19,6 +19,7 @@ import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XposedBridge.hookAllConstructors
 import de.robv.android.xposed.XposedBridge.hookAllMethods
 import de.robv.android.xposed.XposedBridge.log
+import de.robv.android.xposed.XposedHelpers.callMethod
 import de.robv.android.xposed.XposedHelpers.findClass
 import de.robv.android.xposed.XposedHelpers.findClassIfExists
 import de.robv.android.xposed.XposedHelpers.findField
@@ -26,7 +27,7 @@ import de.robv.android.xposed.XposedHelpers.getObjectField
 import de.robv.android.xposed.XposedHelpers.setObjectField
 import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam
 
-
+@SuppressLint("DiscouragedApi")
 class QSTransparency(context: Context) : ModPack(context) {
 
     private val keyguardAlpha = 0.85f
@@ -36,6 +37,7 @@ class QSTransparency(context: Context) : ModPack(context) {
     private var alpha = 60f
     private var blurEnabled = false
     private var blurRadius = 23
+    private var quickSettingsController: Any? = null
 
     override fun updatePrefs(vararg key: String) {
         if (!XprefsIsInitialized) return
@@ -47,6 +49,14 @@ class QSTransparency(context: Context) : ModPack(context) {
             alpha = (getSliderInt(QSALPHA_LEVEL, 60).toFloat() / 100.0).toFloat()
             blurEnabled = getBoolean(QSPANEL_BLUR_SWITCH, false)
             blurRadius = getSliderInt(BLUR_RADIUS_VALUE, 23)
+        }
+
+        if (key.isNotEmpty() &&
+            (key[0] == QS_TRANSPARENCY_SWITCH ||
+                    key[0] == NOTIF_TRANSPARENCY_SWITCH ||
+                    key[0] == QSALPHA_LEVEL)
+        ) {
+            updateQsScrimRadius()
         }
     }
 
@@ -179,6 +189,54 @@ class QSTransparency(context: Context) : ModPack(context) {
                 }
             })
         }
+
+        val quickSettingsControllerClass = findClass(
+            "$SYSTEMUI_PACKAGE.shade.QuickSettingsController",
+            loadPackageParam.classLoader
+        )
+
+        hookAllConstructors(quickSettingsControllerClass, object : XC_MethodHook() {
+            override fun afterHookedMethod(param: MethodHookParam) {
+                quickSettingsController = param.thisObject
+            }
+        })
+
+        hookAllMethods(Resources::class.java, "getDimensionPixelSize", object : XC_MethodHook() {
+            override fun beforeHookedMethod(param: MethodHookParam) {
+                if (!qsTransparencyActive || onlyNotifTransparencyActive || (alpha * 100).toInt() != 0) return
+
+                try {
+                    val resId = mContext.resources.getIdentifier(
+                        "notification_scrim_corner_radius",
+                        "dimen",
+                        mContext.packageName
+                    )
+
+                    if (param.args[0] == resId) {
+                        param.result = 0
+                    }
+                } catch (ignored: Throwable) {
+                }
+            }
+        })
+    }
+
+    private fun updateQsScrimRadius() {
+        if (quickSettingsController == null) return
+
+        setObjectField(
+            quickSettingsController,
+            "mScrimCornerRadius",
+            mContext.resources.getDimensionPixelSize(
+                mContext.resources.getIdentifier(
+                    "notification_scrim_corner_radius",
+                    "dimen",
+                    mContext.packageName
+                )
+            )
+        )
+
+        callMethod(quickSettingsController, "setClippingBounds")
     }
 
     @SuppressLint("DiscouragedApi")

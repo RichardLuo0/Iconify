@@ -1,6 +1,7 @@
 package com.drdisagree.iconify.common
 
 import com.drdisagree.iconify.BuildConfig
+import com.drdisagree.iconify.utils.RootUtils
 import com.drdisagree.iconify.xposed.utils.BootLoopProtector
 
 object Const {
@@ -99,4 +100,34 @@ object Const {
             install_module
             exit 0
             """.trimIndent()
+
+    val POST_FS_DATA = if (RootUtils.isKSUInstalled) {
+        """
+            #!/usr/bin/env sh
+            MODDIR="${'$'}{0%%/*}"
+            modid="Iconify"
+            SUSFS_BIN=/data/adb/ksu/bin/ksu_susfs
+            
+            [ ! -f ${'$'}MODDIR/skip_mount ] && touch ${'$'}MODDIR/skip_mount
+            
+            [ -w /mnt ] && basefolder=/mnt
+            [ -w /mnt/vendor ] && basefolder=/mnt/vendor
+            
+            mkdir ${'$'}basefolder/${'$'}modid
+            
+            cd ${'$'}MODDIR
+            
+            for i in ${'$'}(ls -d */*); do
+            	mkdir -p ${'$'}basefolder/${'$'}modid/${'$'}i
+            	mount --bind ${'$'}MODDIR/${'$'}i ${'$'}basefolder/${'$'}modid/${'$'}i
+            	mount -t overlay -o "lowerdir=${'$'}basefolder/${'$'}modid/${'$'}i:/${'$'}i" overlay /${'$'}i
+            	${'$'}{SUSFS_BIN} add_sus_mount /${'$'}i
+            done
+            """.trimIndent()
+    } else {
+        """
+            #!/usr/bin/env sh
+            MODDIR="${'$'}{0%%/*}"
+            """.trimIndent()
+    }
 }

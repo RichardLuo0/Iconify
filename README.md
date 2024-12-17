@@ -1,7 +1,7 @@
 <div align="center">
   <img src="https://raw.githubusercontent.com/Mahmud0808/Iconify/beta/.github/resources/banner.png" width="100%" alt="Banner">
-  
-  # v6.9.0 is out!
+
+# v6.9.0 is out!
 </div>
 <p align="center">
   <a href="https://github.com/Mahmud0808/Iconify/releases"><img src="https://img.shields.io/github/downloads/Mahmud0808/Iconify/total?color=%233DDC84&logo=android&logoColor=%23fff&style=for-the-badge" alt="Downloads"></a>
@@ -10,7 +10,6 @@
   <a href="https://telegram.me/IconifyOfficial"><img src="https://img.shields.io/badge/Telegram-5K+-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white" alt="Telegram"></a>
 </p>
 <div align="center">
-  <a href="https://apt.izzysoft.de/fdroid/index/apk/com.drdisagree.iconify"><img src="https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroid.png" width="30%"></a>
 
 # Iconify
 
@@ -29,7 +28,7 @@ Furthermore, the open-source nature of Iconify encourages community contribution
 </div>
 
 > [!CAUTION]
-> 
+>
 > This app requires Magisk/KernelSU/APatch for root access. Any alternative methods won't work.
 
 # 🛠 Requirements
@@ -38,52 +37,33 @@ Furthermore, the open-source nature of Iconify encourages community contribution
 
 - [Magisk](https://github.com/topjohnwu/Magisk) (Recommended) / [KernelSU](https://github.com/tiann/KernelSU) / [APatch](https://github.com/bmax121/APatch)
 
-- [LSPosed](https://github.com/LSPosed/LSPosed) / [LSPosed_mod](https://github.com/mywalkb/LSPosed_mod) (Optional)
+- [LSPosed](https://github.com/LSPosed/LSPosed) / Other Xposed framework (Optional)
 
 - Decryption Supported Custom Recovery (Just in case)
 
 # 👨‍💻 Installation
 
-  ### Installation for Magisk Users:​
+### Installation for Magisk Users:​
 
-  1. Download and install the Iconify app.
+1. Download and install the Iconify app.
 
-  2. Open the app, grant root permission and follow the instructions.
+2. Open the app, grant root permission and follow the instructions.
 
-  3. Wait for it to finish generating rom specific module.
+3. Wait for it to finish generating rom specific module.
 
-  4. Reboot the device when prompted, profit!
+4. Reboot the device when prompted, profit!
 
-  > [!NOTE]
-  > 
-  > If some or most of the customizations are still not working for Magisk users, you might need to disable `Unmount modules` option from magisk manager (if available) and/or enable root permission for SystemUI.
+### Installation for KernelSU/APatch Users:​
 
-  ### Installation for KernelSU/APatch Users:​
+1. Flash [ZygiskNext](https://github.com/Dr-TSNG/ZygiskNext/releases/latest) module (only if you want to use LSPosed features).
 
-  1. Flash [Magic Overlayfs](https://github.com/HuskyDG/magic_overlayfs/releases) module (to make read-only system read-write)
+2. Reboot your device to get the module installed successfully.
 
-  > [!IMPORTANT]
-  > 
-  > Remember to edit _mode.sh_ file inside the module and change these values before flashing:
-  > 
-  > `OVERLAY_MODE=1`
-  > `DO_UNMOUNT_KSU=true`
-  >
-  > Note: If one of the above variable doesn't exist, skip that particular variable.
+3. Now follow the installation steps of magisk users and voila!
 
-  2. Flash [ZygiskNext](https://github.com/Dr-TSNG/ZygiskNext/releases/latest) module (only if you want to use LSPosed features)
-
-  3. Grant SuperSU/root permission for SystemUI from KernelSU app
-
-  4. Disable `Unmount modules` option if it's available in the app
-
-  5. Reboot your device to get the modules installed successfully
-
-  6. Now follow the installation steps of magisk users and voila!
-
-  > [!TIP]
-  > 
-  > KernelSU doesn't show root prompt. You will have to manually enable root access for Iconify from the KernelSU app itself.
+> [!TIP]
+>
+> KernelSU doesn't show root prompt. You will have to manually enable root access for Iconify from the KernelSU app itself.
 
 # 🤫 Roadmap
 

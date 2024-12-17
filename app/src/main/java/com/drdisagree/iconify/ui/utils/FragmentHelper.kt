@@ -51,74 +51,73 @@ import com.drdisagree.iconify.ui.fragments.xposed.Themes
 import com.drdisagree.iconify.ui.fragments.xposed.TransparencyBlur
 import com.drdisagree.iconify.ui.fragments.xposed.Xposed
 
-object FragmentHelper {
+enum class FragmentGroup {
+    HOME, TWEAKS, XPOSED, SETTINGS
+}
 
-    fun isInGroup(fragment: Fragment, group: Int): Boolean {
-        return when (group) {
-            0 -> {
-                fragment is Home ||
-                        fragment is IconPack ||
-                        fragment is ColoredBattery ||
-                        fragment is MediaIcons ||
-                        fragment is SettingsIcons ||
-                        fragment is CellularIcons ||
-                        fragment is WiFiIcons ||
-                        fragment is BrightnessBar ||
-                        fragment is BrightnessBarPixel ||
-                        fragment is QsPanelTile ||
-                        fragment is QsPanelTilePixel ||
-                        fragment is Notification ||
-                        fragment is NotificationPixel ||
-                        fragment is ProgressBar ||
-                        fragment is Switch ||
-                        fragment is ToastFrame ||
-                        fragment is IconShape
-            }
+fun isInGroup(fragment: Fragment, group: FragmentGroup): Boolean {
+    return when (group) {
+        FragmentGroup.HOME -> {
+            fragment is Home ||
+                    fragment is IconPack ||
+                    fragment is ColoredBattery ||
+                    fragment is MediaIcons ||
+                    fragment is SettingsIcons ||
+                    fragment is CellularIcons ||
+                    fragment is WiFiIcons ||
+                    fragment is BrightnessBar ||
+                    fragment is BrightnessBarPixel ||
+                    fragment is QsPanelTile ||
+                    fragment is QsPanelTilePixel ||
+                    fragment is Notification ||
+                    fragment is NotificationPixel ||
+                    fragment is ProgressBar ||
+                    fragment is Switch ||
+                    fragment is ToastFrame ||
+                    fragment is IconShape
+        }
 
-            1 -> {
-                fragment is Tweaks ||
-                        fragment is ColorEngine ||
-                        fragment is BasicColors ||
-                        fragment is MonetEngine ||
-                        fragment is UiRoundness ||
-                        fragment is QsRowColumn ||
-                        fragment is QsIconLabel ||
-                        fragment is QsTileSize ||
-                        fragment is QsPanelMargin ||
-                        fragment is Statusbar ||
-                        fragment is NavigationBar ||
-                        fragment is MediaPlayer ||
-                        fragment is VolumePanel ||
-                        fragment is Miscellaneous
-            }
+        FragmentGroup.TWEAKS -> {
+            fragment is Tweaks ||
+                    fragment is ColorEngine ||
+                    fragment is BasicColors ||
+                    fragment is MonetEngine ||
+                    fragment is UiRoundness ||
+                    fragment is QsRowColumn ||
+                    fragment is QsIconLabel ||
+                    fragment is QsTileSize ||
+                    fragment is QsPanelMargin ||
+                    fragment is Statusbar ||
+                    fragment is NavigationBar ||
+                    fragment is MediaPlayer ||
+                    fragment is VolumePanel ||
+                    fragment is Miscellaneous
+        }
 
-            2 -> {
-                fragment is Xposed ||
-                        fragment is TransparencyBlur ||
-                        fragment is QuickSettings ||
-                        fragment is Themes ||
-                        fragment is BatteryStyle ||
-                        fragment is com.drdisagree.iconify.ui.fragments.xposed.Statusbar ||
-                        fragment is com.drdisagree.iconify.ui.fragments.xposed.VolumePanel ||
-                        fragment is HeaderImage ||
-                        fragment is HeaderClock ||
-                        fragment is LockscreenClock ||
-                        fragment is LockscreenWeather ||
-                        fragment is LockscreenWidget ||
-                        fragment is DepthWallpaper ||
-                        fragment is BackgroundChip ||
-                        fragment is Others
-            }
+        FragmentGroup.XPOSED -> {
+            fragment is Xposed ||
+                    fragment is TransparencyBlur ||
+                    fragment is QuickSettings ||
+                    fragment is Themes ||
+                    fragment is BatteryStyle ||
+                    fragment is com.drdisagree.iconify.ui.fragments.xposed.Statusbar ||
+                    fragment is com.drdisagree.iconify.ui.fragments.xposed.VolumePanel ||
+                    fragment is HeaderImage ||
+                    fragment is HeaderClock ||
+                    fragment is LockscreenClock ||
+                    fragment is LockscreenWeather ||
+                    fragment is LockscreenWidget ||
+                    fragment is DepthWallpaper ||
+                    fragment is BackgroundChip ||
+                    fragment is Others
+        }
 
-            3 -> {
-                fragment is Settings ||
-                        fragment is AppUpdates ||
-                        fragment is Changelog ||
-                        fragment is Credits ||
-                        fragment is Experimental
-            }
-
-            else -> false
+        FragmentGroup.SETTINGS -> {
+            fragment is Settings ||
+                    fragment is AppUpdates ||
+                    fragment is Changelog ||
+                    fragment is Credits ||
+                    fragment is Experimental
         }
     }
 }
