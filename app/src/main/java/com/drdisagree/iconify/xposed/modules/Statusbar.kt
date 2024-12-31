@@ -23,22 +23,18 @@ import com.drdisagree.iconify.common.Preferences.SB_CLOCK_SIZE
 import com.drdisagree.iconify.common.Preferences.SB_CLOCK_SIZE_SWITCH
 import com.drdisagree.iconify.xposed.HookRes.Companion.resParams
 import com.drdisagree.iconify.xposed.ModPack
-import com.drdisagree.iconify.xposed.modules.utils.Helpers.findClassInArray
 import com.drdisagree.iconify.xposed.modules.utils.StatusBarClock.getCenterClockView
 import com.drdisagree.iconify.xposed.modules.utils.StatusBarClock.getLeftClockView
 import com.drdisagree.iconify.xposed.modules.utils.StatusBarClock.getRightClockView
 import com.drdisagree.iconify.xposed.modules.utils.StatusBarClock.setClockGravity
+import com.drdisagree.iconify.xposed.modules.utils.toolkit.XposedHook.Companion.findClass
+import com.drdisagree.iconify.xposed.modules.utils.toolkit.hookMethod
 import com.drdisagree.iconify.xposed.utils.XPrefs.Xprefs
 import com.drdisagree.iconify.xposed.utils.XPrefs.XprefsIsInitialized
 import de.robv.android.xposed.XC_MethodHook
-import de.robv.android.xposed.XC_MethodReplacement
-import de.robv.android.xposed.XposedBridge.hookAllMethods
 import de.robv.android.xposed.XposedBridge.log
 import de.robv.android.xposed.XposedHelpers.callMethod
 import de.robv.android.xposed.XposedHelpers.callStaticMethod
-import de.robv.android.xposed.XposedHelpers.findAndHookMethod
-import de.robv.android.xposed.XposedHelpers.findClass
-import de.robv.android.xposed.XposedHelpers.findClassIfExists
 import de.robv.android.xposed.XposedHelpers.getObjectField
 import de.robv.android.xposed.XposedHelpers.setObjectField
 import de.robv.android.xposed.callbacks.XC_InitPackageResources.InitPackageResourcesParam
@@ -89,178 +85,127 @@ class Statusbar(context: Context) : ModPack(context) {
     }
 
     override fun handleLoadPackage(loadPackageParam: LoadPackageParam) {
-        setColoredNotificationIcons(loadPackageParam)
+        setColoredNotificationIcons()
         hideLockscreenCarrierOrStatusbar()
-        applyClockSize(loadPackageParam)
+        applyClockSize()
     }
 
-    private fun setColoredNotificationIcons(loadPackageParam: LoadPackageParam) {
+    private fun setColoredNotificationIcons() {
         if (!mColoredStatusbarIcon) return
 
-        val notificationIconContainerClass = findClass(
-            "$SYSTEMUI_PACKAGE.statusbar.phone.NotificationIconContainer",
-            loadPackageParam.classLoader
-        )
-        val iconStateClass = findClass(
-            "$SYSTEMUI_PACKAGE.statusbar.phone.NotificationIconContainer\$IconState",
-            loadPackageParam.classLoader
-        )
-        val legacyNotificationIconAreaControllerImplClass = findClassIfExists(
-            "$SYSTEMUI_PACKAGE.statusbar.phone.LegacyNotificationIconAreaControllerImpl",
-            loadPackageParam.classLoader
-        )
-        val drawableSizeClass = findClassIfExists(
-            "$SYSTEMUI_PACKAGE.util.drawable.DrawableSize",
-            loadPackageParam.classLoader
-        )
-        val scalingDrawableWrapperClass = findClass(
-            "$SYSTEMUI_PACKAGE.statusbar.ScalingDrawableWrapper",
-            loadPackageParam.classLoader
-        )
-        val statusBarIconViewClass = findClass(
-            "$SYSTEMUI_PACKAGE.statusbar.StatusBarIconView",
-            loadPackageParam.classLoader
-        )
+        val notificationIconContainerClass =
+            findClass("$SYSTEMUI_PACKAGE.statusbar.phone.NotificationIconContainer")
+        val iconStateClass =
+            findClass("$SYSTEMUI_PACKAGE.statusbar.phone.NotificationIconContainer\$IconState")
+        val legacyNotificationIconAreaControllerImplClass =
+            findClass("$SYSTEMUI_PACKAGE.statusbar.phone.LegacyNotificationIconAreaControllerImpl")
+        val drawableSizeClass = findClass("$SYSTEMUI_PACKAGE.util.drawable.DrawableSize")
+        val scalingDrawableWrapperClass =
+            findClass("$SYSTEMUI_PACKAGE.statusbar.ScalingDrawableWrapper")!!
+        val statusBarIconViewClass = findClass("$SYSTEMUI_PACKAGE.statusbar.StatusBarIconView")
 
-        findAndHookMethod(
-            notificationIconContainerClass,
-            "applyIconStates",
-            @Suppress("UNCHECKED_CAST")
-            object : XC_MethodHook() {
-                override fun afterHookedMethod(param: MethodHookParam) {
-                    val mIconStates: HashMap<View, Any> = getObjectField(
-                        param.thisObject,
-                        "mIconStates"
-                    ) as HashMap<View, Any>
+        @Suppress("UNCHECKED_CAST")
+        notificationIconContainerClass
+            .hookMethod("applyIconStates")
+            .runAfter { param ->
+                val mIconStates: HashMap<View, Any> = getObjectField(
+                    param.thisObject,
+                    "mIconStates"
+                ) as HashMap<View, Any>
 
-                    for (icon in mIconStates.keys) {
-                        removeTintForStatusbarIcon(icon)
-                    }
+                for (icon in mIconStates.keys) {
+                    removeTintForStatusbarIcon(icon)
                 }
             }
-        )
 
-        findAndHookMethod(
-            iconStateClass,
-            "initFrom",
-            View::class.java,
-            object : XC_MethodHook() {
-                override fun afterHookedMethod(param: MethodHookParam) {
-                    removeTintForStatusbarIcon(param)
-                }
-            }
-        )
-
-        findAndHookMethod(
-            iconStateClass,
-            "applyToView",
-            View::class.java,
-            object : XC_MethodHook() {
-                override fun afterHookedMethod(param: MethodHookParam) {
-                    removeTintForStatusbarIcon(param)
-                }
-            }
-        )
-
-        hookAllMethods(
-            statusBarIconViewClass,
-            "updateIconColor",
-            object : XC_MethodReplacement() {
-                override fun replaceHookedMethod(param: MethodHookParam): Any? {
-                    return null
-                }
-            }
-        )
-
-        legacyNotificationIconAreaControllerImplClass?.let { thisClass ->
-            hookAllMethods(
-                thisClass,
-                "updateTintForIcon",
-                object : XC_MethodHook() {
-                    override fun afterHookedMethod(param: MethodHookParam) {
-                        removeTintForStatusbarIcon(param)
-
-                        try {
-                            val view = param.args[0] as View
-                            callMethod(
-                                view,
-                                "setStaticDrawableColor",
-                                0 // StatusBarIconView.NO_COLOR
-                            )
-                            callMethod(
-                                view,
-                                "setDecorColor",
-                                Color.WHITE
-                            )
-                        } catch (ignored: Throwable) {
-                        }
-                    }
-                }
+        iconStateClass
+            .hookMethod(
+                "initFrom",
+                "applyToView"
             )
-        }
+            .runAfter { param -> removeTintForStatusbarIcon(param) }
+
+        statusBarIconViewClass
+            .hookMethod("updateIconColor")
+            .replace { }
+
+        legacyNotificationIconAreaControllerImplClass
+            .hookMethod("updateTintForIcon")
+            .runAfter { param ->
+                removeTintForStatusbarIcon(param)
+
+                try {
+                    val view = param.args[0] as View
+                    callMethod(
+                        view,
+                        "setStaticDrawableColor",
+                        0 // StatusBarIconView.NO_COLOR
+                    )
+                    callMethod(
+                        view,
+                        "setDecorColor",
+                        Color.WHITE
+                    )
+                } catch (ignored: Throwable) {
+                }
+            }
 
         try {
-            findAndHookMethod(
-                statusBarIconViewClass,
-                "getIcon",
-                Context::class.java,
-                Context::class.java,
-                "com.android.internal.statusbar.StatusBarIcon",
-                object : XC_MethodHook() {
-                    override fun beforeHookedMethod(param: MethodHookParam) {
-                        val sysuiContext = param.args[0] as Context
-                        val context = param.args[1] as Context
-                        val statusBarIcon = param.args[2]
+            statusBarIconViewClass
+                .hookMethod("getIcon")
+                .parameters(
+                    Context::class.java,
+                    Context::class.java,
+                    "com.android.internal.statusbar.StatusBarIcon"
+                )
+                .runBefore { param ->
+                    val sysuiContext = param.args[0] as Context
+                    val context = param.args[1] as Context
+                    val statusBarIcon = param.args[2]
 
-                        setNotificationIcon(
-                            statusBarIcon,
-                            context,
-                            sysuiContext,
-                            drawableSizeClass,
-                            param,
-                            scalingDrawableWrapperClass
-                        )
-                    }
+                    setNotificationIcon(
+                        statusBarIcon,
+                        context,
+                        sysuiContext,
+                        drawableSizeClass,
+                        param,
+                        scalingDrawableWrapperClass
+                    )
                 }
-            )
         } catch (ignored: Throwable) {
-            findAndHookMethod(
-                statusBarIconViewClass,
-                "getIcon",
-                "com.android.internal.statusbar.StatusBarIcon",
-                object : XC_MethodHook() {
-                    override fun beforeHookedMethod(param: MethodHookParam) {
-                        val sysuiContext = mContext
-                        var context: Context? = null
-                        val statusBarIcon = param.args[0]
-                        val statusBarNotification = getObjectField(
-                            param.thisObject,
-                            "mNotification"
-                        )
+            statusBarIconViewClass
+                .hookMethod("getIcon")
+                .parameters("com.android.internal.statusbar.StatusBarIcon")
+                .runBefore { param ->
+                    val sysuiContext = mContext
+                    var context: Context? = null
+                    val statusBarIcon = param.args[0]
+                    val statusBarNotification = getObjectField(
+                        param.thisObject,
+                        "mNotification"
+                    )
 
-                        if (statusBarNotification != null) {
-                            context = callMethod(
-                                statusBarNotification,
-                                "getPackageContext",
-                                mContext
-                            ) as Context?
-                        }
-
-                        if (context == null) {
-                            context = mContext
-                        }
-
-                        setNotificationIcon(
-                            statusBarIcon,
-                            context,
-                            sysuiContext,
-                            drawableSizeClass,
-                            param,
-                            scalingDrawableWrapperClass
-                        )
+                    if (statusBarNotification != null) {
+                        context = callMethod(
+                            statusBarNotification,
+                            "getPackageContext",
+                            mContext
+                        ) as Context?
                     }
+
+                    if (context == null) {
+                        context = mContext
+                    }
+
+                    setNotificationIcon(
+                        statusBarIcon,
+                        context,
+                        sysuiContext,
+                        drawableSizeClass,
+                        param,
+                        scalingDrawableWrapperClass
+                    )
                 }
-            )
         }
     }
 
@@ -433,62 +378,55 @@ class Statusbar(context: Context) : ModPack(context) {
         }
     }
 
-    private fun applyClockSize(loadPackageParam: LoadPackageParam) {
-        val collapsedStatusBarFragment = findClassInArray(
-            loadPackageParam.classLoader,
+    private fun applyClockSize() {
+        val collapsedStatusBarFragment = findClass(
             "$SYSTEMUI_PACKAGE.statusbar.phone.CollapsedStatusBarFragment",
             "$SYSTEMUI_PACKAGE.statusbar.phone.fragment.CollapsedStatusBarFragment"
         )
 
-        if (collapsedStatusBarFragment == null) {
-            log(TAG + "CollapsedStatusBarFragment not found")
-            return
-        }
+        collapsedStatusBarFragment
+            .hookMethod("onViewCreated")
+            .parameters(
+                View::class.java,
+                Bundle::class.java
+            )
+            .runAfter { param ->
+                mClockView = getLeftClockView(mContext, param) as? TextView
+                mCenterClockView = getCenterClockView(mContext, param) as? TextView
+                mRightClockView = getRightClockView(mContext, param) as? TextView
 
-        findAndHookMethod(collapsedStatusBarFragment,
-            "onViewCreated",
-            View::class.java,
-            Bundle::class.java,
-            object : XC_MethodHook() {
-                override fun afterHookedMethod(param: MethodHookParam) {
-                    mClockView = getLeftClockView(mContext, param) as? TextView
-                    mCenterClockView = getCenterClockView(mContext, param) as? TextView
-                    mRightClockView = getRightClockView(mContext, param) as? TextView
+                mLeftClockSize = mClockView?.textSize?.toInt() ?: 14
+                mCenterClockSize = mCenterClockView?.textSize?.toInt() ?: 14
+                mRightClockSize = mRightClockView?.textSize?.toInt() ?: 14
 
-                    mLeftClockSize = mClockView?.textSize?.toInt() ?: 14
-                    mCenterClockSize = mCenterClockView?.textSize?.toInt() ?: 14
-                    mRightClockSize = mRightClockView?.textSize?.toInt() ?: 14
+                setClockSize()
 
-                    setClockSize()
-
-                    val textChangeListener = object : TextWatcher {
-                        override fun beforeTextChanged(
-                            s: CharSequence,
-                            start: Int,
-                            count: Int,
-                            after: Int
-                        ) {
-                        }
-
-                        override fun onTextChanged(
-                            s: CharSequence,
-                            start: Int,
-                            before: Int,
-                            count: Int
-                        ) {
-                        }
-
-                        override fun afterTextChanged(s: Editable) {
-                            setClockSize()
-                        }
+                val textChangeListener = object : TextWatcher {
+                    override fun beforeTextChanged(
+                        s: CharSequence,
+                        start: Int,
+                        count: Int,
+                        after: Int
+                    ) {
                     }
 
-                    mClockView?.addTextChangedListener(textChangeListener)
-                    mCenterClockView?.addTextChangedListener(textChangeListener)
-                    mRightClockView?.addTextChangedListener(textChangeListener)
-                }
-            })
+                    override fun onTextChanged(
+                        s: CharSequence,
+                        start: Int,
+                        before: Int,
+                        count: Int
+                    ) {
+                    }
 
+                    override fun afterTextChanged(s: Editable) {
+                        setClockSize()
+                    }
+                }
+
+                mClockView?.addTextChangedListener(textChangeListener)
+                mCenterClockView?.addTextChangedListener(textChangeListener)
+                mRightClockView?.addTextChangedListener(textChangeListener)
+            }
     }
 
     @SuppressLint("RtlHardcoded")

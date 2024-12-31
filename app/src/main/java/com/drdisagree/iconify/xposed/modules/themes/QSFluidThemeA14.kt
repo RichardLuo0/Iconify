@@ -32,6 +32,7 @@ import com.drdisagree.iconify.xposed.ModPack
 import com.drdisagree.iconify.xposed.modules.utils.RoundedCornerProgressDrawable
 import com.drdisagree.iconify.xposed.modules.utils.SettingsLibUtils
 import com.drdisagree.iconify.xposed.modules.utils.ViewHelper.toPx
+import com.drdisagree.iconify.xposed.modules.utils.toolkit.XposedHook.Companion.findClass
 import com.drdisagree.iconify.xposed.utils.SystemUtils
 import com.drdisagree.iconify.xposed.utils.XPrefs.Xprefs
 import com.drdisagree.iconify.xposed.utils.XPrefs.XprefsIsInitialized
@@ -40,8 +41,8 @@ import de.robv.android.xposed.XposedBridge.hookAllConstructors
 import de.robv.android.xposed.XposedBridge.hookAllMethods
 import de.robv.android.xposed.XposedBridge.log
 import de.robv.android.xposed.XposedHelpers.callStaticMethod
-import de.robv.android.xposed.XposedHelpers.findClass
-import de.robv.android.xposed.XposedHelpers.findClassIfExists
+
+
 import de.robv.android.xposed.XposedHelpers.getIntField
 import de.robv.android.xposed.XposedHelpers.getObjectField
 import de.robv.android.xposed.XposedHelpers.setObjectField
@@ -87,68 +88,32 @@ class QSFluidThemeA14(context: Context) : ModPack(context) {
     }
 
     override fun handleLoadPackage(loadPackageParam: LoadPackageParam) {
-        val qsPanelClass = findClass(
-            "$SYSTEMUI_PACKAGE.qs.QSPanel",
-            loadPackageParam.classLoader
-        )
-        val qsTileViewImplClass = findClass(
-            "$SYSTEMUI_PACKAGE.qs.tileimpl.QSTileViewImpl",
-            loadPackageParam.classLoader
-        )
-        val qsIconViewImplClass = findClass(
-            "$SYSTEMUI_PACKAGE.qs.tileimpl.QSIconViewImpl",
-            loadPackageParam.classLoader
-        )
-        var footerViewClass = findClassIfExists(
+        val qsPanelClass = findClass("$SYSTEMUI_PACKAGE.qs.QSPanel")
+        val qsTileViewImplClass = findClass("$SYSTEMUI_PACKAGE.qs.tileimpl.QSTileViewImpl")
+        val qsIconViewImplClass = findClass("$SYSTEMUI_PACKAGE.qs.tileimpl.QSIconViewImpl")
+        val footerViewClass = findClass(
             "$SYSTEMUI_PACKAGE.statusbar.notification.footer.ui.view.FooterView",
-            loadPackageParam.classLoader
+            "$SYSTEMUI_PACKAGE.statusbar.notification.row.FooterView"
         )
-        if (footerViewClass == null) {
-            footerViewClass = findClass(
-                "$SYSTEMUI_PACKAGE.statusbar.notification.row.FooterView",
-                loadPackageParam.classLoader
-            )
-        }
-        val centralSurfacesImplClass = findClassIfExists(
-            "$SYSTEMUI_PACKAGE.statusbar.phone.CentralSurfacesImpl",
-            loadPackageParam.classLoader
-        )
-        val notificationExpandButtonClass = findClassIfExists(
-            "com.android.internal.widget.NotificationExpandButton",
-            loadPackageParam.classLoader
-        )
-        val brightnessSliderViewClass = findClass(
-            "$SYSTEMUI_PACKAGE.settings.brightness.BrightnessSliderView",
-            loadPackageParam.classLoader
-        )
-        val brightnessControllerClass = findClass(
-            "$SYSTEMUI_PACKAGE.settings.brightness.BrightnessController",
-            loadPackageParam.classLoader
-        )
-        val brightnessMirrorControllerClass = findClass(
-            "$SYSTEMUI_PACKAGE.statusbar.policy.BrightnessMirrorController",
-            loadPackageParam.classLoader
-        )
-        val brightnessSliderControllerClass = findClassIfExists(
-            "$SYSTEMUI_PACKAGE.settings.brightness.BrightnessSliderController",
-            loadPackageParam.classLoader
-        )
-        val activatableNotificationViewClass = findClass(
-            "$SYSTEMUI_PACKAGE.statusbar.notification.row.ActivatableNotificationView",
-            loadPackageParam.classLoader
-        )
-        val themeColorKtClass = findClassIfExists(
-            "com.android.compose.theme.ColorKt",
-            loadPackageParam.classLoader
-        )
-        val footerActionsViewModelClass = findClassIfExists(
-            "$SYSTEMUI_PACKAGE.qs.footer.ui.viewmodel.FooterActionsViewModel",
-            loadPackageParam.classLoader
-        )
-        val footerActionsViewBinderClass = findClassIfExists(
-            "$SYSTEMUI_PACKAGE.qs.footer.ui.binder.FooterActionsViewBinder",
-            loadPackageParam.classLoader
-        )
+        val centralSurfacesImplClass =
+            findClass("$SYSTEMUI_PACKAGE.statusbar.phone.CentralSurfacesImpl")
+        val notificationExpandButtonClass =
+            findClass("com.android.internal.widget.NotificationExpandButton")
+        val brightnessSliderViewClass =
+            findClass("$SYSTEMUI_PACKAGE.settings.brightness.BrightnessSliderView")
+        val brightnessControllerClass =
+            findClass("$SYSTEMUI_PACKAGE.settings.brightness.BrightnessController")
+        val brightnessMirrorControllerClass =
+            findClass("$SYSTEMUI_PACKAGE.statusbar.policy.BrightnessMirrorController")
+        val brightnessSliderControllerClass =
+            findClass("$SYSTEMUI_PACKAGE.settings.brightness.BrightnessSliderController")
+        val activatableNotificationViewClass =
+            findClass("$SYSTEMUI_PACKAGE.statusbar.notification.row.ActivatableNotificationView")
+        val themeColorKtClass = findClass("com.android.compose.theme.ColorKt")
+        val footerActionsViewModelClass =
+            findClass("$SYSTEMUI_PACKAGE.qs.footer.ui.viewmodel.FooterActionsViewModel")
+        val footerActionsViewBinderClass =
+            findClass("$SYSTEMUI_PACKAGE.qs.footer.ui.binder.FooterActionsViewBinder")
 
         // Initialize resources and colors
         hookAllMethods(qsTileViewImplClass, "init", object : XC_MethodHook() {
@@ -272,10 +237,7 @@ class QSFluidThemeA14(context: Context) : ModPack(context) {
         })
 
         try {
-            val qsContainerImplClass = findClass(
-                "$SYSTEMUI_PACKAGE.qs.QSContainerImpl",
-                loadPackageParam.classLoader
-            )
+            val qsContainerImplClass = findClass("$SYSTEMUI_PACKAGE.qs.QSContainerImpl")
 
             hookAllMethods(qsContainerImplClass, "updateResources", object : XC_MethodHook() {
                 override fun afterHookedMethod(param: MethodHookParam) {
@@ -362,10 +324,7 @@ class QSFluidThemeA14(context: Context) : ModPack(context) {
         }
 
         try { // Compose implementation of QS Footer actions
-            val graphicsColorKtClass = findClass(
-                "androidx.compose.ui.graphics.ColorKt",
-                loadPackageParam.classLoader
-            )
+            val graphicsColorKtClass = findClass("androidx.compose.ui.graphics.ColorKt")
 
             hookAllMethods(themeColorKtClass, "colorAttr", object : XC_MethodHook() {
                 override fun beforeHookedMethod(param: MethodHookParam) {
@@ -407,14 +366,9 @@ class QSFluidThemeA14(context: Context) : ModPack(context) {
                     setObjectField(power, "backgroundColor", PM_LITE_BACKGROUND_CODE)
 
                     // We must use the classes defined in the apk. Using our own will fail.
-                    val stateFlowImplClass = findClass(
-                        "kotlinx.coroutines.flow.StateFlowImpl",
-                        loadPackageParam.classLoader
-                    )
-                    val readonlyStateFlowClass = findClass(
-                        "kotlinx.coroutines.flow.ReadonlyStateFlow",
-                        loadPackageParam.classLoader
-                    )
+                    val stateFlowImplClass = findClass("kotlinx.coroutines.flow.StateFlowImpl")!!
+                    val readonlyStateFlowClass =
+                        findClass("kotlinx.coroutines.flow.ReadonlyStateFlow")!!
 
                     try {
                         val zeroAlphaFlow = stateFlowImplClass
@@ -870,14 +824,10 @@ class QSFluidThemeA14(context: Context) : ModPack(context) {
 
         // Power menu
         try {
-            val globalActionsDialogLiteSinglePressActionClass = findClass(
-                "$SYSTEMUI_PACKAGE.globalactions.GlobalActionsDialogLite\$SinglePressAction",
-                loadPackageParam.classLoader
-            )
-            val globalActionsLayoutLiteClass = findClass(
-                "$SYSTEMUI_PACKAGE.globalactions.GlobalActionsLayoutLite",
-                loadPackageParam.classLoader
-            )
+            val globalActionsDialogLiteSinglePressActionClass =
+                findClass("$SYSTEMUI_PACKAGE.globalactions.GlobalActionsDialogLite\$SinglePressAction")
+            val globalActionsLayoutLiteClass =
+                findClass("$SYSTEMUI_PACKAGE.globalactions.GlobalActionsLayoutLite")
 
             // Layout background
             hookAllMethods(globalActionsLayoutLiteClass, "onLayout", object : XC_MethodHook() {

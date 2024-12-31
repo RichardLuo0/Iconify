@@ -11,8 +11,6 @@ import android.graphics.RectF
 import android.graphics.Typeface
 import android.graphics.drawable.Drawable
 import com.drdisagree.iconify.xposed.modules.utils.ViewHelper.toPx
-import javax.annotation.Nullable
-
 
 object ArcProgressWidget {
 
@@ -21,10 +19,11 @@ object ArcProgressWidget {
         percentage: Int = 100,
         textInside: String = "",
         textInsideSizePx: Int,
-        @Nullable iconDrawable: Drawable? = null,
+        iconDrawable: Drawable? = null,
         iconSizePx: Int = 28,
         textBottom: String = "...",
-        textBottomSizePx: Int = 28
+        textBottomSizePx: Int = 28,
+        typeface: Typeface? = Typeface.create("sans-serif", Typeface.BOLD)
     ): Bitmap {
         val width = 400
         val height = 400
@@ -38,10 +37,12 @@ object ArcProgressWidget {
         paint.style = Paint.Style.STROKE
         paint.strokeCap = Paint.Cap.ROUND
 
-        val mTextPaint = Paint(Paint.ANTI_ALIAS_FLAG)
-        mTextPaint.textSize = context.toPx(textInsideSizePx).toFloat()
-        mTextPaint.setColor(Color.WHITE)
-        mTextPaint.textAlign = Paint.Align.CENTER
+        val mTextPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            textSize = context.toPx(textInsideSizePx).toFloat()
+            color = Color.WHITE
+            textAlign = Paint.Align.CENTER
+            this.typeface = typeface
+        }
 
         val arc = RectF()
         arc[stroke.toFloat() / 2 + padding, stroke.toFloat() / 2 + padding, width - padding - stroke.toFloat() / 2] =
@@ -50,13 +51,12 @@ object ArcProgressWidget {
         val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
 
-        paint.setColor(Color.argb(75, 255, 255, 255))
+        paint.color = Color.argb(75, 255, 255, 255)
         canvas.drawArc(arc, minAngle.toFloat(), maxAngle.toFloat(), false, paint)
 
-        paint.setColor(Color.WHITE)
+        paint.color = Color.WHITE
         canvas.drawArc(arc, minAngle.toFloat(), maxAngle.toFloat() / 100 * percentage, false, paint)
 
-        mTextPaint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD))
         canvas.drawText(
             textInside,
             bitmap.getWidth().toFloat() / 2,
@@ -64,17 +64,17 @@ object ArcProgressWidget {
             mTextPaint
         )
 
-        if (iconDrawable != null) {
+        iconDrawable?.apply {
             val size = context.toPx(iconSizePx)
             val left = (bitmap.getWidth() - size) / 2
             val top = bitmap.getHeight() - (size / 1.3).toInt() - (stroke + padding)
             val right = left + size
             val bottom = top + size
 
-            iconDrawable.setBounds(left, top, right, bottom)
-            iconDrawable.colorFilter = BlendModeColorFilter(Color.WHITE, BlendMode.SRC_IN)
-            iconDrawable.draw(canvas)
-        } else {
+            setBounds(left, top, right, bottom)
+            colorFilter = BlendModeColorFilter(Color.WHITE, BlendMode.SRC_IN)
+            draw(canvas)
+        } ?: run {
             mTextPaint.textSize = context.toPx(textBottomSizePx).toFloat()
             canvas.drawText(
                 textBottom,

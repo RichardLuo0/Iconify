@@ -9,6 +9,7 @@ import com.drdisagree.iconify.common.Const.SYSTEMUI_PACKAGE
 import com.drdisagree.iconify.common.Preferences.DUALTONE_QSPANEL
 import com.drdisagree.iconify.common.Preferences.LIGHT_QSPANEL
 import com.drdisagree.iconify.xposed.ModPack
+import com.drdisagree.iconify.xposed.modules.utils.toolkit.XposedHook.Companion.findClass
 import com.drdisagree.iconify.xposed.utils.SystemUtils
 import com.drdisagree.iconify.xposed.utils.XPrefs.Xprefs
 import com.drdisagree.iconify.xposed.utils.XPrefs.XprefsIsInitialized
@@ -20,7 +21,7 @@ import de.robv.android.xposed.XposedBridge.log
 import de.robv.android.xposed.XposedHelpers.callMethod
 import de.robv.android.xposed.XposedHelpers.callStaticMethod
 import de.robv.android.xposed.XposedHelpers.findAndHookMethod
-import de.robv.android.xposed.XposedHelpers.findClass
+
 import de.robv.android.xposed.XposedHelpers.findMethodExact
 import de.robv.android.xposed.XposedHelpers.findMethodExactIfExists
 import de.robv.android.xposed.XposedHelpers.getObjectField
@@ -57,33 +58,16 @@ class QSLightThemeA12(context: Context) : ModPack(context) {
     }
 
     override fun handleLoadPackage(loadPackageParam: LoadPackageParam) {
-        val utilsClass = findClass("com.android.settingslib.Utils", loadPackageParam.classLoader)
-        val ongoingPrivacyChipClass = findClass(
-            "$SYSTEMUI_PACKAGE.privacy.OngoingPrivacyChip",
-            loadPackageParam.classLoader
-        )
-        val fragmentHostManagerClass = findClass(
-            "$SYSTEMUI_PACKAGE.fragments.FragmentHostManager",
-            loadPackageParam.classLoader
-        )
-        val scrimControllerClass = findClass(
-            "$SYSTEMUI_PACKAGE.statusbar.phone.ScrimController",
-            loadPackageParam.classLoader
-        )
-        val gradientColorsClass = findClass(
-            "com.android.internal.colorextraction.ColorExtractor.GradientColors",
-            loadPackageParam.classLoader
-        )
-        val statusbarClass = findClass(
-            "$SYSTEMUI_PACKAGE.statusbar.phone.StatusBar",
-            loadPackageParam.classLoader
-        )
-        val interestingConfigChangesClass = findClass(
-            "com.android.settingslib.applications.InterestingConfigChanges",
-            loadPackageParam.classLoader
-        )
-        var applyStateMethod =
-            findMethodExactIfExists(scrimControllerClass, "applyStateToAlpha")
+        val utilsClass = findClass("com.android.settingslib.Utils")
+        val ongoingPrivacyChipClass = findClass("$SYSTEMUI_PACKAGE.privacy.OngoingPrivacyChip")
+        val fragmentHostManagerClass = findClass("$SYSTEMUI_PACKAGE.fragments.FragmentHostManager")
+        val scrimControllerClass = findClass("$SYSTEMUI_PACKAGE.statusbar.phone.ScrimController")
+        val gradientColorsClass =
+            findClass("com.android.internal.colorextraction.ColorExtractor.GradientColors")!!
+        val statusbarClass = findClass("$SYSTEMUI_PACKAGE.statusbar.phone.StatusBar")
+        val interestingConfigChangesClass =
+            findClass("com.android.settingslib.applications.InterestingConfigChanges")!!
+        var applyStateMethod = findMethodExactIfExists(scrimControllerClass, "applyStateToAlpha")
         if (applyStateMethod == null) {
             applyStateMethod = findMethodExact(scrimControllerClass, "applyState", null)
         }
@@ -207,10 +191,7 @@ class QSLightThemeA12(context: Context) : ModPack(context) {
         })
 
         try {
-            val scrimStateEnum = findClass(
-                "$SYSTEMUI_PACKAGE.statusbar.phone.ScrimState",
-                loadPackageParam.classLoader
-            )
+            val scrimStateEnum = findClass("$SYSTEMUI_PACKAGE.statusbar.phone.ScrimState")!!
             val constants: Array<out Any>? = scrimStateEnum.enumConstants
 
             if (constants != null) {

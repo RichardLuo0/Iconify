@@ -32,12 +32,11 @@ import com.drdisagree.iconify.common.Preferences.UNZOOM_DEPTH_WALLPAPER
 import com.drdisagree.iconify.xposed.ModPack
 import com.drdisagree.iconify.xposed.modules.utils.ParallaxImageView
 import com.drdisagree.iconify.xposed.modules.utils.ViewHelper.toPx
+import com.drdisagree.iconify.xposed.modules.utils.toolkit.XposedHook.Companion.findClass
+import com.drdisagree.iconify.xposed.modules.utils.toolkit.hookMethod
 import com.drdisagree.iconify.xposed.utils.XPrefs.Xprefs
 import com.drdisagree.iconify.xposed.utils.XPrefs.XprefsIsInitialized
 import de.robv.android.xposed.XC_MethodHook
-import de.robv.android.xposed.XposedBridge.hookAllMethods
-import de.robv.android.xposed.XposedHelpers.findClass
-import de.robv.android.xposed.XposedHelpers.findClassIfExists
 import de.robv.android.xposed.XposedHelpers.getObjectField
 import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam
 import java.io.File
@@ -88,14 +87,13 @@ class DepthWallpaper(context: Context) : ModPack(context) {
     }
 
     override fun handleLoadPackage(loadPackageParam: LoadPackageParam) {
-        val keyguardBottomAreaViewClass = findClass(
-            "$SYSTEMUI_PACKAGE.statusbar.phone.KeyguardBottomAreaView",
-            loadPackageParam.classLoader
-        )
+        val keyguardBottomAreaViewClass =
+            findClass("$SYSTEMUI_PACKAGE.statusbar.phone.KeyguardBottomAreaView")
 
-        hookAllMethods(keyguardBottomAreaViewClass, "onFinishInflate", object : XC_MethodHook() {
-            override fun afterHookedMethod(param: MethodHookParam) {
-                if (!showDepthWallpaper) return
+        keyguardBottomAreaViewClass
+            .hookMethod("onFinishInflate")
+            .runAfter { param ->
+                if (!showDepthWallpaper) return@runAfter
 
                 val view = param.thisObject as View
                 val mIndicationArea = view.findViewById<ViewGroup>(
@@ -333,129 +331,105 @@ class DepthWallpaper(context: Context) : ModPack(context) {
 
                 updateWallpaper()
             }
-        })
 
-        hookAllMethods(
-            keyguardBottomAreaViewClass,
-            "onConfigurationChanged",
-            object : XC_MethodHook() {
+        keyguardBottomAreaViewClass
+            .hookMethod("onConfigurationChanged")
+            .runAfter { updateWallpaper() }
+
+        val notificationPanelViewControllerClass = findClass(
+            "$SYSTEMUI_PACKAGE.shade.NotificationPanelViewController",
+            "$SYSTEMUI_PACKAGE.statusbar.phone.NotificationPanelViewController"
+        )
+
+        notificationPanelViewControllerClass
+            .hookMethod(
+                "onFinishInflate",
+                "reInflateViews"
+            )
+            .run(object : XC_MethodHook() {
                 override fun afterHookedMethod(param: MethodHookParam) {
-                    updateWallpaper()
+                    if (!showDepthWallpaper) return
+
+                    val mView = getObjectField(param.thisObject, "mView") as View
+                    val keyguardBottomArea = mView.findViewById<View>(
+                        mContext.resources.getIdentifier(
+                            "keyguard_bottom_area",
+                            "id",
+                            mContext.packageName
+                        )
+                    )
+
+                    val parent = keyguardBottomArea.parent as ViewGroup
+                    parent.removeView(keyguardBottomArea)
+                    parent.addView(keyguardBottomArea, 0)
                 }
             })
 
-        var notificationPanelViewControllerClass = findClassIfExists(
-            "$SYSTEMUI_PACKAGE.shade.NotificationPanelViewController",
-            loadPackageParam.classLoader
-        )
-        if (notificationPanelViewControllerClass == null) notificationPanelViewControllerClass =
-            findClass(
-                "$SYSTEMUI_PACKAGE.statusbar.phone.NotificationPanelViewController",
-                loadPackageParam.classLoader
+        Resources::class.java
+            .hookMethod(
+                "getDimensionPixelOffset",
+                "getDimensionPixelSize"
             )
+            .suppressError()
+            .run(object : XC_MethodHook() {
+                override fun beforeHookedMethod(param: MethodHookParam) {
+                    if (showDepthWallpaper) {
+                        if (Build.VERSION.SDK_INT >= 33) {
+                            try {
+                                val resId = mContext.resources.getIdentifier(
+                                    "keyguard_indication_area_padding",
+                                    "dimen",
+                                    mContext.packageName
+                                )
 
-        val moveKeyguardBottomArea: XC_MethodHook = object : XC_MethodHook() {
-            override fun afterHookedMethod(param: MethodHookParam) {
-                if (!showDepthWallpaper) return
-
-                val mView = getObjectField(param.thisObject, "mView") as View
-                val keyguardBottomArea = mView.findViewById<View>(
-                    mContext.resources.getIdentifier(
-                        "keyguard_bottom_area",
-                        "id",
-                        mContext.packageName
-                    )
-                )
-
-                val parent = keyguardBottomArea.parent as ViewGroup
-                parent.removeView(keyguardBottomArea)
-                parent.addView(keyguardBottomArea, 0)
-            }
-        }
-
-        hookAllMethods(
-            notificationPanelViewControllerClass,
-            "onFinishInflate",
-            moveKeyguardBottomArea
-        )
-        hookAllMethods(
-            notificationPanelViewControllerClass,
-            "reInflateViews",
-            moveKeyguardBottomArea
-        )
-
-        val noKeyguardIndicationPadding: XC_MethodHook = object : XC_MethodHook() {
-            override fun beforeHookedMethod(param: MethodHookParam) {
-                if (showDepthWallpaper) {
-                    if (Build.VERSION.SDK_INT >= 33) {
-                        try {
-                            val resId = mContext.resources.getIdentifier(
-                                "keyguard_indication_area_padding",
-                                "dimen",
-                                mContext.packageName
-                            )
-
-                            if (param.args[0] == resId) {
-                                param.result = 0
+                                if (param.args[0] == resId) {
+                                    param.result = 0
+                                }
+                            } catch (ignored: Throwable) {
                             }
-                        } catch (ignored: Throwable) {
-                        }
-                    } else {
-                        // These resources are only available on Android 12L and below
-                        try {
-                            val resId = mContext.resources.getIdentifier(
-                                "keyguard_indication_margin_bottom",
-                                "dimen",
-                                mContext.packageName
-                            )
+                        } else {
+                            // These resources are only available on Android 12L and below
+                            try {
+                                val resId = mContext.resources.getIdentifier(
+                                    "keyguard_indication_margin_bottom",
+                                    "dimen",
+                                    mContext.packageName
+                                )
 
-                            if (param.args[0] == resId) {
-                                param.result = 0
+                                if (param.args[0] == resId) {
+                                    param.result = 0
+                                }
+                            } catch (ignored: Throwable) {
                             }
-                        } catch (ignored: Throwable) {
-                        }
-                        try {
-                            val resId = mContext.resources.getIdentifier(
-                                "keyguard_indication_margin_bottom_fingerprint_in_display",
-                                "dimen",
-                                mContext.packageName
-                            )
+                            try {
+                                val resId = mContext.resources.getIdentifier(
+                                    "keyguard_indication_margin_bottom_fingerprint_in_display",
+                                    "dimen",
+                                    mContext.packageName
+                                )
 
-                            if (param.args[0] == resId) {
-                                param.result = 0
+                                if (param.args[0] == resId) {
+                                    param.result = 0
+                                }
+                            } catch (ignored: Throwable) {
                             }
-                        } catch (ignored: Throwable) {
                         }
                     }
                 }
-            }
-        }
+            })
 
-        hookAllMethods(
-            Resources::class.java,
-            "getDimensionPixelOffset",
-            noKeyguardIndicationPadding
-        )
-        hookAllMethods(
-            Resources::class.java,
-            "getDimensionPixelSize",
-            noKeyguardIndicationPadding
-        )
+        val dozeScrimControllerClass =
+            findClass("$SYSTEMUI_PACKAGE.statusbar.phone.DozeScrimController")
 
-        val dozeScrimControllerClass = findClass(
-            "$SYSTEMUI_PACKAGE.statusbar.phone.DozeScrimController",
-            loadPackageParam.classLoader
-        )
-
-        hookAllMethods(dozeScrimControllerClass, "onDozingChanged", object : XC_MethodHook() {
-            override fun afterHookedMethod(param: MethodHookParam) {
+        dozeScrimControllerClass
+            .hookMethod("onDozingChanged")
+            .runAfter { param ->
                 Handler(Looper.getMainLooper()).post {
                     updateFadeAnimation(
                         isDozing = param.args[0] as Boolean
                     )
                 }
             }
-        })
     }
 
     private fun updateWallpaper() {

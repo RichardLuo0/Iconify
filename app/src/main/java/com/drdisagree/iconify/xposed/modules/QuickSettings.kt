@@ -39,22 +39,19 @@ import com.drdisagree.iconify.common.Preferences.QS_TEXT_FOLLOW_ACCENT
 import com.drdisagree.iconify.common.Preferences.QS_TOPMARGIN
 import com.drdisagree.iconify.common.Preferences.VERTICAL_QSTILE_SWITCH
 import com.drdisagree.iconify.xposed.ModPack
-import com.drdisagree.iconify.xposed.modules.utils.Helpers.findClassInArray
-import com.drdisagree.iconify.xposed.modules.utils.Helpers.hookAllMethodsMatchPattern
 import com.drdisagree.iconify.xposed.modules.utils.Helpers.isPixelVariant
 import com.drdisagree.iconify.xposed.modules.utils.ViewHelper.toPx
+import com.drdisagree.iconify.xposed.modules.utils.toolkit.XposedHook.Companion.findClass
+import com.drdisagree.iconify.xposed.modules.utils.toolkit.hookConstructor
+import com.drdisagree.iconify.xposed.modules.utils.toolkit.hookMethod
+import com.drdisagree.iconify.xposed.modules.utils.toolkit.hookMethodMatchPattern
 import com.drdisagree.iconify.xposed.utils.XPrefs.Xprefs
 import com.drdisagree.iconify.xposed.utils.XPrefs.XprefsIsInitialized
 import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XC_MethodHook.MethodHookParam
-import de.robv.android.xposed.XC_MethodReplacement
-import de.robv.android.xposed.XposedBridge.hookAllConstructors
-import de.robv.android.xposed.XposedBridge.hookAllMethods
 import de.robv.android.xposed.XposedBridge.log
 import de.robv.android.xposed.XposedHelpers.callMethod
 import de.robv.android.xposed.XposedHelpers.callStaticMethod
-import de.robv.android.xposed.XposedHelpers.findClass
-import de.robv.android.xposed.XposedHelpers.findClassIfExists
 import de.robv.android.xposed.XposedHelpers.getObjectField
 import de.robv.android.xposed.XposedHelpers.setObjectField
 import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam
@@ -113,27 +110,22 @@ class QuickSettings(context: Context) : ModPack(context) {
     }
 
     override fun handleLoadPackage(loadPackageParam: LoadPackageParam) {
-        setVerticalTiles(loadPackageParam)
-        setQsMargin(loadPackageParam)
-        fixQsTileAndLabelColorA14(loadPackageParam)
-        fixNotificationColorA14(loadPackageParam)
-        manageQsElementVisibility(loadPackageParam)
-        disableQsOnSecureLockScreen(loadPackageParam)
+        setVerticalTiles()
+        setQsMargin()
+        fixQsTileAndLabelColorA14()
+        fixNotificationColorA14()
+        manageQsElementVisibility()
+        disableQsOnSecureLockScreen()
     }
 
-    private fun setVerticalTiles(loadPackageParam: LoadPackageParam) {
-        val qsTileViewImplClass = findClass(
-            "$SYSTEMUI_PACKAGE.qs.tileimpl.QSTileViewImpl",
-            loadPackageParam.classLoader
-        )
-        val fontSizeUtils = findClass(
-            "$SYSTEMUI_PACKAGE.FontSizeUtils",
-            loadPackageParam.classLoader
-        )
+    private fun setVerticalTiles() {
+        val qsTileViewImplClass = findClass("$SYSTEMUI_PACKAGE.qs.tileimpl.QSTileViewImpl")
+        val fontSizeUtils = findClass("$SYSTEMUI_PACKAGE.FontSizeUtils")
 
-        hookAllConstructors(qsTileViewImplClass, object : XC_MethodHook() {
-            override fun afterHookedMethod(param: MethodHookParam) {
-                if (!isVerticalQSTileActive) return
+        qsTileViewImplClass
+            .hookConstructor()
+            .runAfter { param ->
+                if (!isVerticalQSTileActive) return@runAfter
 
                 mParam = param.thisObject
 
@@ -226,21 +218,22 @@ class QuickSettings(context: Context) : ModPack(context) {
                     log(TAG + throwable)
                 }
             }
-        })
 
-        hookAllMethods(qsTileViewImplClass, "onConfigurationChanged", object : XC_MethodHook() {
-            override fun afterHookedMethod(param: MethodHookParam) {
-                if (!isVerticalQSTileActive) return
+        qsTileViewImplClass
+            .hookMethod("onConfigurationChanged")
+            .runAfter { param ->
+                if (!isVerticalQSTileActive) return@runAfter
 
                 fixTileLayout(param.thisObject as LinearLayout, mParam)
             }
-        })
     }
 
-    private fun setQsMargin(loadPackageParam: LoadPackageParam) {
-        hookAllMethods(Resources::class.java, "getDimensionPixelSize", object : XC_MethodHook() {
-            override fun beforeHookedMethod(param: MethodHookParam) {
-                if (!customQsMarginsEnabled) return
+    private fun setQsMargin() {
+        Resources::class.java
+            .hookMethod("getDimensionPixelSize")
+            .suppressError()
+            .runBefore { param ->
+                if (!customQsMarginsEnabled) return@runBefore
 
                 val qqsHeaderResNames = arrayOf(
                     "qs_header_system_icons_area_height",
@@ -292,556 +285,471 @@ class QuickSettings(context: Context) : ModPack(context) {
                     }
                 }
             }
-        })
-        try {
-            val quickStatusBarHeader = findClass(
-                "$SYSTEMUI_PACKAGE.qs.QuickStatusBarHeader",
-                loadPackageParam.classLoader
-            )
 
-            hookAllMethods(quickStatusBarHeader, "updateResources", object : XC_MethodHook() {
-                override fun afterHookedMethod(param: MethodHookParam) {
-                    if (!customQsMarginsEnabled) return
+        val quickStatusBarHeader = findClass("$SYSTEMUI_PACKAGE.qs.QuickStatusBarHeader")
 
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                        try {
-                            val res = mContext.resources
+        quickStatusBarHeader
+            .hookMethod("updateResources")
+            .runAfter { param ->
+                if (!customQsMarginsEnabled) return@runAfter
 
-                            val qqsLP = callMethod(
-                                getObjectField(
-                                    param.thisObject,
-                                    "mHeaderQsPanel"
-                                ), "getLayoutParams"
-                            ) as MarginLayoutParams
-                            qqsLP.topMargin = mContext.resources.getDimensionPixelSize(
-                                res.getIdentifier(
-                                    "qqs_layout_margin_top",
-                                    "dimen",
-                                    mContext.packageName
-                                )
-                            )
-
-                            callMethod(
-                                getObjectField(
-                                    param.thisObject,
-                                    "mHeaderQsPanel"
-                                ), "setLayoutParams", qqsLP
-                            )
-                        } catch (throwable: Throwable) {
-                            log(TAG + throwable)
-                        }
-                    }
-                }
-            })
-        } catch (throwable: Throwable) {
-            log(TAG + throwable)
-        }
-    }
-
-    private fun fixQsTileAndLabelColorA14(loadPackageParam: LoadPackageParam) {
-        if (!isAtLeastAndroid14) return
-
-        try {
-            val qsTileViewImplClass = findClass(
-                "$SYSTEMUI_PACKAGE.qs.tileimpl.QSTileViewImpl",
-                loadPackageParam.classLoader
-            )
-
-            val removeQsTileTint: XC_MethodHook = object : XC_MethodHook() {
-                override fun afterHookedMethod(param: MethodHookParam) {
-                    if (!fixQsTileColor) return
-
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                     try {
-                        setObjectField(
-                            param.thisObject,
-                            "colorActive",
-                            Color.WHITE
+                        val res = mContext.resources
+
+                        val qqsLP = callMethod(
+                            getObjectField(
+                                param.thisObject,
+                                "mHeaderQsPanel"
+                            ), "getLayoutParams"
+                        ) as MarginLayoutParams
+                        qqsLP.topMargin = mContext.resources.getDimensionPixelSize(
+                            res.getIdentifier(
+                                "qqs_layout_margin_top",
+                                "dimen",
+                                mContext.packageName
+                            )
                         )
-                        setObjectField(
-                            param.thisObject,
-                            "colorInactive",
-                            Color.TRANSPARENT
-                        )
-                        setObjectField(
-                            param.thisObject,
-                            "colorUnavailable",
-                            Color.TRANSPARENT
+
+                        callMethod(
+                            getObjectField(
+                                param.thisObject,
+                                "mHeaderQsPanel"
+                            ), "setLayoutParams", qqsLP
                         )
                     } catch (throwable: Throwable) {
                         log(TAG + throwable)
                     }
                 }
             }
+    }
 
-            if (fixQsTileColor && qsTileViewImplClass.declaredMethods.find { it.name == "setStateLayer" } != null) {
-                hookAllMethods(
-                    qsTileViewImplClass,
-                    "setStateLayer",
-                    object : XC_MethodReplacement() {
-                        override fun replaceHookedMethod(param: MethodHookParam): Any? {
-                            val currentState = getObjectField(
-                                param.thisObject,
-                                "currentState"
-                            ) as Int
+    private fun fixQsTileAndLabelColorA14() {
+        if (!isAtLeastAndroid14) return
 
-                            val ld: LayerDrawable = (getObjectField(
-                                param.thisObject,
-                                "backgroundDrawable"
-                            ) as LayerDrawable).mutate() as LayerDrawable
+        val qsTileViewImplClass = findClass("$SYSTEMUI_PACKAGE.qs.tileimpl.QSTileViewImpl")!!
 
-                            when (currentState) {
-                                Tile.STATE_ACTIVE -> ld.setTint(Color.WHITE)
+        if (fixQsTileColor && qsTileViewImplClass.declaredMethods.find { it.name == "setStateLayer" } != null) {
+            qsTileViewImplClass
+                .hookMethod("setStateLayer")
+                .replace { param ->
+                    val currentState = getObjectField(
+                        param.thisObject,
+                        "currentState"
+                    ) as Int
 
-                                Tile.STATE_INACTIVE -> ld.setTint(Color.TRANSPARENT)
+                    val ld: LayerDrawable = (getObjectField(
+                        param.thisObject,
+                        "backgroundDrawable"
+                    ) as LayerDrawable).mutate() as LayerDrawable
 
-                                else -> ld.setTint(Color.TRANSPARENT)
-                            }
+                    when (currentState) {
+                        Tile.STATE_ACTIVE -> ld.setTint(Color.WHITE)
 
-                            return null
-                        }
+                        Tile.STATE_INACTIVE -> ld.setTint(Color.TRANSPARENT)
+
+                        else -> ld.setTint(Color.TRANSPARENT)
                     }
+                }
+        }
+
+        val removeQsTileTint: XC_MethodHook = object : XC_MethodHook() {
+            override fun afterHookedMethod(param: MethodHookParam) {
+                if (!fixQsTileColor) return
+
+                try {
+                    setObjectField(
+                        param.thisObject,
+                        "colorActive",
+                        Color.WHITE
+                    )
+                    setObjectField(
+                        param.thisObject,
+                        "colorInactive",
+                        Color.TRANSPARENT
+                    )
+                    setObjectField(
+                        param.thisObject,
+                        "colorUnavailable",
+                        Color.TRANSPARENT
+                    )
+                } catch (throwable: Throwable) {
+                    log(TAG + throwable)
+                }
+            }
+        }
+
+        qsTileViewImplClass
+            .hookConstructor()
+            .run(removeQsTileTint)
+
+        qsTileViewImplClass
+            .hookMethod("updateResources")
+            .run(removeQsTileTint)
+
+        qsTileViewImplClass
+            .hookConstructor()
+            .runAfter { param ->
+                if (!qsTextAlwaysWhite && !qsTextFollowAccent) return@runAfter
+
+                @ColorInt val color: Int = qsIconLabelColor
+                @ColorInt val colorAlpha =
+                    color and 0xFFFFFF or (Math.round(Color.alpha(color) * 0.8f) shl 24)
+
+                setObjectField(
+                    param.thisObject,
+                    "colorLabelActive",
+                    color
+                )
+                setObjectField(
+                    param.thisObject,
+                    "colorSecondaryLabelActive",
+                    colorAlpha
                 )
             }
 
-            hookAllConstructors(qsTileViewImplClass, removeQsTileTint)
-            hookAllMethods(qsTileViewImplClass, "updateResources", removeQsTileTint)
+        qsTileViewImplClass
+            .hookMethod("getLabelColorForState")
+            .runBefore { param ->
+                if (isQsIconLabelStateActive(param, 0)) {
+                    param.result = qsIconLabelColor
+                }
+            }
 
-            hookAllConstructors(qsTileViewImplClass, object : XC_MethodHook() {
-                override fun afterHookedMethod(param: MethodHookParam) {
-                    if (!qsTextAlwaysWhite && !qsTextFollowAccent) return
-
+        qsTileViewImplClass
+            .hookMethod("getSecondaryLabelColorForState")
+            .runBefore { param ->
+                if (isQsIconLabelStateActive(param, 0)) {
                     @ColorInt val color: Int = qsIconLabelColor
                     @ColorInt val colorAlpha =
                         color and 0xFFFFFF or (Math.round(Color.alpha(color) * 0.8f) shl 24)
-
-                    setObjectField(
-                        param.thisObject,
-                        "colorLabelActive",
-                        color
-                    )
-                    setObjectField(
-                        param.thisObject,
-                        "colorSecondaryLabelActive",
-                        colorAlpha
-                    )
+                    param.result = colorAlpha
                 }
-            })
-
-            hookAllMethods(qsTileViewImplClass, "getLabelColorForState", object : XC_MethodHook() {
-                override fun beforeHookedMethod(param: MethodHookParam) {
-                    if (isQsIconLabelStateActive(param, 0)) {
-                        param.result = qsIconLabelColor
-                    }
-                }
-            })
-
-            hookAllMethods(
-                qsTileViewImplClass,
-                "getSecondaryLabelColorForState",
-                object : XC_MethodHook() {
-                    override fun beforeHookedMethod(param: MethodHookParam) {
-                        if (isQsIconLabelStateActive(param, 0)) {
-                            @ColorInt val color: Int = qsIconLabelColor
-                            @ColorInt val colorAlpha =
-                                color and 0xFFFFFF or (Math.round(Color.alpha(color) * 0.8f) shl 24)
-                            param.result = colorAlpha
-                        }
-                    }
-                })
-        } catch (throwable: Throwable) {
-            log(TAG + throwable)
-        }
-
-        try {
-            val qsIconViewImplClass = findClass(
-                "$SYSTEMUI_PACKAGE.qs.tileimpl.QSIconViewImpl",
-                loadPackageParam.classLoader
-            )
-
-            hookAllMethods(qsIconViewImplClass, "getIconColorForState", object : XC_MethodHook() {
-                override fun beforeHookedMethod(param: MethodHookParam) {
-                    if (isQsIconLabelStateActive(param, 1)) {
-                        param.result = qsIconLabelColor
-                    }
-                }
-            })
-
-            try {
-                hookAllMethods(qsIconViewImplClass, "updateIcon", object : XC_MethodHook() {
-                    override fun afterHookedMethod(param: MethodHookParam) {
-                        if (isQsIconLabelStateActive(param, 1)) {
-                            val mIcon = param.args[0] as ImageView
-                            mIcon.imageTintList = ColorStateList.valueOf(qsIconLabelColor)
-                        }
-                    }
-                })
-            } catch (ignored: Throwable) {
             }
-        } catch (throwable: Throwable) {
-            log(TAG + throwable)
-        }
 
-        try {
-            val qsContainerImplClass = findClass(
-                "$SYSTEMUI_PACKAGE.qs.QSContainerImpl",
-                loadPackageParam.classLoader
-            )
+        val qsIconViewImplClass = findClass("$SYSTEMUI_PACKAGE.qs.tileimpl.QSIconViewImpl")
 
-            hookAllMethods(qsContainerImplClass, "updateResources", object : XC_MethodHook() {
-                override fun afterHookedMethod(param: MethodHookParam) {
-                    if (!qsTextAlwaysWhite && !qsTextFollowAccent) return
+        qsIconViewImplClass
+            .hookMethod("getIconColorForState")
+            .runBefore { param ->
+                if (isQsIconLabelStateActive(param, 1)) {
+                    param.result = qsIconLabelColor
+                }
+            }
+
+        qsIconViewImplClass
+            .hookMethod("updateIcon")
+            .runAfter { param ->
+                if (isQsIconLabelStateActive(param, 1)) {
+                    val mIcon = param.args[0] as ImageView
+                    mIcon.imageTintList = ColorStateList.valueOf(qsIconLabelColor)
+                }
+            }
+
+        val qsContainerImplClass = findClass("$SYSTEMUI_PACKAGE.qs.QSContainerImpl")
+
+        qsContainerImplClass
+            .hookMethod("updateResources")
+            .runAfter { param ->
+                if (!qsTextAlwaysWhite && !qsTextFollowAccent) return@runAfter
+
+                try {
+                    val res = mContext.resources
+                    val view = (param.thisObject as ViewGroup).findViewById<ViewGroup>(
+                        res.getIdentifier(
+                            "qs_footer_actions",
+                            "id",
+                            mContext.packageName
+                        )
+                    )
+
+                    @ColorInt val color: Int = qsIconLabelColor
 
                     try {
-                        val res = mContext.resources
-                        val view = (param.thisObject as ViewGroup).findViewById<ViewGroup>(
+                        val pmButtonContainer = view.findViewById<ViewGroup>(
                             res.getIdentifier(
-                                "qs_footer_actions",
+                                "pm_lite",
                                 "id",
                                 mContext.packageName
                             )
                         )
-
-                        @ColorInt val color: Int = qsIconLabelColor
-
-                        try {
-                            val pmButtonContainer = view.findViewById<ViewGroup>(
-                                res.getIdentifier(
-                                    "pm_lite",
-                                    "id",
-                                    mContext.packageName
-                                )
-                            )
-                            (pmButtonContainer.getChildAt(0) as ImageView).setColorFilter(
-                                color,
-                                PorterDuff.Mode.SRC_IN
-                            )
-                        } catch (ignored: Throwable) {
-                            val pmButton = view.findViewById<ImageView>(
-                                res.getIdentifier(
-                                    "pm_lite",
-                                    "id",
-                                    mContext.packageName
-                                )
-                            )
-                            pmButton.imageTintList = ColorStateList.valueOf(color)
-                        }
-                    } catch (ignored: Throwable) {
-                    }
-                }
-            })
-        } catch (ignored: Throwable) {
-        }
-
-        try { // Compose implementation of QS Footer actions
-            val footerActionsButtonViewModelClass = findClass(
-                "$SYSTEMUI_PACKAGE.qs.footer.ui.viewmodel.FooterActionsButtonViewModel",
-                loadPackageParam.classLoader
-            )
-
-            hookAllConstructors(footerActionsButtonViewModelClass, object : XC_MethodHook() {
-                override fun beforeHookedMethod(param: MethodHookParam) {
-                    if (!qsTextAlwaysWhite && !qsTextFollowAccent) return
-                    if (mContext.resources.getResourceName((param.args[0] as Int))
-                            .split("/".toRegex()).dropLastWhile { it.isEmpty() }
-                            .toTypedArray()[1] == "pm_lite"
-                    ) {
-                        param.args[2] = qsIconLabelColor
-                    }
-                }
-            })
-        } catch (ignored: Throwable) {
-        }
-
-        // Auto brightness icon color
-        val brightnessControllerClass = findClass(
-            "$SYSTEMUI_PACKAGE.settings.brightness.BrightnessController",
-            loadPackageParam.classLoader
-        )
-        val brightnessMirrorControllerClass = findClass(
-            "$SYSTEMUI_PACKAGE.statusbar.policy.BrightnessMirrorController",
-            loadPackageParam.classLoader
-        )
-        val brightnessSliderControllerClass = findClassIfExists(
-            "$SYSTEMUI_PACKAGE.settings.brightness.BrightnessSliderController",
-            loadPackageParam.classLoader
-        )
-
-        hookAllMethods(brightnessControllerClass, "updateIcon", object : XC_MethodHook() {
-            override fun afterHookedMethod(param: MethodHookParam) {
-                if (!qsTextAlwaysWhite && !qsTextFollowAccent) return
-
-                @ColorInt val color: Int = qsIconLabelColor
-                try {
-                    (getObjectField(param.thisObject, "mIcon") as ImageView).imageTintList =
-                        ColorStateList.valueOf(color)
-                } catch (throwable: Throwable) {
-                    log(TAG + throwable)
-                }
-            }
-        })
-
-        if (brightnessSliderControllerClass != null) {
-            hookAllConstructors(brightnessSliderControllerClass, object : XC_MethodHook() {
-                override fun afterHookedMethod(param: MethodHookParam) {
-                    if (!qsTextAlwaysWhite && !qsTextFollowAccent) return
-
-                    @ColorInt val color: Int = qsIconLabelColor
-
-                    try {
-                        (getObjectField(param.thisObject, "mIcon") as ImageView).imageTintList =
-                            ColorStateList.valueOf(color)
-                    } catch (throwable: Throwable) {
-                        try {
-                            (getObjectField(
-                                param.thisObject,
-                                "mIconView"
-                            ) as ImageView).imageTintList =
-                                ColorStateList.valueOf(color)
-                        } catch (ignored: Throwable) {
-                        }
-                    }
-                }
-            })
-        }
-
-        hookAllMethods(brightnessMirrorControllerClass, "updateIcon", object : XC_MethodHook() {
-            override fun afterHookedMethod(param: MethodHookParam) {
-                if (!qsTextAlwaysWhite && !qsTextFollowAccent) return
-
-                @ColorInt val color: Int = qsIconLabelColor
-
-                try {
-                    (getObjectField(param.thisObject, "mIcon") as ImageView).imageTintList =
-                        ColorStateList.valueOf(color)
-                } catch (throwable: Throwable) {
-                    log(TAG + throwable)
-                }
-            }
-        })
-    }
-
-    private fun fixNotificationColorA14(loadPackageParam: LoadPackageParam) {
-        if (!isAtLeastAndroid14) return
-
-        try {
-            val activatableNotificationViewClass = findClass(
-                "$SYSTEMUI_PACKAGE.statusbar.notification.row.ActivatableNotificationView",
-                loadPackageParam.classLoader
-            )
-            val notificationBackgroundViewClass = findClass(
-                "$SYSTEMUI_PACKAGE.statusbar.notification.row.NotificationBackgroundView",
-                loadPackageParam.classLoader
-            )
-            var footerViewClass = findClassIfExists(
-                "$SYSTEMUI_PACKAGE.statusbar.notification.footer.ui.view.FooterView",
-                loadPackageParam.classLoader
-            )
-            if (footerViewClass == null) {
-                footerViewClass = findClass(
-                    "$SYSTEMUI_PACKAGE.statusbar.notification.row.FooterView",
-                    loadPackageParam.classLoader
-                )
-            }
-
-            val removeNotificationTint: XC_MethodHook = object : XC_MethodHook() {
-                override fun beforeHookedMethod(param: MethodHookParam) {
-                    if (!fixNotificationColor) return
-
-                    val notificationBackgroundView = getObjectField(
-                        param.thisObject,
-                        "mBackgroundNormal"
-                    ) as View
-
-                    try {
-                        setObjectField(
-                            param.thisObject,
-                            "mCurrentBackgroundTint",
-                            param.args[0] as Int
+                        (pmButtonContainer.getChildAt(0) as ImageView).setColorFilter(
+                            color,
+                            PorterDuff.Mode.SRC_IN
                         )
                     } catch (ignored: Throwable) {
+                        val pmButton = view.findViewById<ImageView>(
+                            res.getIdentifier(
+                                "pm_lite",
+                                "id",
+                                mContext.packageName
+                            )
+                        )
+                        pmButton.imageTintList = ColorStateList.valueOf(color)
                     }
-
-                    try {
-                        setObjectField(notificationBackgroundView, "mTintColor", 0)
-                    } catch (ignored: Throwable) {
-                    }
+                } catch (ignored: Throwable) {
                 }
+            }
 
-                override fun afterHookedMethod(param: MethodHookParam) {
-                    if (!fixNotificationColor) return
+        // Compose implementation of QS Footer actions
+        val footerActionsButtonViewModelClass =
+            findClass("$SYSTEMUI_PACKAGE.qs.footer.ui.viewmodel.FooterActionsButtonViewModel")
 
-                    val notificationBackgroundView = getObjectField(
-                        param.thisObject,
-                        "mBackgroundNormal"
-                    ) as View
+        footerActionsButtonViewModelClass
+            .hookConstructor()
+            .runBefore { param ->
+                if (!qsTextAlwaysWhite && !qsTextFollowAccent) return@runBefore
 
-                    try {
-                        callMethod(notificationBackgroundView, "setColorFilter", 0)
-                    } catch (ignored: Throwable) {
-                    }
+                if (mContext.resources.getResourceName((param.args[0] as Int))
+                        .split("/".toRegex()).dropLastWhile { it.isEmpty() }
+                        .toTypedArray()[1] == "pm_lite"
+                ) {
+                    param.args[2] = qsIconLabelColor
+                }
+            }
 
+        // Auto brightness icon color
+        val brightnessControllerClass =
+            findClass("$SYSTEMUI_PACKAGE.settings.brightness.BrightnessController")
+        val brightnessMirrorControllerClass =
+            findClass("$SYSTEMUI_PACKAGE.statusbar.policy.BrightnessMirrorController")
+        val brightnessSliderControllerClass =
+            findClass("$SYSTEMUI_PACKAGE.settings.brightness.BrightnessSliderController")
+
+        brightnessControllerClass
+            .hookMethod("updateIcon")
+            .runAfter { param ->
+                if (!qsTextAlwaysWhite && !qsTextFollowAccent) return@runAfter
+
+                @ColorInt val color: Int = qsIconLabelColor
+                try {
+                    (getObjectField(param.thisObject, "mIcon") as ImageView).imageTintList =
+                        ColorStateList.valueOf(color)
+                } catch (throwable: Throwable) {
+                    log(TAG + throwable)
+                }
+            }
+
+        brightnessSliderControllerClass
+            .hookConstructor()
+            .runAfter { param ->
+                if (!qsTextAlwaysWhite && !qsTextFollowAccent) return@runAfter
+
+                @ColorInt val color: Int = qsIconLabelColor
+
+                try {
+                    (getObjectField(param.thisObject, "mIcon") as ImageView).imageTintList =
+                        ColorStateList.valueOf(color)
+                } catch (throwable: Throwable) {
                     try {
                         (getObjectField(
-                            notificationBackgroundView,
-                            "mBackground"
-                        ) as Drawable).colorFilter = null
+                            param.thisObject,
+                            "mIconView"
+                        ) as ImageView).imageTintList =
+                            ColorStateList.valueOf(color)
                     } catch (ignored: Throwable) {
-                    }
-
-                    try {
-                        setObjectField(notificationBackgroundView, "mTintColor", 0)
-                    } catch (ignored: Throwable) {
-                    }
-
-                    Handler(Looper.getMainLooper()).post {
-                        notificationBackgroundView.invalidate()
                     }
                 }
             }
 
-            hookAllMethods(
-                activatableNotificationViewClass,
-                "setBackgroundTintColor",
-                removeNotificationTint
-            )
-            hookAllMethods(
-                activatableNotificationViewClass,
-                "updateBackgroundTint",
-                removeNotificationTint
-            )
+        brightnessMirrorControllerClass
+            .hookMethod("updateIcon")
+            .runAfter { param ->
+                if (!qsTextAlwaysWhite && !qsTextFollowAccent) return@runAfter
 
-            hookAllMethods(activatableNotificationViewClass,
-                "calculateBgColor",
-                object : XC_MethodHook() {
-                    override fun beforeHookedMethod(param: MethodHookParam) {
-                        if (!fixNotificationColor) return
+                @ColorInt val color: Int = qsIconLabelColor
 
-                        try {
-                            param.result = getObjectField(
-                                param.thisObject,
-                                "mCurrentBackgroundTint"
-                            )
-                        } catch (ignored: Throwable) {
-                        }
-                    }
+                try {
+                    (getObjectField(param.thisObject, "mIcon") as ImageView).imageTintList =
+                        ColorStateList.valueOf(color)
+                } catch (throwable: Throwable) {
+                    log(TAG + throwable)
                 }
-            )
-
-            hookAllMethodsMatchPattern(notificationBackgroundViewClass,
-                "setCustomBackground.*",
-                object : XC_MethodHook() {
-                    override fun beforeHookedMethod(param: MethodHookParam) {
-                        if (!fixNotificationColor) return
-
-                        setObjectField(param.thisObject, "mTintColor", 0)
-                    }
-                }
-            )
-
-            hookAllMethodsMatchPattern(footerViewClass,
-                "updateColors.*",
-                object : XC_MethodHook() {
-                    override fun afterHookedMethod(param: MethodHookParam) {
-                        if (!fixNotificationFooterButtonsColor) return
-
-                        try {
-                            val mManageButton = try {
-                                getObjectField(param.thisObject, "mManageButton")
-                            } catch (ignored: Throwable) {
-                                getObjectField(param.thisObject, "mManageOrHistoryButton")
-                            } as Button
-                            val mClearAllButton = try {
-                                getObjectField(param.thisObject, "mClearAllButton")
-                            } catch (ignored: Throwable) {
-                                getObjectField(param.thisObject, "mDismissButton")
-                            } as Button
-
-                            mManageButton.background?.colorFilter = null
-                            mClearAllButton.background?.colorFilter = null
-
-                            Handler(Looper.getMainLooper()).post {
-                                mManageButton.invalidate()
-                                mClearAllButton.invalidate()
-                            }
-                        } catch (ignored: Throwable) {
-                        }
-                    }
-                }
-            )
-        } catch (throwable: Throwable) {
-            log(TAG + throwable)
-        }
+            }
     }
 
-    private fun manageQsElementVisibility(loadPackageParam: LoadPackageParam) {
-        try {
-            val footerViewClass = findClassInArray(
-                loadPackageParam.classLoader,
-                "$SYSTEMUI_PACKAGE.statusbar.notification.footer.ui.view.FooterView",
-                "$SYSTEMUI_PACKAGE.statusbar.notification.row.FooterView"
-            )
+    private fun fixNotificationColorA14() {
+        if (!isAtLeastAndroid14) return
 
-            hookAllMethods(footerViewClass, "onFinishInflate", object : XC_MethodHook() {
-                override fun afterHookedMethod(param: MethodHookParam) {
-                    val view = param.thisObject as View
-
-                    val resId1 = mContext.resources.getIdentifier(
-                        "manage_text",
-                        "id",
-                        mContext.packageName
-                    )
-
-                    val resId2 = mContext.resources.getIdentifier(
-                        "dismiss_text",
-                        "id",
-                        mContext.packageName
-                    )
-
-                    if (resId1 != 0) {
-                        mFooterButtonsContainer =
-                            view.findViewById<View>(resId1).parent as ViewGroup
-                    } else if (resId2 != 0) {
-                        mFooterButtonsContainer =
-                            view.findViewById<View>(resId2).parent as ViewGroup
-                    }
-
-                    triggerQsElementVisibility()
-                }
-            })
-        } catch (throwable: Throwable) {
-            log(TAG + throwable)
-        }
-
-        try {
-            val sectionHeaderViewClass = findClass(
-                "$SYSTEMUI_PACKAGE.statusbar.notification.stack.SectionHeaderView",
-                loadPackageParam.classLoader
-            )
-
-            hookAllMethods(sectionHeaderViewClass, "onFinishInflate", object : XC_MethodHook() {
-                override fun afterHookedMethod(param: MethodHookParam) {
-                    mSilentTextContainer = param.thisObject as ViewGroup
-
-                    triggerQsElementVisibility()
-                }
-            })
-        } catch (throwable: Throwable) {
-            log(TAG + throwable)
-        }
-    }
-
-    private fun disableQsOnSecureLockScreen(loadPackageParam: LoadPackageParam) {
-        val remoteInputQuickSettingsDisablerClass = findClass(
-            "$SYSTEMUI_PACKAGE.statusbar.policy.RemoteInputQuickSettingsDisabler",
-            loadPackageParam.classLoader
-        )
-        val phoneStatusBarPolicyClass = findClass(
-            "$SYSTEMUI_PACKAGE.statusbar.phone.PhoneStatusBarPolicy",
-            loadPackageParam.classLoader
+        val activatableNotificationViewClass =
+            findClass("$SYSTEMUI_PACKAGE.statusbar.notification.row.ActivatableNotificationView")
+        val notificationBackgroundViewClass =
+            findClass("$SYSTEMUI_PACKAGE.statusbar.notification.row.NotificationBackgroundView")
+        val footerViewClass = findClass(
+            "$SYSTEMUI_PACKAGE.statusbar.notification.footer.ui.view.FooterView",
+            "$SYSTEMUI_PACKAGE.statusbar.notification.row.FooterView"
         )
 
-        hookAllConstructors(phoneStatusBarPolicyClass, object : XC_MethodHook() {
+        val removeNotificationTint: XC_MethodHook = object : XC_MethodHook() {
+            override fun beforeHookedMethod(param: MethodHookParam) {
+                if (!fixNotificationColor) return
+
+                val notificationBackgroundView = getObjectField(
+                    param.thisObject,
+                    "mBackgroundNormal"
+                ) as View
+
+                try {
+                    setObjectField(
+                        param.thisObject,
+                        "mCurrentBackgroundTint",
+                        param.args[0] as Int
+                    )
+                } catch (ignored: Throwable) {
+                }
+
+                try {
+                    setObjectField(notificationBackgroundView, "mTintColor", 0)
+                } catch (ignored: Throwable) {
+                }
+            }
+
             override fun afterHookedMethod(param: MethodHookParam) {
+                if (!fixNotificationColor) return
+
+                val notificationBackgroundView = getObjectField(
+                    param.thisObject,
+                    "mBackgroundNormal"
+                ) as View
+
+                try {
+                    callMethod(notificationBackgroundView, "setColorFilter", 0)
+                } catch (ignored: Throwable) {
+                }
+
+                try {
+                    (getObjectField(
+                        notificationBackgroundView,
+                        "mBackground"
+                    ) as Drawable).colorFilter = null
+                } catch (ignored: Throwable) {
+                }
+
+                try {
+                    setObjectField(notificationBackgroundView, "mTintColor", 0)
+                } catch (ignored: Throwable) {
+                }
+
+                Handler(Looper.getMainLooper()).post {
+                    notificationBackgroundView.invalidate()
+                }
+            }
+        }
+
+        activatableNotificationViewClass
+            .hookMethod("setBackgroundTintColor")
+            .run(removeNotificationTint)
+
+        activatableNotificationViewClass
+            .hookMethod("updateBackgroundTint")
+            .run(removeNotificationTint)
+
+        activatableNotificationViewClass
+            .hookMethod("calculateBgColor")
+            .runBefore { param ->
+                if (!fixNotificationColor) return@runBefore
+
+                try {
+                    param.result = getObjectField(
+                        param.thisObject,
+                        "mCurrentBackgroundTint"
+                    )
+                } catch (ignored: Throwable) {
+                }
+            }
+
+        notificationBackgroundViewClass
+            .hookMethodMatchPattern("setCustomBackground.*")
+            .runBefore { param ->
+                if (!fixNotificationColor) return@runBefore
+
+                setObjectField(param.thisObject, "mTintColor", 0)
+            }
+
+        footerViewClass
+            .hookMethodMatchPattern("updateColors.*")
+            .runAfter { param ->
+                if (!fixNotificationFooterButtonsColor) return@runAfter
+
+                try {
+                    val mManageButton = try {
+                        getObjectField(param.thisObject, "mManageButton")
+                    } catch (ignored: Throwable) {
+                        getObjectField(param.thisObject, "mManageOrHistoryButton")
+                    } as Button
+                    val mClearAllButton = try {
+                        getObjectField(param.thisObject, "mClearAllButton")
+                    } catch (ignored: Throwable) {
+                        getObjectField(param.thisObject, "mDismissButton")
+                    } as Button
+
+                    mManageButton.background?.colorFilter = null
+                    mClearAllButton.background?.colorFilter = null
+
+                    Handler(Looper.getMainLooper()).post {
+                        mManageButton.invalidate()
+                        mClearAllButton.invalidate()
+                    }
+                } catch (ignored: Throwable) {
+                }
+            }
+    }
+
+    private fun manageQsElementVisibility() {
+        val footerViewClass = findClass(
+            "$SYSTEMUI_PACKAGE.statusbar.notification.footer.ui.view.FooterView",
+            "$SYSTEMUI_PACKAGE.statusbar.notification.row.FooterView"
+        )
+
+        footerViewClass
+            .hookMethod("onFinishInflate")
+            .runAfter { param ->
+                val view = param.thisObject as View
+
+                val resId1 = mContext.resources.getIdentifier(
+                    "manage_text",
+                    "id",
+                    mContext.packageName
+                )
+
+                val resId2 = mContext.resources.getIdentifier(
+                    "dismiss_text",
+                    "id",
+                    mContext.packageName
+                )
+
+                if (resId1 != 0) {
+                    mFooterButtonsContainer =
+                        view.findViewById<View>(resId1).parent as ViewGroup
+                } else if (resId2 != 0) {
+                    mFooterButtonsContainer =
+                        view.findViewById<View>(resId2).parent as ViewGroup
+                }
+
+                triggerQsElementVisibility()
+            }
+
+        val sectionHeaderViewClass =
+            findClass("$SYSTEMUI_PACKAGE.statusbar.notification.stack.SectionHeaderView")
+
+        sectionHeaderViewClass
+            .hookMethod("onFinishInflate")
+            .runAfter { param ->
+                mSilentTextContainer = param.thisObject as ViewGroup
+
+                triggerQsElementVisibility()
+            }
+    }
+
+    private fun disableQsOnSecureLockScreen() {
+        val remoteInputQuickSettingsDisablerClass =
+            findClass("$SYSTEMUI_PACKAGE.statusbar.policy.RemoteInputQuickSettingsDisabler")
+        val phoneStatusBarPolicyClass =
+            findClass("$SYSTEMUI_PACKAGE.statusbar.phone.PhoneStatusBarPolicy")
+
+        phoneStatusBarPolicyClass
+            .hookConstructor()
+            .runAfter { param ->
                 mKeyguardStateController = getObjectField(
                     param.thisObject,
                     "mKeyguardStateController"
@@ -851,33 +759,30 @@ class QuickSettings(context: Context) : ModPack(context) {
                     log(TAG + "mKeyguardStateController is null")
                 }
             }
-        })
 
-        hookAllMethods(remoteInputQuickSettingsDisablerClass,
-            "adjustDisableFlags",
-            object : XC_MethodHook() {
-                override fun beforeHookedMethod(param: MethodHookParam) {
-                    if (!hideQsOnLockscreen || mKeyguardStateController == null) return
+        remoteInputQuickSettingsDisablerClass
+            .hookMethod("adjustDisableFlags")
+            .runBefore { param ->
+                if (!hideQsOnLockscreen || mKeyguardStateController == null) return@runBefore
 
-                    val isUnlocked = !(getObjectField(
-                        mKeyguardStateController,
-                        "mShowing"
-                    ) as Boolean) || getObjectField(
-                        mKeyguardStateController,
-                        "mCanDismissLockScreen"
-                    ) as Boolean
+                val isUnlocked = !(getObjectField(
+                    mKeyguardStateController,
+                    "mShowing"
+                ) as Boolean) || getObjectField(
+                    mKeyguardStateController,
+                    "mCanDismissLockScreen"
+                ) as Boolean
 
-                    /*
-                     * Location: frameworks/base/core/java/android/app/StatusBarManager.java
-                     * public static final int DISABLE2_QUICK_SETTINGS = 1;
-                     */
-                    param.result = if (hideQsOnLockscreen && !isUnlocked) {
-                        param.args[0] as Int or 1 // DISABLE2_QUICK_SETTINGS
-                    } else {
-                        param.args[0]
-                    }
+                /*
+                 * Location: frameworks/base/core/java/android/app/StatusBarManager.java
+                 * public static final int DISABLE2_QUICK_SETTINGS = 1;
+                 */
+                param.result = if (hideQsOnLockscreen && !isUnlocked) {
+                    param.args[0] as Int or 1 // DISABLE2_QUICK_SETTINGS
+                } else {
+                    param.args[0]
                 }
-            })
+            }
     }
 
     private fun isQsIconLabelStateActive(param: MethodHookParam?, stateIndex: Int): Boolean {

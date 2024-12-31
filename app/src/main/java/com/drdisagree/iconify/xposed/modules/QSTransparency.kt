@@ -13,15 +13,13 @@ import com.drdisagree.iconify.common.Preferences.QSALPHA_LEVEL
 import com.drdisagree.iconify.common.Preferences.QSPANEL_BLUR_SWITCH
 import com.drdisagree.iconify.common.Preferences.QS_TRANSPARENCY_SWITCH
 import com.drdisagree.iconify.xposed.ModPack
+import com.drdisagree.iconify.xposed.modules.utils.toolkit.XposedHook.Companion.findClass
+import com.drdisagree.iconify.xposed.modules.utils.toolkit.hookConstructor
+import com.drdisagree.iconify.xposed.modules.utils.toolkit.hookMethod
 import com.drdisagree.iconify.xposed.utils.XPrefs.Xprefs
 import com.drdisagree.iconify.xposed.utils.XPrefs.XprefsIsInitialized
-import de.robv.android.xposed.XC_MethodHook
-import de.robv.android.xposed.XposedBridge.hookAllConstructors
-import de.robv.android.xposed.XposedBridge.hookAllMethods
 import de.robv.android.xposed.XposedBridge.log
 import de.robv.android.xposed.XposedHelpers.callMethod
-import de.robv.android.xposed.XposedHelpers.findClass
-import de.robv.android.xposed.XposedHelpers.findClassIfExists
 import de.robv.android.xposed.XposedHelpers.findField
 import de.robv.android.xposed.XposedHelpers.getObjectField
 import de.robv.android.xposed.XposedHelpers.setObjectField
@@ -61,19 +59,17 @@ class QSTransparency(context: Context) : ModPack(context) {
     }
 
     override fun handleLoadPackage(loadPackageParam: LoadPackageParam) {
-        setQsTransparency(loadPackageParam)
+        setQsTransparency()
         setBlurRadius()
     }
 
-    private fun setQsTransparency(loadPackageParam: LoadPackageParam) {
-        val scrimControllerClass = findClass(
-            "$SYSTEMUI_PACKAGE.statusbar.phone.ScrimController",
-            loadPackageParam.classLoader
-        )
+    private fun setQsTransparency() {
+        val scrimControllerClass = findClass("$SYSTEMUI_PACKAGE.statusbar.phone.ScrimController")
 
-        hookAllMethods(scrimControllerClass, "updateScrimColor", object : XC_MethodHook() {
-            override fun beforeHookedMethod(param: MethodHookParam) {
-                if (!qsTransparencyActive && !onlyNotifTransparencyActive) return
+        scrimControllerClass
+            .hookMethod("updateScrimColor")
+            .runBefore { param ->
+                if (!qsTransparencyActive && !onlyNotifTransparencyActive) return@runBefore
 
                 val alphaIndex = if (param.args[2] is Float) 2 else 1
                 val scrimState = getObjectField(param.thisObject, "mState").toString()
@@ -127,83 +123,66 @@ class QSTransparency(context: Context) : ModPack(context) {
                     }
                 }
             }
-        })
 
         // Compose implementation of QS Footer actions
-        val footerActionsViewBinderClass = findClassIfExists(
-            "$SYSTEMUI_PACKAGE.qs.footer.ui.binder.FooterActionsViewBinder",
-            loadPackageParam.classLoader
-        )
+        val footerActionsViewBinderClass =
+            findClass("$SYSTEMUI_PACKAGE.qs.footer.ui.binder.FooterActionsViewBinder")
 
-        if (footerActionsViewBinderClass != null) {
-            hookAllMethods(footerActionsViewBinderClass, "bind", object : XC_MethodHook() {
-                override fun afterHookedMethod(param: MethodHookParam) {
-                    if (!qsTransparencyActive && !onlyNotifTransparencyActive) return
+        footerActionsViewBinderClass
+            .hookMethod("bind")
+            .runAfter { param ->
+                if (!qsTransparencyActive && !onlyNotifTransparencyActive) return@runAfter
 
-                    val view = param.args[0] as LinearLayout
-                    view.setBackgroundColor(Color.TRANSPARENT)
-                    view.elevation = 0f
-                }
-            })
-        }
-
-        val footerActionsViewModelClass = findClassIfExists(
-            "$SYSTEMUI_PACKAGE.qs.footer.ui.viewmodel.FooterActionsViewModel",
-            loadPackageParam.classLoader
-        )
-
-        if (footerActionsViewModelClass != null) {
-            hookAllConstructors(footerActionsViewModelClass, object : XC_MethodHook() {
-                @Throws(Throwable::class)
-                override fun afterHookedMethod(param: MethodHookParam) {
-                    if (!qsTransparencyActive && !onlyNotifTransparencyActive) return
-
-                    val stateFlowImplClass = findClass(
-                        "kotlinx.coroutines.flow.StateFlowImpl",
-                        loadPackageParam.classLoader
-                    )
-                    val readonlyStateFlowClass = findClass(
-                        "kotlinx.coroutines.flow.ReadonlyStateFlow",
-                        loadPackageParam.classLoader
-                    )
-
-                    try {
-                        val zeroAlphaFlow = stateFlowImplClass
-                            .getConstructor(Any::class.java)
-                            .newInstance(0f)
-
-                        val readonlyStateFlowInstance = try {
-                            readonlyStateFlowClass.constructors[0].newInstance(zeroAlphaFlow)
-                        } catch (ignored: Throwable) {
-                            readonlyStateFlowClass.constructors[0].newInstance(zeroAlphaFlow, null)
-                        }
-
-                        setObjectField(
-                            param.thisObject,
-                            "backgroundAlpha",
-                            readonlyStateFlowInstance
-                        )
-                    } catch (throwable: Throwable) {
-                        log(TAG + throwable)
-                    }
-                }
-            })
-        }
-
-        val quickSettingsControllerClass = findClass(
-            "$SYSTEMUI_PACKAGE.shade.QuickSettingsController",
-            loadPackageParam.classLoader
-        )
-
-        hookAllConstructors(quickSettingsControllerClass, object : XC_MethodHook() {
-            override fun afterHookedMethod(param: MethodHookParam) {
-                quickSettingsController = param.thisObject
+                val view = param.args[0] as LinearLayout
+                view.setBackgroundColor(Color.TRANSPARENT)
+                view.elevation = 0f
             }
-        })
 
-        hookAllMethods(Resources::class.java, "getDimensionPixelSize", object : XC_MethodHook() {
-            override fun beforeHookedMethod(param: MethodHookParam) {
-                if (!qsTransparencyActive || onlyNotifTransparencyActive || (alpha * 100).toInt() != 0) return
+        val footerActionsViewModelClass =
+            findClass("$SYSTEMUI_PACKAGE.qs.footer.ui.viewmodel.FooterActionsViewModel")
+
+        footerActionsViewModelClass
+            .hookConstructor()
+            .runAfter { param ->
+                if (!qsTransparencyActive && !onlyNotifTransparencyActive) return@runAfter
+
+                val stateFlowImplClass = findClass("kotlinx.coroutines.flow.StateFlowImpl")!!
+                val readonlyStateFlowClass =
+                    findClass("kotlinx.coroutines.flow.ReadonlyStateFlow")!!
+
+                try {
+                    val zeroAlphaFlow = stateFlowImplClass
+                        .getConstructor(Any::class.java)
+                        .newInstance(0f)
+
+                    val readonlyStateFlowInstance = try {
+                        readonlyStateFlowClass.constructors[0].newInstance(zeroAlphaFlow)
+                    } catch (ignored: Throwable) {
+                        readonlyStateFlowClass.constructors[0].newInstance(zeroAlphaFlow, null)
+                    }
+
+                    setObjectField(
+                        param.thisObject,
+                        "backgroundAlpha",
+                        readonlyStateFlowInstance
+                    )
+                } catch (throwable: Throwable) {
+                    log(TAG + throwable)
+                }
+            }
+
+        val quickSettingsControllerClass =
+            findClass("$SYSTEMUI_PACKAGE.shade.QuickSettingsController")
+
+        quickSettingsControllerClass
+            .hookConstructor()
+            .runAfter { param -> quickSettingsController = param.thisObject }
+
+        Resources::class.java
+            .hookMethod("getDimensionPixelSize")
+            .suppressError()
+            .runBefore { param ->
+                if (!qsTransparencyActive || onlyNotifTransparencyActive || (alpha * 100).toInt() != 0) return@runBefore
 
                 try {
                     val resId = mContext.resources.getIdentifier(
@@ -218,7 +197,6 @@ class QSTransparency(context: Context) : ModPack(context) {
                 } catch (ignored: Throwable) {
                 }
             }
-        })
     }
 
     private fun updateQsScrimRadius() {
@@ -241,9 +219,11 @@ class QSTransparency(context: Context) : ModPack(context) {
 
     @SuppressLint("DiscouragedApi")
     private fun setBlurRadius() {
-        hookAllMethods(Resources::class.java, "getDimensionPixelSize", object : XC_MethodHook() {
-            override fun beforeHookedMethod(param: MethodHookParam) {
-                if (!blurEnabled) return
+        Resources::class.java
+            .hookMethod("getDimensionPixelSize")
+            .suppressError()
+            .runBefore { param ->
+                if (!blurEnabled) return@runBefore
 
                 try {
                     val resId = mContext.resources.getIdentifier(
@@ -259,7 +239,6 @@ class QSTransparency(context: Context) : ModPack(context) {
                     log(TAG + throwable)
                 }
             }
-        })
     }
 
     companion object {

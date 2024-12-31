@@ -189,10 +189,12 @@ object FileUtils {
     }
 
     fun launchFilePicker(launcher: ActivityResultLauncher<Intent?>, type: String?) {
-        val chooseFile = Intent(Intent.ACTION_GET_CONTENT)
-        chooseFile.addCategory(Intent.CATEGORY_OPENABLE)
-        chooseFile.setType(type)
-        launcher.launch(chooseFile)
+        launcher.launch(
+            Intent(Intent.ACTION_GET_CONTENT).apply {
+                addCategory(Intent.CATEGORY_OPENABLE)
+                setType(type)
+            }
+        )
     }
 
     fun readJsonFileFromAssets(fileName: String): String {

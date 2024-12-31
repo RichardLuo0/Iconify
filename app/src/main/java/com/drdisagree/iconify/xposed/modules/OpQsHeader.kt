@@ -70,7 +70,6 @@ import com.drdisagree.iconify.utils.color.monet.quantize.QuantizerCelebi
 import com.drdisagree.iconify.utils.color.monet.score.Score
 import com.drdisagree.iconify.xposed.ModPack
 import com.drdisagree.iconify.xposed.modules.utils.ActivityLauncherUtils
-import com.drdisagree.iconify.xposed.modules.utils.Helpers.findClassInArray
 import com.drdisagree.iconify.xposed.modules.utils.Helpers.isMethodAvailable
 import com.drdisagree.iconify.xposed.modules.utils.Helpers.isQsTileOverlayEnabled
 import com.drdisagree.iconify.xposed.modules.utils.SettingsLibUtils.Companion.getColorAttrDefaultColor
@@ -78,6 +77,9 @@ import com.drdisagree.iconify.xposed.modules.utils.TouchAnimator
 import com.drdisagree.iconify.xposed.modules.utils.VibrationUtils
 import com.drdisagree.iconify.xposed.modules.utils.ViewHelper.applyBlur
 import com.drdisagree.iconify.xposed.modules.utils.ViewHelper.toPx
+import com.drdisagree.iconify.xposed.modules.utils.toolkit.XposedHook.Companion.findClass
+import com.drdisagree.iconify.xposed.modules.utils.toolkit.hookConstructor
+import com.drdisagree.iconify.xposed.modules.utils.toolkit.hookMethod
 import com.drdisagree.iconify.xposed.modules.views.MediaPlayerPagerAdapter
 import com.drdisagree.iconify.xposed.modules.views.OpQsHeaderView
 import com.drdisagree.iconify.xposed.modules.views.OpQsMediaPlayerView
@@ -85,15 +87,9 @@ import com.drdisagree.iconify.xposed.modules.views.OpQsMediaPlayerView.Companion
 import com.drdisagree.iconify.xposed.utils.XPrefs.Xprefs
 import com.drdisagree.iconify.xposed.utils.XPrefs.XprefsIsInitialized
 import de.robv.android.xposed.XC_MethodHook
-import de.robv.android.xposed.XC_MethodReplacement
-import de.robv.android.xposed.XposedBridge.hookAllConstructors
-import de.robv.android.xposed.XposedBridge.hookAllMethods
 import de.robv.android.xposed.XposedBridge.log
 import de.robv.android.xposed.XposedHelpers.callMethod
 import de.robv.android.xposed.XposedHelpers.callStaticMethod
-import de.robv.android.xposed.XposedHelpers.findAndHookMethod
-import de.robv.android.xposed.XposedHelpers.findClass
-import de.robv.android.xposed.XposedHelpers.findClassIfExists
 import de.robv.android.xposed.XposedHelpers.getObjectField
 import de.robv.android.xposed.XposedHelpers.setObjectField
 import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam
@@ -212,119 +208,69 @@ class OpQsHeader(context: Context) : ModPack(context) {
     }
 
     override fun handleLoadPackage(loadPackageParam: LoadPackageParam) {
-        val qsPanelClass = findClass(
-            "$SYSTEMUI_PACKAGE.qs.QSPanel",
-            loadPackageParam.classLoader
-        )
-        val quickQsPanelClass = findClass(
-            "$SYSTEMUI_PACKAGE.qs.QuickQSPanel",
-            loadPackageParam.classLoader
-        )
-        val qsImplClass = findClassInArray(
-            loadPackageParam.classLoader,
+        val qsPanelClass = findClass("$SYSTEMUI_PACKAGE.qs.QSPanel")!!
+        val quickQsPanelClass = findClass("$SYSTEMUI_PACKAGE.qs.QuickQSPanel")!!
+        val qsImplClass = findClass(
             "$SYSTEMUI_PACKAGE.qs.QSImpl",
             "$SYSTEMUI_PACKAGE.qs.QSFragment"
         )
-        val qsContainerImplClass = findClass(
-            "$SYSTEMUI_PACKAGE.qs.QSContainerImpl",
-            loadPackageParam.classLoader
-        )
-        val qsTileViewImplClass = findClass(
-            "$SYSTEMUI_PACKAGE.qs.tileimpl.QSTileViewImpl",
-            loadPackageParam.classLoader
-        )
-        val tileLayoutClass = findClassInArray(
-            loadPackageParam.classLoader,
+        val qsContainerImplClass = findClass("$SYSTEMUI_PACKAGE.qs.QSContainerImpl")
+        val qsTileViewImplClass = findClass("$SYSTEMUI_PACKAGE.qs.tileimpl.QSTileViewImpl")
+        val tileLayoutClass = findClass(
             "$SYSTEMUI_PACKAGE.qs.TileLayout",
             "$SYSTEMUI_PACKAGE.qs.PagedTileLayout"
         )
-        val qsPanelControllerBaseClass = findClassIfExists(
-            "$SYSTEMUI_PACKAGE.qs.QSPanelControllerBase",
-            loadPackageParam.classLoader
-        )
-        val qsSecurityFooterUtilsClass = findClassIfExists(
-            "$SYSTEMUI_PACKAGE.qs.QSSecurityFooterUtils",
-            loadPackageParam.classLoader
-        )
-        val quickStatusBarHeaderClass = findClass(
-            "$SYSTEMUI_PACKAGE.qs.QuickStatusBarHeader",
-            loadPackageParam.classLoader
-        )
-        val shadeHeaderControllerClass = findClassInArray(
-            loadPackageParam.classLoader,
+        val qsPanelControllerBaseClass = findClass("$SYSTEMUI_PACKAGE.qs.QSPanelControllerBase")
+        val qsSecurityFooterUtilsClass = findClass("$SYSTEMUI_PACKAGE.qs.QSSecurityFooterUtils")
+        val quickStatusBarHeaderClass = findClass("$SYSTEMUI_PACKAGE.qs.QuickStatusBarHeader")
+        val shadeHeaderControllerClass = findClass(
             "$SYSTEMUI_PACKAGE.shade.ShadeHeaderController",
             "$SYSTEMUI_PACKAGE.shade.LargeScreenShadeHeaderController",
         )
-        val dependencyClass = findClass(
-            "$SYSTEMUI_PACKAGE.Dependency",
-            loadPackageParam.classLoader
-        )
-        val activityStarterClass = findClass(
-            "$SYSTEMUI_PACKAGE.plugins.ActivityStarter",
-            loadPackageParam.classLoader
-        )
-        val bluetoothControllerImplClass = findClass(
-            "$SYSTEMUI_PACKAGE.statusbar.policy.BluetoothControllerImpl",
-            loadPackageParam.classLoader
-        )
-        val notificationMediaManagerClass = findClass(
-            "$SYSTEMUI_PACKAGE.statusbar.NotificationMediaManager",
-            loadPackageParam.classLoader
-        )
-        val mediaControlPanelClass = findClassInArray(
-            loadPackageParam.classLoader,
+        val dependencyClass = findClass("$SYSTEMUI_PACKAGE.Dependency")
+        val activityStarterClass = findClass("$SYSTEMUI_PACKAGE.plugins.ActivityStarter")
+        val bluetoothControllerImplClass =
+            findClass("$SYSTEMUI_PACKAGE.statusbar.policy.BluetoothControllerImpl")
+        val notificationMediaManagerClass =
+            findClass("$SYSTEMUI_PACKAGE.statusbar.NotificationMediaManager")
+        val mediaControlPanelClass = findClass(
             "$SYSTEMUI_PACKAGE.media.controls.ui.controller.MediaControlPanel",
             "$SYSTEMUI_PACKAGE.media.controls.ui.MediaControlPanel"
         )
         val volumeDialogImplClass = findClass(
-            "$SYSTEMUI_PACKAGE.volume.VolumeDialogImpl",
-            loadPackageParam.classLoader
+            "$SYSTEMUI_PACKAGE.volume.VolumeDialogImpl"
         )
-        launchableImageView = findClassIfExists(
-            "$SYSTEMUI_PACKAGE.animation.view.LaunchableImageView",
-            loadPackageParam.classLoader
-        )
-        launchableLinearLayout = findClassIfExists(
-            "$SYSTEMUI_PACKAGE.animation.view.LaunchableLinearLayout",
-            loadPackageParam.classLoader
-        )
+        launchableImageView = findClass("$SYSTEMUI_PACKAGE.animation.view.LaunchableImageView")
+        launchableLinearLayout =
+            findClass("$SYSTEMUI_PACKAGE.animation.view.LaunchableLinearLayout")
 
         initResources()
 
-        if (qsSecurityFooterUtilsClass == null) {
-            hookAllConstructors(quickStatusBarHeaderClass, object : XC_MethodHook() {
-                override fun afterHookedMethod(param: MethodHookParam) {
-                    mActivityStarter = callStaticMethod(
-                        dependencyClass,
-                        "get",
-                        activityStarterClass
-                    )
+        quickStatusBarHeaderClass
+            .hookConstructor()
+            .runAfter {
+                try {
+                    mActivityStarter =
+                        callStaticMethod(dependencyClass, "get", activityStarterClass)
                     mActivityLauncherUtils = ActivityLauncherUtils(mContext, mActivityStarter)
+                } catch (ignored: Throwable) {
                 }
-            })
-        } else {
-            hookAllConstructors(qsSecurityFooterUtilsClass, object : XC_MethodHook() {
-                override fun afterHookedMethod(param: MethodHookParam) {
-                    mActivityStarter = getObjectField(
-                        param.thisObject,
-                        "mActivityStarter"
-                    )
-                    mActivityLauncherUtils = ActivityLauncherUtils(mContext, mActivityStarter)
-                }
-            })
-        }
-
-        hookAllConstructors(bluetoothControllerImplClass, object : XC_MethodHook() {
-            override fun afterHookedMethod(param: MethodHookParam) {
-                mBluetoothController = param.thisObject
             }
-        })
 
-        hookAllConstructors(notificationMediaManagerClass, object : XC_MethodHook() {
-            override fun afterHookedMethod(param: MethodHookParam) {
-                mNotificationMediaManager = param.thisObject
+        qsSecurityFooterUtilsClass
+            .hookConstructor()
+            .runAfter { param ->
+                mActivityStarter = getObjectField(param.thisObject, "mActivityStarter")
+                mActivityLauncherUtils = ActivityLauncherUtils(mContext, mActivityStarter)
             }
-        })
+
+        bluetoothControllerImplClass
+            .hookConstructor()
+            .runAfter { param -> mBluetoothController = param.thisObject }
+
+        notificationMediaManagerClass
+            .hookConstructor()
+            .runAfter { param -> mNotificationMediaManager = param.thisObject }
 
         val getMediaOutputDialog = object : XC_MethodHook() {
             override fun afterHookedMethod(param: MethodHookParam) {
@@ -338,64 +284,57 @@ class OpQsHeader(context: Context) : ModPack(context) {
             }
         }
 
-        hookAllConstructors(mediaControlPanelClass, getMediaOutputDialog)
-        hookAllConstructors(volumeDialogImplClass, getMediaOutputDialog)
+        mediaControlPanelClass
+            .hookConstructor()
+            .run(getMediaOutputDialog)
 
-        hookAllMethods(qsTileViewImplClass, "init", object : XC_MethodHook() {
-            override fun beforeHookedMethod(param: MethodHookParam) {
-                qsTileViewImplInstance = param.thisObject
-            }
-        })
+        volumeDialogImplClass
+            .hookConstructor()
+            .run(getMediaOutputDialog)
 
-        hookAllConstructors(tileLayoutClass, object : XC_MethodHook() {
-            override fun afterHookedMethod(param: MethodHookParam) {
-                if (!showOpQsHeaderView) return
+        qsTileViewImplClass
+            .hookMethod("init")
+            .runBefore { param -> qsTileViewImplInstance = param.thisObject }
+
+        tileLayoutClass
+            .hookConstructor()
+            .runAfter {
+                if (!showOpQsHeaderView) return@runAfter
 
                 updateOpHeaderView()
             }
-        })
 
         // Update colors when device theme changes
-        hookAllMethods(shadeHeaderControllerClass, "onInit", object : XC_MethodHook() {
-            override fun afterHookedMethod(param: MethodHookParam) {
-                if (!showOpQsHeaderView) return
+        shadeHeaderControllerClass
+            .hookMethod("onInit")
+            .runAfter { param ->
+                if (!showOpQsHeaderView) return@runAfter
 
                 val configurationControllerListener = getObjectField(
                     param.thisObject,
                     "configurationControllerListener"
                 )
 
-                val updateColors = object : XC_MethodHook() {
-                    override fun afterHookedMethod(param: MethodHookParam) {
-                        if (!showOpQsHeaderView || qsTileViewImplInstance == null) return
+                configurationControllerListener.javaClass
+                    .hookMethod(
+                        "onConfigChanged",
+                        "onDensityOrFontScaleChanged",
+                        "onUiModeChanged",
+                        "onThemeChanged"
+                    )
+                    .run(object : XC_MethodHook() {
+                        override fun afterHookedMethod(param: MethodHookParam) {
+                            if (!showOpQsHeaderView || qsTileViewImplInstance == null) return
 
-                        updateOpHeaderView()
-                    }
-                }
-
-                val methods = listOf(
-                    "onConfigChanged",
-                    "onDensityOrFontScaleChanged",
-                    "onUiModeChanged",
-                    "onThemeChanged"
-                )
-
-                for (method in methods) {
-                    try {
-                        hookAllMethods(
-                            configurationControllerListener.javaClass,
-                            method,
-                            updateColors
-                        )
-                    } catch (ignored: Throwable) {
-                    }
-                }
+                            updateOpHeaderView()
+                        }
+                    })
             }
-        })
 
-        hookAllMethods(quickStatusBarHeaderClass, "onFinishInflate", object : XC_MethodHook() {
-            override fun afterHookedMethod(param: MethodHookParam) {
-                if (!showOpQsHeaderView) return
+        quickStatusBarHeaderClass
+            .hookMethod("onFinishInflate")
+            .runAfter { param ->
+                if (!showOpQsHeaderView) return@runAfter
 
                 mQuickStatusBarHeader = param.thisObject as FrameLayout
 
@@ -491,11 +430,11 @@ class OpQsHeader(context: Context) : ModPack(context) {
 
                 buildHeaderViewExpansion()
             }
-        })
 
         // Move view to different parent when rotation changes
-        hookAllMethods(quickStatusBarHeaderClass, "updateResources", object : XC_MethodHook() {
-            override fun afterHookedMethod(param: MethodHookParam) {
+        quickStatusBarHeaderClass
+            .hookMethod("updateResources")
+            .runAfter { param ->
                 mQuickStatusBarHeader = param.thisObject as FrameLayout
 
                 mHeaderQsPanel = (param.thisObject as FrameLayout).findViewById(
@@ -506,7 +445,7 @@ class OpQsHeader(context: Context) : ModPack(context) {
                     )
                 )
 
-                if (!showOpQsHeaderView) return
+                if (!showOpQsHeaderView) return@runAfter
 
                 buildHeaderViewExpansion()
 
@@ -535,7 +474,6 @@ class OpQsHeader(context: Context) : ModPack(context) {
                     mQsHeaderContainerShade.visibility = View.GONE
                 }
             }
-        })
 
         val updateQsTopMargin = object : XC_MethodHook() {
             override fun afterHookedMethod(param: MethodHookParam) {
@@ -564,8 +502,12 @@ class OpQsHeader(context: Context) : ModPack(context) {
         }
 
         // Update qs top margin
-        hookAllMethods(qsContainerImplClass, "onFinishInflate", updateQsTopMargin)
-        hookAllMethods(qsContainerImplClass, "updateResources", updateQsTopMargin)
+        qsContainerImplClass
+            .hookMethod(
+                "onFinishInflate",
+                "updateResources"
+            )
+            .run(updateQsTopMargin)
 
         // Hide stock media player
         val reAttachMediaHostAvailable = qsPanelClass.declaredMethods.any {
@@ -573,16 +515,15 @@ class OpQsHeader(context: Context) : ModPack(context) {
         }
 
         if (showOpQsHeaderView && hideStockMediaPlayer && reAttachMediaHostAvailable) {
-            hookAllMethods(qsPanelClass, "reAttachMediaHost", object : XC_MethodReplacement() {
-                override fun replaceHookedMethod(param: MethodHookParam): Any? {
-                    return null
-                }
-            })
+            qsPanelClass
+                .hookMethod("reAttachMediaHost")
+                .replace { }
 
             // Ensure stock media player is hidden
-            hookAllMethods(qsImplClass, "onComponentCreated", object : XC_MethodHook() {
-                override fun afterHookedMethod(param: MethodHookParam) {
-                    if (!showOpQsHeaderView) return
+            qsImplClass
+                .hookMethod("onComponentCreated")
+                .runAfter { param ->
+                    if (!showOpQsHeaderView) return@runAfter
 
                     try {
                         val mQSPanelController =
@@ -610,160 +551,155 @@ class OpQsHeader(context: Context) : ModPack(context) {
                     } catch (ignored: Throwable) {
                     }
                 }
-            })
         } else if (hideStockMediaPlayer) { // If reAttachMediaHost is not available, we need to hook switchTileLayout()
-            hookAllMethods(
-                qsPanelControllerBaseClass,
-                "switchTileLayout",
-                object : XC_MethodHook() {
-                    override fun beforeHookedMethod(param: MethodHookParam) {
-                        if (!showOpQsHeaderView) return
+            qsPanelControllerBaseClass
+                .hookMethod("switchTileLayout")
+                .runBefore { param ->
+                    if (!showOpQsHeaderView) return@runBefore
 
-                        val force = param.args[0] as Boolean
-                        val horizontal = callMethod(
+                    val force = param.args[0] as Boolean
+                    val horizontal = callMethod(
+                        param.thisObject,
+                        "shouldUseHorizontalLayout"
+                    ) as Boolean
+                    val mUsingHorizontalLayout = getObjectField(
+                        param.thisObject,
+                        "mUsingHorizontalLayout"
+                    ) as Boolean
+
+                    if (horizontal != mUsingHorizontalLayout || force) {
+                        val mQSLogger = getObjectField(param.thisObject, "mQSLogger")
+                        val qsPanel = getObjectField(param.thisObject, "mView")
+                        val qsPanelTag = callMethod(qsPanel, "getDumpableTag")
+
+                        try {
+                            callMethod(
+                                mQSLogger,
+                                "logSwitchTileLayout",
+                                horizontal,
+                                mUsingHorizontalLayout,
+                                force,
+                                qsPanelTag
+                            )
+                        } catch (ignored: Throwable) {
+                            callMethod(
+                                mQSLogger,
+                                "logSwitchTileLayout",
+                                qsPanelTag,
+                                horizontal,
+                                mUsingHorizontalLayout,
+                                force
+                            )
+                        }
+
+                        setObjectField(
                             param.thisObject,
-                            "shouldUseHorizontalLayout"
-                        ) as Boolean
-                        val mUsingHorizontalLayout = getObjectField(
-                            param.thisObject,
+                            "mUsingHorizontalLayout",
+                            horizontal
+                        )
+
+                        val mUsingHorizontalLayout2 = getObjectField(
+                            qsPanel,
                             "mUsingHorizontalLayout"
                         ) as Boolean
 
-                        if (horizontal != mUsingHorizontalLayout || force) {
-                            val mQSLogger = getObjectField(param.thisObject, "mQSLogger")
-                            val qsPanel = getObjectField(param.thisObject, "mView")
-                            val qsPanelTag = callMethod(qsPanel, "getDumpableTag")
-
-                            try {
-                                callMethod(
-                                    mQSLogger,
-                                    "logSwitchTileLayout",
-                                    horizontal,
-                                    mUsingHorizontalLayout,
-                                    force,
-                                    qsPanelTag
-                                )
-                            } catch (ignored: Throwable) {
-                                callMethod(
-                                    mQSLogger,
-                                    "logSwitchTileLayout",
-                                    qsPanelTag,
-                                    horizontal,
-                                    mUsingHorizontalLayout,
-                                    force
-                                )
-                            }
-
+                        if (horizontal != mUsingHorizontalLayout2 || force) {
                             setObjectField(
-                                param.thisObject,
+                                qsPanel,
                                 "mUsingHorizontalLayout",
                                 horizontal
                             )
 
-                            val mUsingHorizontalLayout2 = getObjectField(
+                            val mHorizontalContentContainer = getObjectField(
                                 qsPanel,
-                                "mUsingHorizontalLayout"
-                            ) as Boolean
+                                "mHorizontalContentContainer"
+                            ) as LinearLayout
 
-                            if (horizontal != mUsingHorizontalLayout2 || force) {
-                                setObjectField(
-                                    qsPanel,
-                                    "mUsingHorizontalLayout",
-                                    horizontal
-                                )
+                            val newParent: ViewGroup = if (horizontal) {
+                                mHorizontalContentContainer
+                            } else {
+                                qsPanel as ViewGroup
+                            }
+                            val mTileLayout = getObjectField(qsPanel, "mTileLayout")
+                            val index = if (!horizontal) {
+                                getObjectField(qsPanel, "mMovableContentStartIndex")
+                            } else {
+                                0
+                            } as Int
 
-                                val mHorizontalContentContainer = getObjectField(
-                                    qsPanel,
-                                    "mHorizontalContentContainer"
-                                ) as LinearLayout
+                            callStaticMethod(
+                                qsPanelClass,
+                                "switchToParent",
+                                mTileLayout,
+                                newParent,
+                                index,
+                                qsPanelTag
+                            )
 
-                                val newParent: ViewGroup = if (horizontal) {
-                                    mHorizontalContentContainer
-                                } else {
-                                    qsPanel as ViewGroup
-                                }
-                                val mTileLayout = getObjectField(qsPanel, "mTileLayout")
-                                val index = if (!horizontal) {
-                                    getObjectField(qsPanel, "mMovableContentStartIndex")
-                                } else {
-                                    0
-                                } as Int
+                            val mFooter = getObjectField(qsPanel, "mFooter") as? View
 
+                            if (mFooter != null) {
                                 callStaticMethod(
                                     qsPanelClass,
                                     "switchToParent",
-                                    mTileLayout,
+                                    mFooter,
                                     newParent,
-                                    index,
+                                    index + 1,
                                     qsPanelTag
                                 )
-
-                                val mFooter = getObjectField(qsPanel, "mFooter") as? View
-
-                                if (mFooter != null) {
-                                    callStaticMethod(
-                                        qsPanelClass,
-                                        "switchToParent",
-                                        mFooter,
-                                        newParent,
-                                        index + 1,
-                                        qsPanelTag
-                                    )
-                                }
-
-                                callMethod(
-                                    mTileLayout,
-                                    "setMinRows",
-                                    if (horizontal) 2 else 1
-                                )
-                                callMethod(
-                                    mTileLayout,
-                                    "setMaxColumns",
-                                    if (horizontal) 2 else 4
-                                )
-
-                                val mHorizontalLinearLayout = getObjectField(
-                                    qsPanel,
-                                    "mHorizontalLinearLayout"
-                                ) as? LinearLayout
-
-                                if (mHorizontalLinearLayout != null &&
-                                    quickQsPanelClass.isInstance(qsPanel)
-                                ) {
-                                    val mMediaTotalBottomMargin = getObjectField(
-                                        qsPanel,
-                                        "mMediaTotalBottomMargin"
-                                    ) as Int
-                                    val mQsPanelBottomPadding =
-                                        (qsPanel as LinearLayout).paddingBottom
-
-                                    val layoutParams =
-                                        mHorizontalLinearLayout.layoutParams as LinearLayout.LayoutParams
-                                    layoutParams.bottomMargin =
-                                        (mMediaTotalBottomMargin - mQsPanelBottomPadding)
-                                            .coerceAtLeast(0)
-                                    mHorizontalLinearLayout.layoutParams = layoutParams
-                                }
-
-                                callMethod(qsPanel, "updatePadding")
-
-                                mHorizontalLinearLayout?.visibility = if (!horizontal) {
-                                    View.GONE
-                                } else {
-                                    View.VISIBLE
-                                }
                             }
 
-                            (getObjectField(
-                                param.thisObject,
-                                "mUsingHorizontalLayoutChangedListener"
-                            ) as? Runnable)?.run()
+                            callMethod(
+                                mTileLayout,
+                                "setMinRows",
+                                if (horizontal) 2 else 1
+                            )
+                            callMethod(
+                                mTileLayout,
+                                "setMaxColumns",
+                                if (horizontal) 2 else 4
+                            )
+
+                            val mHorizontalLinearLayout = getObjectField(
+                                qsPanel,
+                                "mHorizontalLinearLayout"
+                            ) as? LinearLayout
+
+                            if (mHorizontalLinearLayout != null &&
+                                quickQsPanelClass.isInstance(qsPanel)
+                            ) {
+                                val mMediaTotalBottomMargin = getObjectField(
+                                    qsPanel,
+                                    "mMediaTotalBottomMargin"
+                                ) as Int
+                                val mQsPanelBottomPadding =
+                                    (qsPanel as LinearLayout).paddingBottom
+
+                                val layoutParams =
+                                    mHorizontalLinearLayout.layoutParams as LinearLayout.LayoutParams
+                                layoutParams.bottomMargin =
+                                    (mMediaTotalBottomMargin - mQsPanelBottomPadding)
+                                        .coerceAtLeast(0)
+                                mHorizontalLinearLayout.layoutParams = layoutParams
+                            }
+
+                            callMethod(qsPanel, "updatePadding")
+
+                            mHorizontalLinearLayout?.visibility = if (!horizontal) {
+                                View.GONE
+                            } else {
+                                View.VISIBLE
+                            }
                         }
 
-                        param.result = true
+                        (getObjectField(
+                            param.thisObject,
+                            "mUsingHorizontalLayoutChangedListener"
+                        ) as? Runnable)?.run()
                     }
+
+                    param.result = true
                 }
-            )
         }
 
         val hasSwitchAllContentToParent = qsPanelClass.declaredMethods.any {
@@ -777,9 +713,10 @@ class OpQsHeader(context: Context) : ModPack(context) {
         }
 
         if (hasSwitchAllContentToParent && hasSwitchToParentMethod) {
-            hookAllMethods(qsPanelClass, "switchAllContentToParent", object : XC_MethodHook() {
-                override fun beforeHookedMethod(param: MethodHookParam) {
-                    if (!showOpQsHeaderView) return
+            qsPanelClass
+                .hookMethod("switchAllContentToParent")
+                .runBefore { param ->
+                    if (!showOpQsHeaderView) return@runBefore
 
                     val parent = param.args[0] as ViewGroup
                     val mMovableContentStartIndex = getObjectField(
@@ -798,7 +735,7 @@ class OpQsHeader(context: Context) : ModPack(context) {
                         if (checkExistingView != null) {
                             mQsHeaderContainerShade = checkExistingView as LinearLayout
                             if (parent.indexOfChild(mQsHeaderContainerShade) == index) {
-                                return
+                                return@runBefore
                             }
                         }
 
@@ -811,108 +748,98 @@ class OpQsHeader(context: Context) : ModPack(context) {
                         )
                     }
                 }
-            })
 
             if (showOpQsHeaderView) {
-                findAndHookMethod(
-                    qsPanelClass,
-                    "switchToParent",
+                qsPanelClass
+                    .hookMethod("switchToParent")
+                    .parameters(
+                        View::class.java,
+                        ViewGroup::class.java,
+                        Int::class.java,
+                        String::class.java
+                    )
+                    .replace { param ->
+                        val view = param.args[0] as View
+                        val newParent = param.args[1] as? ViewGroup
+                        val tempIndex = param.args[2] as Int
+
+                        if (newParent == null) {
+                            return@replace
+                        }
+
+                        val index = if (view.tag == ICONIFY_QS_HEADER_CONTAINER_SHADE_TAG) {
+                            tempIndex
+                        } else {
+                            tempIndex + 1
+                        }
+
+                        val currentParent = view.parent as? ViewGroup
+
+                        if (currentParent != newParent) {
+                            currentParent?.removeView(view)
+                            newParent.addView(view, index.coerceAtMost(newParent.childCount))
+                        } else if (newParent.indexOfChild(view) == index) {
+                            return@replace
+                        } else {
+                            newParent.removeView(view)
+                            newParent.addView(view, index.coerceAtMost(newParent.childCount))
+                        }
+                    }
+            }
+        } else { // Some ROMs don't have this method switchAllContentToParent()
+            qsPanelControllerBaseClass
+                .hookMethod("onInit")
+                .runBefore { param ->
+                    mQsPanelView = getObjectField(
+                        param.thisObject,
+                        "mView"
+                    ) as ViewGroup
+                }
+
+            qsPanelClass
+                .hookMethod("switchToParent")
+                .parameters(
                     View::class.java,
                     ViewGroup::class.java,
                     Int::class.java,
-                    String::class.java,
-                    object : XC_MethodReplacement() {
-                        override fun replaceHookedMethod(param: MethodHookParam): Any? {
-                            val view = param.args[0] as View
-                            val newParent = param.args[1] as? ViewGroup
-                            val tempIndex = param.args[2] as Int
-
-                            if (newParent == null) {
-                                return null
-                            }
-
-                            val index = if (view.tag == ICONIFY_QS_HEADER_CONTAINER_SHADE_TAG) {
-                                tempIndex
-                            } else {
-                                tempIndex + 1
-                            }
-
-                            val currentParent = view.parent as? ViewGroup
-
-                            if (currentParent != newParent) {
-                                currentParent?.removeView(view)
-                                newParent.addView(view, index.coerceAtMost(newParent.childCount))
-                            } else if (newParent.indexOfChild(view) == index) {
-                                return null
-                            } else {
-                                newParent.removeView(view)
-                                newParent.addView(view, index.coerceAtMost(newParent.childCount))
-                            }
-
-                            return null
-                        }
-                    }
+                    String::class.java
                 )
-            }
-        } else { // Some ROMs don't have this method switchAllContentToParent()
-            hookAllMethods(
-                qsPanelControllerBaseClass,
-                "onInit",
-                object : XC_MethodHook() {
-                    override fun beforeHookedMethod(param: MethodHookParam) {
-                        mQsPanelView = getObjectField(
-                            param.thisObject,
-                            "mView"
-                        ) as ViewGroup
-                    }
-                }
-            )
+                .runBefore { param ->
+                    if (!showOpQsHeaderView ||
+                        mQsPanelView == null ||
+                        (param.args[1] as? ViewGroup) == null
+                    ) return@runBefore
 
-            findAndHookMethod(
-                qsPanelClass,
-                "switchToParent",
-                View::class.java,
-                ViewGroup::class.java,
-                Int::class.java,
-                String::class.java,
-                object : XC_MethodHook() {
-                    override fun beforeHookedMethod(param: MethodHookParam) {
-                        if (!showOpQsHeaderView ||
-                            mQsPanelView == null ||
-                            (param.args[1] as? ViewGroup) == null
-                        ) return
+                    val parent = param.args[1] as ViewGroup
+                    val mMovableContentStartIndex = getObjectField(
+                        mQsPanelView, "mMovableContentStartIndex"
+                    ) as Int
+                    val index = if (parent === mQsPanelView) mMovableContentStartIndex else 0
+                    val targetParentId = mContext.resources.getIdentifier(
+                        "quick_settings_panel",
+                        "id",
+                        SYSTEMUI_PACKAGE
+                    )
 
-                        val parent = param.args[1] as ViewGroup
-                        val mMovableContentStartIndex = getObjectField(
-                            mQsPanelView, "mMovableContentStartIndex"
-                        ) as Int
-                        val index = if (parent === mQsPanelView) mMovableContentStartIndex else 0
-                        val targetParentId = mContext.resources.getIdentifier(
-                            "quick_settings_panel",
-                            "id",
-                            SYSTEMUI_PACKAGE
-                        )
-
-                        if (parent.id == targetParentId) {
-                            val mQsHeaderContainerShadeParent =
-                                mQsHeaderContainerShade.parent as? ViewGroup
-                            if (mQsHeaderContainerShadeParent != parent ||
-                                mQsHeaderContainerShadeParent.indexOfChild(mQsHeaderContainerShade) != index
-                            ) {
-                                mQsHeaderContainerShadeParent?.removeView(mQsHeaderContainerShade)
-                                parent.addView(mQsHeaderContainerShade, index)
-                            }
+                    if (parent.id == targetParentId) {
+                        val mQsHeaderContainerShadeParent =
+                            mQsHeaderContainerShade.parent as? ViewGroup
+                        if (mQsHeaderContainerShadeParent != parent ||
+                            mQsHeaderContainerShadeParent.indexOfChild(mQsHeaderContainerShade) != index
+                        ) {
+                            mQsHeaderContainerShadeParent?.removeView(mQsHeaderContainerShade)
+                            parent.addView(mQsHeaderContainerShade, index)
                         }
-
-                        param.args[2] = ((param.args[2] as Int) + 1).coerceAtMost(parent.childCount)
                     }
+
+                    param.args[2] = ((param.args[2] as Int) + 1).coerceAtMost(parent.childCount)
                 }
-            )
         }
 
-        hookAllMethods(qsImplClass, "setQsExpansion", object : XC_MethodHook() {
-            override fun afterHookedMethod(param: MethodHookParam) {
-                if (!showOpQsHeaderView) return
+        qsImplClass
+            .hookMethod("setQsExpansion")
+            .runAfter { param ->
+                if (!showOpQsHeaderView) return@runAfter
 
                 val onKeyguard = callMethod(
                     param.thisObject,
@@ -926,81 +853,70 @@ class OpQsHeader(context: Context) : ModPack(context) {
                 val onKeyguardAndExpanded = onKeyguard && !mShowCollapsedOnKeyguard
                 val expansion = param.args[0] as Float
 
-                setExpansion(onKeyguardAndExpanded, expansion);
+                setExpansion(onKeyguardAndExpanded, expansion)
             }
-        })
 
         hookResources()
     }
 
     private fun hookResources() {
-        hookAllMethods(
-            Resources::class.java,
-            "getBoolean",
-            object : XC_MethodHook() {
-                override fun beforeHookedMethod(param: MethodHookParam) {
-                    if (!showOpQsHeaderView) return
+        Resources::class.java
+            .hookMethod("getBoolean")
+            .suppressError()
+            .runBefore { param ->
+                if (!showOpQsHeaderView) return@runBefore
 
-                    val resId1 = mContext.resources.getIdentifier(
-                        "config_use_split_notification_shade",
-                        "bool",
-                        SYSTEMUI_PACKAGE
-                    )
+                val resId1 = mContext.resources.getIdentifier(
+                    "config_use_split_notification_shade",
+                    "bool",
+                    SYSTEMUI_PACKAGE
+                )
 
-                    val resId2 = mContext.resources.getIdentifier(
-                        "config_skinnyNotifsInLandscape",
-                        "bool",
-                        SYSTEMUI_PACKAGE
-                    )
+                val resId2 = mContext.resources.getIdentifier(
+                    "config_skinnyNotifsInLandscape",
+                    "bool",
+                    SYSTEMUI_PACKAGE
+                )
 
-                    if (param.args[0] == resId1) {
-                        param.result = isLandscape
-                    } else if (param.args[0] == resId2) {
-                        param.result = false
-                    }
+                if (param.args[0] == resId1) {
+                    param.result = isLandscape
+                } else if (param.args[0] == resId2) {
+                    param.result = false
                 }
             }
-        )
 
-        hookAllMethods(
-            Resources::class.java,
-            "getInteger",
-            object : XC_MethodHook() {
-                override fun beforeHookedMethod(param: MethodHookParam) {
-                    if (!showOpQsHeaderView) return
+        Resources::class.java
+            .hookMethod("getInteger")
+            .runBefore { param ->
+                if (!showOpQsHeaderView) return@runBefore
 
-                    val resId1 = mContext.resources.getIdentifier(
-                        "quick_settings_max_rows",
-                        "integer",
-                        SYSTEMUI_PACKAGE
-                    )
+                val resId1 = mContext.resources.getIdentifier(
+                    "quick_settings_max_rows",
+                    "integer",
+                    SYSTEMUI_PACKAGE
+                )
 
-                    if (param.args[0] == resId1) {
-                        param.result = 3
-                    }
+                if (param.args[0] == resId1) {
+                    param.result = 3
                 }
             }
-        )
 
-        hookAllMethods(
-            Resources::class.java,
-            "getDimensionPixelSize",
-            object : XC_MethodHook() {
-                override fun beforeHookedMethod(param: MethodHookParam) {
-                    if (!showOpQsHeaderView) return
+        Resources::class.java
+            .hookMethod("getDimensionPixelSize")
+            .suppressError()
+            .runBefore { param ->
+                if (!showOpQsHeaderView) return@runBefore
 
-                    val res1 = mContext.resources.getIdentifier(
-                        "qs_brightness_margin_top",
-                        "dimen",
-                        SYSTEMUI_PACKAGE
-                    )
+                val res1 = mContext.resources.getIdentifier(
+                    "qs_brightness_margin_top",
+                    "dimen",
+                    SYSTEMUI_PACKAGE
+                )
 
-                    if (res1 != 0 && param.args[0] == res1) {
-                        param.result = 0
-                    }
+                if (res1 != 0 && param.args[0] == res1) {
+                    param.result = 0
                 }
             }
-        )
     }
 
     private fun updateOpHeaderView() {

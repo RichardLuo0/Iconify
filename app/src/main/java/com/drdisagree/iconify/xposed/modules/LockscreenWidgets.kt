@@ -35,15 +35,13 @@ import com.drdisagree.iconify.common.Preferences.LSCLOCK_SWITCH
 import com.drdisagree.iconify.common.Preferences.WEATHER_SWITCH
 import com.drdisagree.iconify.xposed.ModPack
 import com.drdisagree.iconify.xposed.modules.utils.ViewHelper.setMargins
+import com.drdisagree.iconify.xposed.modules.utils.toolkit.XposedHook.Companion.findClass
+import com.drdisagree.iconify.xposed.modules.utils.toolkit.hookConstructor
+import com.drdisagree.iconify.xposed.modules.utils.toolkit.hookMethod
 import com.drdisagree.iconify.xposed.modules.views.LockscreenWidgetsView
 import com.drdisagree.iconify.xposed.utils.XPrefs.Xprefs
 import com.drdisagree.iconify.xposed.utils.XPrefs.XprefsIsInitialized
-import de.robv.android.xposed.XC_MethodHook
-import de.robv.android.xposed.XposedBridge
-import de.robv.android.xposed.XposedBridge.hookAllMethods
 import de.robv.android.xposed.XposedBridge.log
-import de.robv.android.xposed.XposedHelpers.findClass
-import de.robv.android.xposed.XposedHelpers.findClassIfExists
 import de.robv.android.xposed.XposedHelpers.getObjectField
 import de.robv.android.xposed.callbacks.XC_LoadPackage
 
@@ -203,109 +201,78 @@ class LockscreenWidgets(context: Context) : ModPack(context) {
             ViewGroup.LayoutParams.WRAP_CONTENT
         )
 
-        LaunchableImageView = findClassIfExists(
-            "com.android.systemui.animation.view.LaunchableImageView",
-            loadPackageParam.classLoader
-        )
+        LaunchableImageView = findClass("com.android.systemui.animation.view.LaunchableImageView")
 
-        LaunchableLinearLayout = findClassIfExists(
-            "com.android.systemui.animation.view.LaunchableLinearLayout",
-            loadPackageParam.classLoader
-        )
+        LaunchableLinearLayout =
+            findClass("com.android.systemui.animation.view.LaunchableLinearLayout")
 
-        try {
-            val keyguardQuickAffordanceInteractor = findClass(
-                "com.android.systemui.keyguard.domain.interactor.KeyguardQuickAffordanceInteractor",
-                loadPackageParam.classLoader
-            )
-            XposedBridge.hookAllConstructors(
-                keyguardQuickAffordanceInteractor,
-                object : XC_MethodHook() {
-                    @Throws(Throwable::class)
-                    override fun afterHookedMethod(param: MethodHookParam) {
-                        try {
-                            mActivityStarter = getObjectField(param.thisObject, "activityStarter")
-                        } catch (t: Throwable) {
-                            log(TAG + "Failed to get ActivityStarter")
-                        }
-                        setActivityStarter()
-                    }
-                })
-        } catch (ignored: Throwable) {
-        }
+        val keyguardQuickAffordanceInteractor =
+            findClass("com.android.systemui.keyguard.domain.interactor.KeyguardQuickAffordanceInteractor")
 
-        try {
-            val keyguardStatusViewClass = findClass(
-                "com.android.keyguard.KeyguardStatusView",
-                loadPackageParam.classLoader
-            )
-            hookAllMethods(keyguardStatusViewClass, "onFinishInflate", object : XC_MethodHook() {
-                override fun afterHookedMethod(param: MethodHookParam) {
-                    if (!mWidgetsEnabled) return
-                    try {
-                        mStatusViewContainer = getObjectField(
-                            param.thisObject,
-                            "mStatusViewContainer"
-                        ) as ViewGroup
-                    } catch (t: Throwable) {
-                        log(TAG + "Failed to get mStatusViewContainer")
-                    }
-
-                    placeWidgets()
+        keyguardQuickAffordanceInteractor
+            .hookConstructor()
+            .runAfter { param ->
+                try {
+                    mActivityStarter = getObjectField(param.thisObject, "activityStarter")
+                } catch (t: Throwable) {
+                    log(TAG + "Failed to get ActivityStarter")
                 }
-            })
-        } catch (t: Throwable) {
-            log(TAG + "Failed to hook KeyguardStatusView")
-        }
+                setActivityStarter()
+            }
 
-        try {
-            val keyguardClockSwitch = findClass(
-                "com.android.keyguard.KeyguardClockSwitch",
-                loadPackageParam.classLoader
-            )
+        val keyguardStatusViewClass = findClass("com.android.keyguard.KeyguardStatusView")
 
-            hookAllMethods(keyguardClockSwitch, "onFinishInflate", object : XC_MethodHook() {
-                override fun afterHookedMethod(param: MethodHookParam) {
-                    if (!mWidgetsEnabled) return
+        keyguardStatusViewClass
+            .hookMethod("onFinishInflate")
+            .runAfter { param ->
+                if (!mWidgetsEnabled) return@runAfter
 
-                    try {
-                        mStatusArea = getObjectField(
-                            param.thisObject,
-                            "mStatusArea"
-                        ) as ViewGroup
-
-                    } catch (t: Throwable) {
-                        log(TAG + "Failed to get mStatusArea")
-                    }
-
-                    placeWidgets()
-
+                try {
+                    mStatusViewContainer = getObjectField(
+                        param.thisObject,
+                        "mStatusViewContainer"
+                    ) as ViewGroup
+                } catch (t: Throwable) {
+                    log(TAG + "Failed to get mStatusViewContainer")
                 }
-            })
 
-            hookAllMethods(keyguardClockSwitch, "updateClockViews", object : XC_MethodHook() {
-                override fun afterHookedMethod(param: MethodHookParam) {
-                    if (!mWidgetsEnabled) return
-                    updateLockscreenWidgetsOnClock(param.args[0] as Boolean)
-                }
-            })
-        } catch (t: Throwable) {
-            log(TAG + "Failed to hook KeyguardClockSwitch")
-        }
+                placeWidgets()
+            }
 
-        try {
-            val dozeScrimControllerClass = findClass(
-                "$SYSTEMUI_PACKAGE.statusbar.phone.DozeScrimController",
-                loadPackageParam.classLoader
-            )
-            hookAllMethods(dozeScrimControllerClass, "onDozingChanged", object : XC_MethodHook() {
-                override fun afterHookedMethod(param: MethodHookParam) {
-                    updateDozingState(param.args[0] as Boolean)
+        val keyguardClockSwitch = findClass("com.android.keyguard.KeyguardClockSwitch")
+
+        keyguardClockSwitch
+            .hookMethod("onFinishInflate")
+            .runAfter { param ->
+                if (!mWidgetsEnabled) return@runAfter
+
+                try {
+                    mStatusArea = getObjectField(
+                        param.thisObject,
+                        "mStatusArea"
+                    ) as ViewGroup
+
+                } catch (t: Throwable) {
+                    log(TAG + "Failed to get mStatusArea")
                 }
-            })
-        } catch (t: Throwable) {
-            log(TAG + "Failed to hook DozeScrimController")
-        }
+
+                placeWidgets()
+            }
+
+        keyguardClockSwitch
+            .hookMethod("updateClockViews")
+            .runAfter { param ->
+                if (!mWidgetsEnabled) return@runAfter
+
+                updateLockscreenWidgetsOnClock(param.args[0] as Boolean)
+            }
+
+        val dozeScrimControllerClass =
+            findClass("$SYSTEMUI_PACKAGE.statusbar.phone.DozeScrimController")
+
+        dozeScrimControllerClass
+            .hookMethod("onDozingChanged")
+            .runAfter { param -> updateDozingState(param.args[0] as Boolean) }
     }
 
     private fun placeWidgets() {

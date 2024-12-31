@@ -7,14 +7,11 @@ import android.view.View
 import com.drdisagree.iconify.common.Const.SYSTEMUI_PACKAGE
 import com.drdisagree.iconify.xposed.ModPack
 import com.drdisagree.iconify.xposed.modules.utils.Helpers.isMethodAvailable
-import de.robv.android.xposed.XC_MethodHook
-import de.robv.android.xposed.XposedBridge.hookAllConstructors
-import de.robv.android.xposed.XposedBridge.hookAllMethods
+import com.drdisagree.iconify.xposed.modules.utils.toolkit.XposedHook.Companion.findClass
+import com.drdisagree.iconify.xposed.modules.utils.toolkit.hookConstructor
+import com.drdisagree.iconify.xposed.modules.utils.toolkit.hookMethod
 import de.robv.android.xposed.XposedBridge.log
-import de.robv.android.xposed.XposedHelpers
 import de.robv.android.xposed.XposedHelpers.callMethod
-import de.robv.android.xposed.XposedHelpers.findClass
-import de.robv.android.xposed.XposedHelpers.findClassIfExists
 import de.robv.android.xposed.XposedHelpers.getIntField
 import de.robv.android.xposed.XposedHelpers.getObjectField
 import de.robv.android.xposed.callbacks.XC_LoadPackage
@@ -38,6 +35,8 @@ class ControllersProvider(context: Context) : ModPack(context) {
     private val mHotspotChangedListeners = ArrayList<OnHotspotChanged>()
     private val mDozeChangedListeners = ArrayList<OnDozingChanged>()
 
+    private var mExpandableClass: Class<*>? = null
+
     override fun updatePrefs(vararg key: String) {}
 
     override fun handleLoadPackage(loadPackageParam: XC_LoadPackage.LoadPackageParam) {
@@ -45,275 +44,127 @@ class ControllersProvider(context: Context) : ModPack(context) {
         instance = this
 
         // Network Callbacks
-        val callbackHandler = findClassIfExists(
-            "$SYSTEMUI_PACKAGE.statusbar.connectivity.CallbackHandler",
-            loadPackageParam.classLoader
-        )
+        val callbackHandler =
+            findClass("$SYSTEMUI_PACKAGE.statusbar.connectivity.CallbackHandler")
+        mExpandableClass = findClass("$SYSTEMUI_PACKAGE.animation.Expandable")
 
-        // Mobile Data
-        if (callbackHandler != null) {
-            hookAllMethods(
-                callbackHandler,
-                "setMobileDataIndicators",
-                object : XC_MethodHook() {
-                    @Throws(Throwable::class)
-                    override fun afterHookedMethod(param: MethodHookParam) {
-                        onSetMobileDataIndicators(param.args[0])
-                    }
-                })
+        callbackHandler
+            .hookMethod("setMobileDataIndicators")
+            .runAfter { param -> onSetMobileDataIndicators(param.args[0]) }
 
-            hookAllMethods(callbackHandler, "setIsAirplaneMode", object : XC_MethodHook() {
-                @Throws(Throwable::class)
-                override fun afterHookedMethod(param: MethodHookParam) {
-                    //mAirplane = (boolean) param.args[0];
-                    onSetIsAirplaneMode(param.args[0])
-                }
-            })
+        callbackHandler
+            .hookMethod("setIsAirplaneMode")
+            .runAfter { param -> onSetIsAirplaneMode(param.args[0]) }
 
-            hookAllMethods(callbackHandler, "setNoSims", object : XC_MethodHook() {
-                @Throws(Throwable::class)
-                override fun afterHookedMethod(param: MethodHookParam) {
-                    onSetNoSims(param.args[0] as Boolean, param.args[1] as Boolean)
-                }
-            })
+        callbackHandler
+            .hookMethod("setNoSims")
+            .runAfter { param -> onSetNoSims(param.args[0] as Boolean, param.args[1] as Boolean) }
 
-
-            // WiFi
-            hookAllMethods(callbackHandler, "setWifiIndicators", object : XC_MethodHook() {
-                @Throws(Throwable::class)
-                override fun afterHookedMethod(param: MethodHookParam) {
-                    onWifiChanged(param.args[0])
-                }
-            })
-        }
+        callbackHandler
+            .hookMethod("setWifiIndicators")
+            .runAfter { param -> onWifiChanged(param.args[0]) }
 
         // Internet Tile - for opening Internet Dialog
-        try {
-            val internetTile = findClass(
-                "$SYSTEMUI_PACKAGE.qs.tiles.InternetTile",
-                loadPackageParam.classLoader
-            )
-            hookAllConstructors(internetTile, object : XC_MethodHook() {
-                @Throws(Throwable::class)
-                override fun afterHookedMethod(param: MethodHookParam) {
-                    mCellularTile = param.thisObject
-                }
-            })
-        } catch (t: Throwable) {
-            log(TAG + "InternetTile error " + t.message)
-        }
+        findClass("$SYSTEMUI_PACKAGE.qs.tiles.InternetTile")
+            .hookConstructor()
+            .runAfter { param -> mCellularTile = param.thisObject }
 
-        // Stole also Internet Dialog Manager
-        // in case no tile is available
-        try {
-            val networkControllerImplClass = findClass(
-                "$SYSTEMUI_PACKAGE.statusbar.connectivity.NetworkControllerImpl",
-                loadPackageParam.classLoader
-            )
-            hookAllConstructors(networkControllerImplClass, object : XC_MethodHook() {
-                override fun afterHookedMethod(param: MethodHookParam) {
-                    try {
-                        mAccessPointController = getObjectField(param.thisObject, "mAccessPoints")
-                    } catch (ignored: Throwable) {
-                    }
-                    try {
-                        mInternetDialogManager =
-                            getObjectField(param.thisObject, "mInternetDialogManager")
-                    } catch (ignored: Throwable) {
-                    }
-                    try {
-                        mInternetDialogFactory =
-                            getObjectField(param.thisObject, "mInternetDialogFactory")
-                    } catch (ignored: Throwable) {
-                    }
+        // Stole also Internet Dialog Manager in case no tile is available
+        findClass("$SYSTEMUI_PACKAGE.statusbar.connectivity.NetworkControllerImpl")
+            .hookConstructor()
+            .runAfter { param ->
+                try {
+                    mAccessPointController = getObjectField(param.thisObject, "mAccessPoints")
+                } catch (ignored: Throwable) {
                 }
-            })
-        } catch (t: Throwable) {
-            log(TAG + "NetworkControllerImpl not found " + t.message)
-        }
+                try {
+                    mInternetDialogManager =
+                        getObjectField(param.thisObject, "mInternetDialogManager")
+                } catch (ignored: Throwable) {
+                }
+                try {
+                    mInternetDialogFactory =
+                        getObjectField(param.thisObject, "mInternetDialogFactory")
+                } catch (ignored: Throwable) {
+                }
+            }
 
         // Bluetooth Controller
-        try {
-            val bluetoothControllerImpl = findClass(
-                "$SYSTEMUI_PACKAGE.statusbar.policy.BluetoothControllerImpl",
-                loadPackageParam.classLoader
-            )
-            hookAllConstructors(bluetoothControllerImpl, object : XC_MethodHook() {
-                @Throws(Throwable::class)
-                override fun afterHookedMethod(param: MethodHookParam) {
-                    mBluetoothController = param.thisObject
-                }
-            })
-            hookAllMethods(
-                bluetoothControllerImpl,
-                "onBluetoothStateChanged",
-                object : XC_MethodHook() {
-                    @Throws(Throwable::class)
-                    override fun afterHookedMethod(param: MethodHookParam) {
-                        mBluetoothEnabled = (param.args[0] == 12 || param.args[0] == 11)
-                        onBluetoothChanged(mBluetoothEnabled)
-                    }
-                })
-            hookAllMethods(
-                bluetoothControllerImpl,
-                "onConnectionStateChanged",
-                object : XC_MethodHook() {
-                    @Throws(Throwable::class)
-                    override fun afterHookedMethod(param: MethodHookParam) {
-                        onBluetoothChanged(mBluetoothEnabled)
-                    }
-                })
-            hookAllMethods(
-                bluetoothControllerImpl,
-                "onAclConnectionStateChanged",
-                object : XC_MethodHook() {
-                    @Throws(Throwable::class)
-                    override fun afterHookedMethod(param: MethodHookParam) {
-                        onBluetoothChanged(mBluetoothEnabled)
-                    }
-                })
-        } catch (t: Throwable) {
-            log(TAG + "BluetoothControllerImpl not found " + t.message)
-        }
+        val bluetoothControllerImpl =
+            findClass("$SYSTEMUI_PACKAGE.statusbar.policy.BluetoothControllerImpl")
+
+        bluetoothControllerImpl
+            .hookConstructor()
+            .runAfter { param -> mBluetoothController = param.thisObject }
+
+        bluetoothControllerImpl
+            .hookMethod("onBluetoothStateChanged")
+            .runAfter { param ->
+                mBluetoothEnabled = (param.args[0] == 12 || param.args[0] == 11)
+                onBluetoothChanged(mBluetoothEnabled)
+            }
+
+        bluetoothControllerImpl
+            .hookMethod("onConnectionStateChanged")
+            .runAfter { onBluetoothChanged(mBluetoothEnabled) }
+
+        bluetoothControllerImpl
+            .hookMethod("onAclConnectionStateChanged")
+            .runAfter { onBluetoothChanged(mBluetoothEnabled) }
 
         // Get Bluetooth Tile for Dialog
-        try {
-            val bluetoothTile = findClass(
-                "$SYSTEMUI_PACKAGE.qs.tiles.BluetoothTile",
-                loadPackageParam.classLoader
-            )
-            hookAllConstructors(bluetoothTile, object : XC_MethodHook() {
-                @Throws(Throwable::class)
-                override fun afterHookedMethod(param: MethodHookParam) {
-                    mBluetoothTile = param.thisObject
-                    try {
-                        mBluetoothTileDialogViewModel =
-                            getObjectField(param.thisObject, "mDialogViewModel")
-                    } catch (ignored: Throwable) {
-                    }
+        findClass("$SYSTEMUI_PACKAGE.qs.tiles.BluetoothTile")
+            .hookConstructor()
+            .runAfter { param ->
+                mBluetoothTile = param.thisObject
+                try {
+                    mBluetoothTileDialogViewModel =
+                        getObjectField(param.thisObject, "mDialogViewModel")
+                } catch (ignored: Throwable) {
                 }
-            })
-        } catch (t: Throwable) {
-            log(TAG + "BluetoothTile not found " + t.message)
-        }
+            }
 
         // Stole FlashLight Callback
-        try {
-            val flashlightControllerImpl = findClass(
-                "$SYSTEMUI_PACKAGE.statusbar.policy.FlashlightControllerImpl",
-                loadPackageParam.classLoader
-            )
-            hookAllConstructors(flashlightControllerImpl, object : XC_MethodHook() {
-                @Throws(Throwable::class)
-                override fun afterHookedMethod(param: MethodHookParam) {
-                    val mTorchCallback = getObjectField(param.thisObject, "mTorchCallback")
-                    XposedHelpers.findAndHookMethod(
-                        mTorchCallback.javaClass,
-                        "onTorchModeChanged",
-                        String::class.java,
-                        Boolean::class.javaPrimitiveType,
-                        object : XC_MethodHook() {
-                            @Throws(Throwable::class)
-                            override fun afterHookedMethod(param: MethodHookParam) {
-                                onTorchModeChanged(param.args[1] as Boolean)
-                            }
-                        })
-                }
-            })
-        } catch (t: Throwable) {
-            log(TAG + "FlashlightControllerImpl not found " + t.message)
-        }
+        findClass("$SYSTEMUI_PACKAGE.statusbar.policy.FlashlightControllerImpl")
+            .hookConstructor()
+            .runAfter { param ->
+                getObjectField(param.thisObject, "mTorchCallback").javaClass
+                    .hookMethod("onTorchModeChanged")
+                    .parameters(String::class.java, Boolean::class.javaPrimitiveType)
+                    .runAfter { param2 -> onTorchModeChanged(param2.args[1] as Boolean) }
+            }
 
+        // Get Hotspot Callback
+        findClass("$SYSTEMUI_PACKAGE.statusbar.policy.HotspotControllerImpl")
+            .hookMethod("fireHotspotChangedCallback")
+            .runAfter { param ->
+                val enabled = getIntField(param.thisObject, "mHotspotState") == 13
+                val devices = getIntField(param.thisObject, "mNumConnectedDevices")
+                onHotspotChanged(enabled, devices)
+            }
 
-        // Get an Hotspot Callback
-        try {
-            val hotspotControllerImpl = findClass(
-                "$SYSTEMUI_PACKAGE.statusbar.policy.HotspotControllerImpl",
-                loadPackageParam.classLoader
-            )
-            hookAllMethods(
-                hotspotControllerImpl,
-                "fireHotspotChangedCallback",
-                object : XC_MethodHook() {
-                    @Throws(Throwable::class)
-                    override fun afterHookedMethod(param: MethodHookParam) {
-                        val enabled = getIntField(param.thisObject, "mHotspotState") == 13
-                        val devices =
-                            getIntField(param.thisObject, "mNumConnectedDevices")
-                        onHotspotChanged(enabled, devices)
-                    }
-                })
-        } catch (t: Throwable) {
-            log(TAG + "HotspotCallback error: " + t.message)
-        }
-
-
-        // Hotspot Tile - for settings Hotspot
-        try {
-            val hotspotTile =
-                findClass("$SYSTEMUI_PACKAGE.qs.tiles.HotspotTile", loadPackageParam.classLoader)
-            hookAllConstructors(hotspotTile, object : XC_MethodHook() {
-                @Throws(Throwable::class)
-                override fun afterHookedMethod(param: MethodHookParam) {
-                    mHotspotTile = param.thisObject
-                    mHotspotController = getObjectField(param.thisObject, "mHotspotController")
-                }
-            })
-        } catch (t: Throwable) {
-            log(TAG + "HotspotTile error: " + t.message)
-        }
+        // Hotspot Tile - for setting Hotspot
+        findClass("$SYSTEMUI_PACKAGE.qs.tiles.HotspotTile")
+            .hookConstructor()
+            .runAfter { param ->
+                mHotspotTile = param.thisObject
+                mHotspotController = getObjectField(param.thisObject, "mHotspotController")
+            }
 
         // Home Controls Tile - for ControlsActivity
-        try {
-            val deviceControlsTile =
-                findClass(
-                    "$SYSTEMUI_PACKAGE.qs.tiles.DeviceControlsTile",
-                    loadPackageParam.classLoader
-                )
-            hookAllConstructors(deviceControlsTile, object : XC_MethodHook() {
-                @Throws(Throwable::class)
-                override fun afterHookedMethod(param: MethodHookParam) {
-                    mDeviceControlsTile = param.thisObject
-                }
-            })
-        } catch (t: Throwable) {
-            log(TAG + "DeviceControlsTile not found " + t.message)
-        }
-
+        findClass("$SYSTEMUI_PACKAGE.qs.tiles.DeviceControlsTile")
+            .hookConstructor()
+            .runAfter { param -> mDeviceControlsTile = param.thisObject }
 
         // Wallet Tile - for opening wallet
-        try {
-            val quickAccessWalletTile = findClass(
-                "$SYSTEMUI_PACKAGE.qs.tiles.QuickAccessWalletTile",
-                loadPackageParam.classLoader
-            )
-            hookAllConstructors(quickAccessWalletTile, object : XC_MethodHook() {
-                @Throws(Throwable::class)
-                override fun afterHookedMethod(param: MethodHookParam) {
-                    mWalletTile = param.thisObject
-                }
-            })
-        } catch (t: Throwable) {
-            log(TAG + "QuickAccessWalletTile not found")
-        }
+        findClass("$SYSTEMUI_PACKAGE.qs.tiles.QuickAccessWalletTile")
+            .hookConstructor()
+            .runAfter { param -> mWalletTile = param.thisObject }
 
         // Doze Callback
-        try {
-            val dozeScrimController = findClass(
-                "$SYSTEMUI_PACKAGE.statusbar.phone.DozeScrimController",
-                loadPackageParam.classLoader
-            )
-            hookAllMethods(dozeScrimController, "onDozingChanged", object : XC_MethodHook() {
-                @Throws(Throwable::class)
-                override fun afterHookedMethod(param: MethodHookParam) {
-                    onDozingChanged(param.args[0] as Boolean)
-                }
-            })
-
-        } catch (t: Throwable) {
-            log(TAG + "DozeServiceHost not found " + t.message)
-        }
-
+        findClass("$SYSTEMUI_PACKAGE.statusbar.phone.DozeScrimController")
+            .hookMethod("onDozingChanged")
+            .runAfter { param -> onDozingChanged(param.args[0] as Boolean) }
     }
 
     /**
@@ -361,61 +212,61 @@ class ControllersProvider(context: Context) : ModPack(context) {
     }
 
     fun registerMobileDataCallback(callback: OnMobileDataChanged) {
-        instance!!.mMobileDataChangedListeners.add(callback)
+        instance.mMobileDataChangedListeners.add(callback)
     }
 
     /** @noinspection unused
      */
     fun unRegisterMobileDataCallback(callback: OnMobileDataChanged?) {
-        instance!!.mMobileDataChangedListeners.remove(callback)
+        instance.mMobileDataChangedListeners.remove(callback)
     }
 
     fun registerWifiCallback(callback: OnWifiChanged) {
-        instance!!.mWifiChangedListeners.add(callback)
+        instance.mWifiChangedListeners.add(callback)
     }
 
     /** @noinspection unused
      */
     fun unRegisterWifiCallback(callback: OnWifiChanged?) {
-        instance!!.mWifiChangedListeners.remove(callback)
+        instance.mWifiChangedListeners.remove(callback)
     }
 
     fun registerBluetoothCallback(callback: OnBluetoothChanged) {
-        instance!!.mBluetoothChangedListeners.add(callback)
+        instance.mBluetoothChangedListeners.add(callback)
     }
 
     /** @noinspection unused
      */
     fun unRegisterBluetoothCallback(callback: OnBluetoothChanged?) {
-        instance!!.mBluetoothChangedListeners.remove(callback)
+        instance.mBluetoothChangedListeners.remove(callback)
     }
 
     fun registerTorchModeCallback(callback: OnTorchModeChanged) {
-        instance!!.mTorchModeChangedListeners.add(callback)
+        instance.mTorchModeChangedListeners.add(callback)
     }
 
     /** @noinspection unused
      */
     fun unRegisterTorchModeCallback(callback: OnTorchModeChanged?) {
-        instance!!.mTorchModeChangedListeners.remove(callback)
+        instance.mTorchModeChangedListeners.remove(callback)
     }
 
     fun registerDozingCallback(callback: OnDozingChanged) {
-        instance!!.mDozeChangedListeners.add(callback)
+        instance.mDozeChangedListeners.add(callback)
     }
 
     /** @noinspection unused */
     fun unRegisterDozingCallback(callback: OnDozingChanged?) {
-        instance!!.mDozeChangedListeners.remove(callback)
+        instance.mDozeChangedListeners.remove(callback)
     }
 
     fun registerHotspotCallback(callback: OnHotspotChanged) {
-        instance!!.mHotspotChangedListeners.add(callback)
+        instance.mHotspotChangedListeners.add(callback)
     }
 
     /** @noinspection unused */
     fun unRegisterHotspotCallback(callback: OnHotspotChanged?) {
-        instance!!.mHotspotChangedListeners.remove(callback)
+        instance.mHotspotChangedListeners.remove(callback)
     }
 
     private fun onSetMobileDataIndicators(mMobileDataIndicators: Any) {
@@ -493,7 +344,7 @@ class ControllersProvider(context: Context) : ModPack(context) {
     companion object {
         @SuppressLint("StaticFieldLeak")
         @Volatile
-        private var instance: ControllersProvider? = null
+        private lateinit var instance: ControllersProvider
 
         private val TAG: String = "Iconify - ${ControllersProvider::class.java.simpleName}: "
 
@@ -505,129 +356,222 @@ class ControllersProvider(context: Context) : ModPack(context) {
         var mWalletTile: Any? = null
 
         fun getInstance(): ControllersProvider {
-            return instance!!
+            return instance
         }
 
         fun showInternetDialog(view: View): Boolean {
-            if (instance == null) {
+            if (::instance.isInitialized.not()) {
                 log(TAG + "Instance is null")
                 return false
             }
-            if (instance!!.mCellularTile != null) {
-                if (isMethodAvailable(instance!!.mCellularTile, "handleClick", View::class.java)) {
-                    callMethod(instance!!.mCellularTile, "handleClick", view)
-                    return true
-                }
-            }
-            if (instance!!.mAccessPointController != null) {
-                if (isMethodAvailable(
-                        instance!!.mInternetDialogManager,
+
+            val expandableClassAvailable = instance.mExpandableClass != null
+
+            instance.mAccessPointController?.let { accessPointController ->
+                when {
+                    isMethodAvailable(
+                        instance.mInternetDialogManager,
                         "create",
                         Boolean::class.java,
                         Boolean::class.java,
                         Boolean::class.java,
                         View::class.java
-                    )
-                ) {
-                    callMethod(
-                        instance!!.mInternetDialogManager,
-                        "create",
-                        true,
-                        callMethod(instance!!.mAccessPointController, "canConfigMobileData"),
-                        callMethod(instance!!.mAccessPointController, "canConfigWifi"),
-                        view
-                    )
-                    return true
-                } else if (isMethodAvailable(
-                        instance!!.mInternetDialogManager,
+                    ) -> {
+                        callMethod(
+                            instance.mInternetDialogManager,
+                            "create",
+                            true,
+                            callMethod(accessPointController, "canConfigMobileData"),
+                            callMethod(accessPointController, "canConfigWifi"),
+                            view
+                        )
+                        return true
+                    }
+
+                    isMethodAvailable(
+                        instance.mInternetDialogManager,
                         "create",
                         View::class.java,
                         Boolean::class.java,
                         Boolean::class.java
-                    )
-                ) {
-                    callMethod(
-                        instance!!.mInternetDialogManager,
-                        "create",
-                        view,
-                        callMethod(instance!!.mAccessPointController, "canConfigMobileData"),
-                        callMethod(instance!!.mAccessPointController, "canConfigWifi")
-                    )
-                    return true
-                } else if (isMethodAvailable(
-                        instance!!.mInternetDialogFactory,
+                    ) -> {
+                        callMethod(
+                            instance.mInternetDialogManager,
+                            "create",
+                            view,
+                            callMethod(accessPointController, "canConfigMobileData"),
+                            callMethod(accessPointController, "canConfigWifi")
+                        )
+                        return true
+                    }
+
+                    isMethodAvailable(
+                        instance.mInternetDialogFactory,
                         "create",
                         Boolean::class.java,
                         Boolean::class.java,
                         View::class.java
-                    )
-                ) {
-                    callMethod(
-                        instance!!.mInternetDialogFactory,
+                    ) -> {
+                        callMethod(
+                            instance.mInternetDialogFactory,
+                            "create",
+                            callMethod(accessPointController, "canConfigMobileData"),
+                            callMethod(accessPointController, "canConfigWifi"),
+                            view
+                        )
+                        return true
+                    }
+
+                    expandableClassAvailable && isMethodAvailable(
+                        instance.mInternetDialogManager,
                         "create",
-                        callMethod(instance!!.mAccessPointController, "canConfigMobileData"),
-                        callMethod(instance!!.mAccessPointController, "canConfigWifi"),
-                        view
-                    )
-                    return true
-                } else {
-                    log(TAG + "No internet dialog available")
-                    return false
+                        Boolean::class.java,
+                        Boolean::class.java,
+                        instance.mExpandableClass!!
+                    ) -> {
+                        callMethod(
+                            instance.mInternetDialogManager,
+                            "create",
+                            callMethod(accessPointController, "canConfigMobileData"),
+                            callMethod(accessPointController, "canConfigWifi"),
+                            null
+                        )
+                        return true
+                    }
+
+                    expandableClassAvailable && isMethodAvailable(
+                        instance.mInternetDialogManager,
+                        "create",
+                        Boolean::class.java,
+                        Boolean::class.java,
+                        Boolean::class.java,
+                        instance.mExpandableClass!!
+                    ) -> {
+                        callMethod(
+                            instance.mInternetDialogManager,
+                            "create",
+                            true,
+                            callMethod(accessPointController, "canConfigMobileData"),
+                            callMethod(accessPointController, "canConfigWifi"),
+                            null
+                        )
+                        return true
+                    }
+
+                    else -> {
+                        log(TAG + "No internet dialog available")
+                        return false
+                    }
+                }
+            } ?: run {
+                instance.mCellularTile?.let { cellularTile ->
+                    when {
+                        isMethodAvailable(
+                            cellularTile,
+                            "handleClick",
+                            View::class.java
+                        ) -> {
+                            callMethod(cellularTile, "handleClick", view)
+                            return true
+                        }
+
+                        else -> {
+                            log(TAG + "No internet tile available")
+                            return false
+                        }
+                    }
                 }
             }
+
             return false
         }
 
         fun showBluetoothDialog(context: Context, view: View): Boolean {
-            val btTileAvailable = instance?.mBluetoothTile != null
-            val btTileDialogAvailable = instance?.mBluetoothTileDialogViewModel != null
+            if (::instance.isInitialized.not()) {
+                log(TAG + "Instance is null")
+                return false
+            }
 
-            if (btTileDialogAvailable && isMethodAvailable(
-                    instance!!.mBluetoothTileDialogViewModel,
+            val expandableClassAvailable = instance.mExpandableClass != null
+
+            when {
+                isMethodAvailable(
+                    instance.mBluetoothTileDialogViewModel,
                     "showDialog",
                     Context::class.java,
                     View::class.java
-                )
-            ) {
-                callMethod(
-                    instance!!.mBluetoothTileDialogViewModel,
-                    "showDialog",
-                    context,
-                    view
-                )
-                return true
-            } else if (btTileDialogAvailable && isMethodAvailable(
-                    instance!!.mBluetoothTileDialogViewModel,
+                ) -> {
+                    callMethod(
+                        instance.mBluetoothTileDialogViewModel,
+                        "showDialog",
+                        context,
+                        view
+                    )
+                    return true
+                }
+
+                isMethodAvailable(
+                    instance.mBluetoothTileDialogViewModel,
                     "showDialog",
                     Context::class.java,
                     View::class.java,
                     Boolean::class.java
-                )
-            ) {
-                val isAutoOn = Settings.System.getInt(
-                    context.contentResolver,
-                    "qs_bt_auto_on", 0
-                ) == 1
-                callMethod(
-                    instance!!.mBluetoothTileDialogViewModel,
+                ) -> {
+                    val isAutoOn = Settings.System.getInt(
+                        context.contentResolver,
+                        "qs_bt_auto_on", 0
+                    ) == 1
+                    callMethod(
+                        instance.mBluetoothTileDialogViewModel,
+                        "showDialog",
+                        context,
+                        view,
+                        isAutoOn
+                    )
+                    return true
+                }
+
+                expandableClassAvailable && isMethodAvailable(
+                    instance.mBluetoothTileDialogViewModel,
                     "showDialog",
-                    context,
-                    view,
-                    isAutoOn
-                )
-                return true
-            } else if (btTileAvailable && isMethodAvailable(
-                    instance!!.mBluetoothTile,
+                    instance.mExpandableClass!!
+                ) -> {
+                    // it's calling wrong callMethod() so we have to call it manually
+                    return try {
+                        instance.mBluetoothTileDialogViewModel!!::class.java.getMethod(
+                            "showDialog",
+                            instance.mExpandableClass!!
+                        ).invoke(instance.mBluetoothTileDialogViewModel!!, null)
+                        true
+                    } catch (e: Exception) {
+                        log(TAG + e)
+                        false
+                    }
+                }
+
+                isMethodAvailable(
+                    instance.mBluetoothTile,
                     "handleClick",
                     View::class.java
-                )
-            ) {
-                callMethod(instance!!.mBluetoothTile, "handleClick", view)
-                return true
-            } else {
-                log(TAG + "No bluetooth dialog available")
+                ) -> {
+                    callMethod(instance.mBluetoothTile, "handleClick", view)
+                    return true
+                }
+
+                expandableClassAvailable && isMethodAvailable(
+                    instance.mBluetoothTile,
+                    "handleClick",
+                    instance.mExpandableClass!!
+                ) -> {
+                    callMethod(instance.mBluetoothTile, "handleClick", null)
+                    return true
+                }
+
+                else -> {
+                    log(TAG + "No bluetooth dialog available")
+                    return false
+                }
             }
-            return false
         }
     }
 }

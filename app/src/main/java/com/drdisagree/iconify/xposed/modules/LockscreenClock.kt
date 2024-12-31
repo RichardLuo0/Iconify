@@ -68,12 +68,11 @@ import com.drdisagree.iconify.xposed.modules.utils.ViewHelper.applyTextScalingRe
 import com.drdisagree.iconify.xposed.modules.utils.ViewHelper.findViewContainsTag
 import com.drdisagree.iconify.xposed.modules.utils.ViewHelper.findViewWithTagAndChangeColor
 import com.drdisagree.iconify.xposed.modules.utils.ViewHelper.setMargins
+import com.drdisagree.iconify.xposed.modules.utils.toolkit.XposedHook.Companion.findClass
+import com.drdisagree.iconify.xposed.modules.utils.toolkit.hookMethod
 import com.drdisagree.iconify.xposed.utils.XPrefs.Xprefs
 import com.drdisagree.iconify.xposed.utils.XPrefs.XprefsIsInitialized
-import de.robv.android.xposed.XC_MethodHook
-import de.robv.android.xposed.XposedBridge.hookAllMethods
 import de.robv.android.xposed.XposedBridge.log
-import de.robv.android.xposed.XposedHelpers.findClass
 import de.robv.android.xposed.XposedHelpers.getObjectField
 import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam
 import java.io.File
@@ -118,6 +117,9 @@ class LockscreenClock(context: Context) : ModPack(context) {
             initSoundManager()
         }
     }
+    private var customFontEnabled: Boolean = false
+    private val customFontDirectory = Environment.getExternalStorageDirectory().toString() +
+            "/.iconify_files/lsclock_font.ttf"
 
     override fun updatePrefs(vararg key: String) {
         if (!XprefsIsInitialized) return
@@ -127,31 +129,33 @@ class LockscreenClock(context: Context) : ModPack(context) {
         Xprefs.apply {
             showLockscreenClock = getBoolean(LSCLOCK_SWITCH, false)
             showDepthWallpaper = isAndroid13OrBelow && getBoolean(DEPTH_WALLPAPER_SWITCH, false)
+            customFontEnabled = getBoolean(LSCLOCK_FONT_SWITCH, false)
         }
 
         resetStockClock()
 
         if (key.isNotEmpty() &&
-            (key[0] == LSCLOCK_SWITCH ||
-                    key[0] == LSCLOCK_COLOR_SWITCH ||
-                    key[0] == LSCLOCK_COLOR_CODE_ACCENT1 ||
-                    key[0] == LSCLOCK_COLOR_CODE_ACCENT2 ||
-                    key[0] == LSCLOCK_COLOR_CODE_ACCENT3 ||
-                    key[0] == LSCLOCK_COLOR_CODE_TEXT1 ||
-                    key[0] == LSCLOCK_COLOR_CODE_TEXT2 ||
-                    key[0] == LSCLOCK_STYLE ||
-                    key[0] == LSCLOCK_TOPMARGIN ||
-                    key[0] == LSCLOCK_BOTTOMMARGIN ||
-                    key[0] == LSCLOCK_FONT_LINEHEIGHT ||
-                    key[0] == LSCLOCK_FONT_SWITCH ||
-                    key[0] == LSCLOCK_FONT_TEXT_SCALING ||
-                    key[0] == LSCLOCK_USERNAME ||
-                    key[0] == LSCLOCK_DEVICENAME ||
-                    (isAndroid13OrBelow &&
-                            (key[0] == DEPTH_WALLPAPER_SWITCH ||
-                                    key[0] == DEPTH_WALLPAPER_FADE_ANIMATION)
-                            )
-                    )
+            (key[0] in setOf(
+                LSCLOCK_SWITCH,
+                LSCLOCK_COLOR_SWITCH,
+                LSCLOCK_COLOR_CODE_ACCENT1,
+                LSCLOCK_COLOR_CODE_ACCENT2,
+                LSCLOCK_COLOR_CODE_ACCENT3,
+                LSCLOCK_COLOR_CODE_TEXT1,
+                LSCLOCK_COLOR_CODE_TEXT2,
+                LSCLOCK_STYLE,
+                LSCLOCK_TOPMARGIN,
+                LSCLOCK_BOTTOMMARGIN,
+                LSCLOCK_FONT_LINEHEIGHT,
+                LSCLOCK_FONT_SWITCH,
+                LSCLOCK_FONT_TEXT_SCALING,
+                LSCLOCK_USERNAME,
+                LSCLOCK_DEVICENAME
+            ) || (isAndroid13OrBelow &&
+                    key[0] in setOf(
+                DEPTH_WALLPAPER_SWITCH,
+                DEPTH_WALLPAPER_FADE_ANIMATION
+            )))
         ) {
             updateClockView()
         }
@@ -160,14 +164,12 @@ class LockscreenClock(context: Context) : ModPack(context) {
     override fun handleLoadPackage(loadPackageParam: LoadPackageParam) {
         initResources(mContext)
 
-        val keyguardStatusViewClass = findClass(
-            "com.android.keyguard.KeyguardStatusView",
-            loadPackageParam.classLoader
-        )
+        val keyguardStatusViewClass = findClass("com.android.keyguard.KeyguardStatusView")
 
-        hookAllMethods(keyguardStatusViewClass, "onFinishInflate", object : XC_MethodHook() {
-            override fun afterHookedMethod(param: MethodHookParam) {
-                if (!showLockscreenClock) return
+        keyguardStatusViewClass
+            .hookMethod("onFinishInflate")
+            .runAfter { param ->
+                if (!showLockscreenClock) return@runAfter
 
                 mStatusViewContainer = getObjectField(
                     param.thisObject,
@@ -202,16 +204,14 @@ class LockscreenClock(context: Context) : ModPack(context) {
 
                 registerClockUpdater()
             }
-        })
 
-        val keyguardBottomAreaViewClass = findClass(
-            "$SYSTEMUI_PACKAGE.statusbar.phone.KeyguardBottomAreaView",
-            loadPackageParam.classLoader
-        )
+        val keyguardBottomAreaViewClass =
+            findClass("$SYSTEMUI_PACKAGE.statusbar.phone.KeyguardBottomAreaView")
 
-        hookAllMethods(keyguardBottomAreaViewClass, "onFinishInflate", object : XC_MethodHook() {
-            override fun afterHookedMethod(param: MethodHookParam) {
-                if (!showLockscreenClock || !showDepthWallpaper) return
+        keyguardBottomAreaViewClass
+            .hookMethod("onFinishInflate")
+            .runAfter { param ->
+                if (!showLockscreenClock || !showDepthWallpaper) return@runAfter
 
                 val view = param.thisObject as View
                 val mIndicationArea = view.findViewById<ViewGroup>(
@@ -244,7 +244,6 @@ class LockscreenClock(context: Context) : ModPack(context) {
                 } catch (ignored: Throwable) {
                 }
             }
-        })
 
         try {
             val executor = Executors.newSingleThreadScheduledExecutor()
@@ -416,10 +415,7 @@ class LockscreenClock(context: Context) : ModPack(context) {
         val bottomMargin: Int = Xprefs.getSliderInt(LSCLOCK_BOTTOMMARGIN, 40)
         val textScaleFactor: Float =
             (Xprefs.getSliderInt(LSCLOCK_FONT_TEXT_SCALING, 10) / 10.0).toFloat()
-        val customFont = Environment.getExternalStorageDirectory().toString() +
-                "/.iconify_files/lsclock_font.ttf"
         val lineHeight: Int = Xprefs.getSliderInt(LSCLOCK_FONT_LINEHEIGHT, 0)
-        val customFontEnabled: Boolean = Xprefs.getBoolean(LSCLOCK_FONT_SWITCH, false)
         val customColorEnabled: Boolean = Xprefs.getBoolean(LSCLOCK_COLOR_SWITCH, false)
         val customUserName: String = Xprefs.getString(LSCLOCK_USERNAME, "")!!
         val customDeviceName: String = Xprefs.getString(LSCLOCK_DEVICENAME, "")!!
@@ -463,8 +459,8 @@ class LockscreenClock(context: Context) : ModPack(context) {
             Color.BLACK
         )
         var typeface: Typeface? = null
-        if (customFontEnabled && File(customFont).exists()) {
-            typeface = Typeface.createFromFile(File(customFont))
+        if (customFontEnabled && File(customFontDirectory).exists()) {
+            typeface = Typeface.createFromFile(File(customFontDirectory))
         }
 
         setMargins(clockView, mContext, 0, topMargin, 0, bottomMargin)
@@ -616,7 +612,12 @@ class LockscreenClock(context: Context) : ModPack(context) {
                     appContext!!,
                     R.drawable.ic_volume_up
                 ),
-                iconSizePx = 38
+                iconSizePx = 38,
+                typeface = if (customFontEnabled && File(customFontDirectory).exists()) {
+                    Typeface.createFromFile(File(customFontDirectory))
+                } else {
+                    Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+                }
             )
         )
     }
@@ -642,7 +643,12 @@ class LockscreenClock(context: Context) : ModPack(context) {
                 ),
                 textInsideSizePx = (40 * textScaleFactor * reduceFactor).toInt(),
                 textBottom = "RAM",
-                textBottomSizePx = 28
+                textBottomSizePx = 28,
+                typeface = if (customFontEnabled && File(customFontDirectory).exists()) {
+                    Typeface.createFromFile(File(customFontDirectory))
+                } else {
+                    Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+                }
             )
         )
     }

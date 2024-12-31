@@ -3,9 +3,8 @@ package com.drdisagree.iconify.xposed.modules
 import android.annotation.SuppressLint
 import android.content.Context
 import com.drdisagree.iconify.xposed.ModPack
-import de.robv.android.xposed.XC_MethodHook
-import de.robv.android.xposed.XposedBridge
-import de.robv.android.xposed.XposedHelpers
+import com.drdisagree.iconify.xposed.modules.utils.toolkit.XposedHook.Companion.findClass
+import com.drdisagree.iconify.xposed.modules.utils.toolkit.hookMethod
 import de.robv.android.xposed.callbacks.XC_LoadPackage
 
 class ThemeChange(context: Context) : ModPack(context) {
@@ -19,37 +18,18 @@ class ThemeChange(context: Context) : ModPack(context) {
         instance = this
 
         // Get monet change so we can apply theme
-        try {
-            val ScrimController = XposedHelpers.findClass(
-                "com.android.systemui.statusbar.phone.ScrimController",
-                loadPackageParam.classLoader
-            )
-            XposedBridge.hookAllMethods(
-                ScrimController,
-                "updateThemeColors",
-                object : XC_MethodHook() {
-                    @Throws(Throwable::class)
-                    override fun afterHookedMethod(param: MethodHookParam) {
-                        onThemeChanged()
-                    }
-                })
-        } catch (ignored: Throwable) {}
+        val scrimControllerClass = findClass("com.android.systemui.statusbar.phone.ScrimController")
 
-        try {
-            val NotificationPanelViewController = XposedHelpers.findClass(
-                "com.android.systemui.shade.NotificationPanelViewController",
-                loadPackageParam.classLoader
-            )
-            XposedBridge.hookAllMethods(
-                NotificationPanelViewController,
-                "onThemeChanged",
-                object : XC_MethodHook() {
-                    @Throws(Throwable::class)
-                    override fun afterHookedMethod(param: MethodHookParam) {
-                        onThemeChanged()
-                    }
-                })
-        } catch (ignored: Throwable) {}
+        scrimControllerClass
+            .hookMethod("updateThemeColors")
+            .runAfter { onThemeChanged() }
+
+        val notificationPanelViewControllerClass =
+            findClass("com.android.systemui.shade.NotificationPanelViewController")
+
+        notificationPanelViewControllerClass
+            .hookMethod("onThemeChanged")
+            .runAfter { onThemeChanged() }
     }
 
     interface OnThemeChangedListener {

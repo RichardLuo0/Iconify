@@ -1,12 +1,14 @@
 package com.drdisagree.iconify.ui.fragments.xposed
 
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.result.ActivityResult
+import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import com.drdisagree.iconify.Iconify.Companion.appContext
 import com.drdisagree.iconify.Iconify.Companion.appContextLocale
@@ -47,54 +49,61 @@ class DepthWallpaper : ControlledPreferenceFragmentCompat() {
     override val hasMenu: Boolean
         get() = true
 
-    private var startActivityIntentForBackgroundImage = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
-    ) { result: ActivityResult ->
-        if (result.resultCode == Activity.RESULT_OK) {
-            val data = result.data
-            val path = getRealPath(data)
+    private lateinit var startActivityIntentForBackgroundImage: ActivityResultLauncher<Intent?>
+    private lateinit var startActivityIntentForForegroundImage: ActivityResultLauncher<Intent?>
 
-            if (path != null && moveToIconifyHiddenDir(path, DEPTH_WALL_BG_DIR)) {
-                putBoolean(DEPTH_WALLPAPER_CHANGED, false)
-                putBoolean(DEPTH_WALLPAPER_CHANGED, true)
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
 
-                Toast.makeText(
-                    appContext,
-                    appContextLocale.resources.getString(R.string.toast_applied),
-                    Toast.LENGTH_SHORT
-                ).show()
-            } else {
-                Toast.makeText(
-                    appContext,
-                    appContextLocale.resources.getString(R.string.toast_rename_file),
-                    Toast.LENGTH_SHORT
-                ).show()
+        startActivityIntentForBackgroundImage = registerForActivityResult(
+            ActivityResultContracts.StartActivityForResult()
+        ) { result: ActivityResult ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                val data = result.data
+                val path = getRealPath(data)
+
+                if (path != null && moveToIconifyHiddenDir(path, DEPTH_WALL_BG_DIR)) {
+                    putBoolean(DEPTH_WALLPAPER_CHANGED, false)
+                    putBoolean(DEPTH_WALLPAPER_CHANGED, true)
+
+                    Toast.makeText(
+                        appContext,
+                        appContextLocale.resources.getString(R.string.toast_applied),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                } else {
+                    Toast.makeText(
+                        appContext,
+                        appContextLocale.resources.getString(R.string.toast_rename_file),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
             }
         }
-    }
 
-    private var startActivityIntentForForegroundImage = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
-    ) { result: ActivityResult ->
-        if (result.resultCode == Activity.RESULT_OK) {
-            val data = result.data
-            val path = getRealPath(data)
+        startActivityIntentForForegroundImage = registerForActivityResult(
+            ActivityResultContracts.StartActivityForResult()
+        ) { result: ActivityResult ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                val data = result.data
+                val path = getRealPath(data)
 
-            if (path != null && moveToIconifyHiddenDir(path, DEPTH_WALL_FG_DIR)) {
-                putBoolean(DEPTH_WALLPAPER_CHANGED, false)
-                putBoolean(DEPTH_WALLPAPER_CHANGED, true)
+                if (path != null && moveToIconifyHiddenDir(path, DEPTH_WALL_FG_DIR)) {
+                    putBoolean(DEPTH_WALLPAPER_CHANGED, false)
+                    putBoolean(DEPTH_WALLPAPER_CHANGED, true)
 
-                Toast.makeText(
-                    appContext,
-                    appContextLocale.resources.getString(R.string.toast_applied),
-                    Toast.LENGTH_SHORT
-                ).show()
-            } else {
-                Toast.makeText(
-                    appContext,
-                    appContextLocale.resources.getString(R.string.toast_rename_file),
-                    Toast.LENGTH_SHORT
-                ).show()
+                    Toast.makeText(
+                        appContext,
+                        appContextLocale.resources.getString(R.string.toast_applied),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                } else {
+                    Toast.makeText(
+                        appContext,
+                        appContextLocale.resources.getString(R.string.toast_rename_file),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
             }
         }
     }

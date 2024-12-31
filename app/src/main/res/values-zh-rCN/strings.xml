@@ -283,7 +283,7 @@
     <string name="qstile_btn4_desc">开启</string>
     <!-- Row and Column -->
     <string name="qs_row_column_warn_desc">一些组合可能在某些系统中不起作用。在这种情况下，只需尝试一些其他组合，并选择最适合你的组合。</string>
-    <string name="quick_qspanel_row_title">快捷快速设置面板行</string>
+    <string name="quick_qspanel_row_title">通知页面下快速设置面板行</string>
     <string name="qspanel_row_title">快速设置面板行</string>
     <string name="qspanel_column_title">快速设置面板列</string>
     <!-- Icon and Label -->
@@ -314,7 +314,7 @@
     <string name="qs_tile_non_expanded_height">非扩展高度</string>
     <string name="qs_tile_expanded_height">拓展高度</string>
     <!-- QS Panel Margin -->
-    <string name="qqs_panel_top_margin_title">快速设置面板快捷开关顶部边距</string>
+    <string name="qqs_panel_top_margin_title">通知页面下设置面板快捷开关顶部边距</string>
     <string name="qs_panel_top_margin_title">快速设置面板上边距</string>
     <!-- Statusbar -->
     <string name="section_title_spacing">间距</string>
@@ -402,7 +402,7 @@
     <string name="notch_bar_killer_desc">消除刘海条上的空白空间</string>
     <string name="tablet_header_title">Tablet Header</string>
     <string name="tablet_header_desc">启用大的屏幕阴影页眉</string>
-    <string name="section_title_privacy_chip">Privacy Chip</string>
+    <string name="section_title_privacy_chip">隐私指示器药丸</string>
     <string name="accent_privacy_chip_title">Accent Privacy Chip</string>
     <string name="accent_privacy_chip_desc">让Privacy chip强调着色</string>
     <string name="section_title_media_player">媒体播放器</string>
@@ -714,12 +714,12 @@
     <!-- Xposed Depth Wallpaper -->
     <string name="enable_depth_wallpaper_title">启用深度壁纸</string>
     <string name="enable_depth_wallpaper_desc">显示类似 iOS 系统的深度壁纸\n%s</string>
-    <string name="depth_wallpaper_ai_mode">AI Mode</string>
+    <string name="depth_wallpaper_ai_mode">AI 模式</string>
     <string name="depth_wallpaper_ai_mlkit">MLKit (Google)</string>
-    <string name="depth_wallpaper_ai_plugin">Plugin</string>
-    <string name="depth_wallpaper_ai_status">AI Status</string>
-    <string name="depth_wallpaper_ai_status_plugin_not_installed">AI Plugin not installed.\nTap to download</string>
-    <string name="depth_wallpaper_ai_status_plugin_installed">AI Plugin installed.\nTap to open</string>
+    <string name="depth_wallpaper_ai_plugin">插件</string>
+    <string name="depth_wallpaper_ai_status">AI 状态</string>
+    <string name="depth_wallpaper_ai_status_plugin_not_installed">AI 插件并未安装\n点击以下载</string>
+    <string name="depth_wallpaper_ai_status_plugin_installed">AI 插件已安装\n点击打开</string>
     <string name="enable_custom_depth_wallpaper_title">自定义图像</string>
     <string name="enable_custom_depth_wallpaper_desc">设置自定义图像作为深度壁纸</string>
     <string name="depth_wallpaper_on_aod_title">在息屏显示中显示</string>
@@ -846,11 +846,11 @@
     <string name="info_tester_desc">测试本应用程序。</string>
     <string name="info_betterqs_desc">许可使用「更好的快速设置」。</string>
     <string name="info_binaries_desc">Android 可执行二进制文件。</string>
-    <string name="info_buttercup_desc">For some lockscreen clock styles.</string>
+    <string name="info_buttercup_desc">适用于部分锁屏时钟样式</string>
     <string name="section_title_contributors">贡献者</string>
     <string name="info_contributor_desc">在 Github 上的贡献。</string>
     <string name="info_contributor_desc_2">在 Telegram 上协助我。</string>
-    <string name="total_contributions">Total Contributions: %d</string>
+    <string name="total_contributions">总属性数：%d</string>
     <string name="section_title_translators">译者</string>
     <string name="af_translation">南非荷兰语翻译。</string>
     <string name="ar_translation">阿拉伯语翻译。</string>

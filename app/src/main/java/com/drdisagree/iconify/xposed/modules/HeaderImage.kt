@@ -31,13 +31,12 @@ import com.drdisagree.iconify.common.Preferences.HEADER_IMAGE_ZOOMTOFIT
 import com.drdisagree.iconify.common.Preferences.ICONIFY_QS_HEADER_CONTAINER_TAG
 import com.drdisagree.iconify.xposed.ModPack
 import com.drdisagree.iconify.xposed.modules.utils.ViewHelper.toPx
+import com.drdisagree.iconify.xposed.modules.utils.toolkit.XposedHook.Companion.findClass
+import com.drdisagree.iconify.xposed.modules.utils.toolkit.hookMethod
 import com.drdisagree.iconify.xposed.utils.XPrefs.Xprefs
 import com.drdisagree.iconify.xposed.utils.XPrefs.XprefsIsInitialized
-import de.robv.android.xposed.XC_MethodHook
-import de.robv.android.xposed.XposedBridge.hookAllMethods
 import de.robv.android.xposed.XposedBridge.log
 import de.robv.android.xposed.XposedHelpers.callMethod
-import de.robv.android.xposed.XposedHelpers.findClass
 import de.robv.android.xposed.XposedHelpers.getIntField
 import de.robv.android.xposed.XposedHelpers.getObjectField
 import de.robv.android.xposed.XposedHelpers.setObjectField
@@ -115,17 +114,12 @@ class HeaderImage(context: Context) : ModPack(context) {
             mBroadcastRegistered = true
         }
 
-        val quickStatusBarHeader = findClass(
-            "$SYSTEMUI_PACKAGE.qs.QuickStatusBarHeader",
-            loadPackageParam.classLoader
-        )
-        val qsContainerImpl = findClass(
-            "$SYSTEMUI_PACKAGE.qs.QSContainerImpl",
-            loadPackageParam.classLoader
-        )
+        val quickStatusBarHeader = findClass("$SYSTEMUI_PACKAGE.qs.QuickStatusBarHeader")
+        val qsContainerImpl = findClass("$SYSTEMUI_PACKAGE.qs.QSContainerImpl")
 
-        hookAllMethods(quickStatusBarHeader, "onFinishInflate", object : XC_MethodHook() {
-            override fun afterHookedMethod(param: MethodHookParam) {
+        quickStatusBarHeader
+            .hookMethod("onFinishInflate")
+            .runAfter { param ->
                 val mQuickStatusBarHeader = param.thisObject as FrameLayout
                 mQsHeaderLayout = FadingEdgeLayout(mContext).apply {
                     tag = ICONIFY_QS_HEADER_CONTAINER_TAG
@@ -163,16 +157,15 @@ class HeaderImage(context: Context) : ModPack(context) {
 
                 updateQSHeaderImage()
             }
-        })
 
-        hookAllMethods(quickStatusBarHeader, "updateResources", object : XC_MethodHook() {
-            override fun afterHookedMethod(param: MethodHookParam) {
-                updateQSHeaderImage()
-            }
-        })
+        quickStatusBarHeader
+            .hookMethod("updateResources")
+            .runAfter { updateQSHeaderImage() }
 
-        hookAllMethods(quickStatusBarHeader, "onMeasure", object : XC_MethodHook() {
-            override fun afterHookedMethod(param: MethodHookParam) {
+        quickStatusBarHeader
+            .hookMethod("onMeasure")
+            .suppressError()
+            .runAfter { param ->
                 val mDatePrivacyView = getObjectField(
                     param.thisObject,
                     "mDatePrivacyView"
@@ -194,11 +187,12 @@ class HeaderImage(context: Context) : ModPack(context) {
                     callMethod(param.thisObject, "updateAnimators")
                 }
             }
-        })
+            .suppressError()
 
-        hookAllMethods(qsContainerImpl, "onFinishInflate", object : XC_MethodHook() {
-            override fun afterHookedMethod(param: MethodHookParam) {
-                if (headerImageOverlap) return
+        qsContainerImpl
+            .hookMethod("onFinishInflate")
+            .runAfter { param ->
+                if (headerImageOverlap) return@runAfter
 
                 val mHeader = getObjectField(param.thisObject, "mHeader") as FrameLayout
 
@@ -208,7 +202,6 @@ class HeaderImage(context: Context) : ModPack(context) {
                     requestLayout()
                 }
             }
-        })
     }
 
     private fun updateQSHeaderImage() {
@@ -221,7 +214,7 @@ class HeaderImage(context: Context) : ModPack(context) {
             return
         }
 
-        loadImageOrGif(mQsHeaderImageView!!)
+        mQsHeaderImageView!!.loadImageOrGif()
 
         mQsHeaderImageView!!.imageAlpha = (headerImageAlpha / 100.0 * 255.0).toInt()
         mQsHeaderLayout!!.layoutParams.height = TypedValue.applyDimension(
@@ -267,7 +260,7 @@ class HeaderImage(context: Context) : ModPack(context) {
         setLayoutParams(layoutParams)
     }
 
-    private fun loadImageOrGif(iv: ImageView) {
+    private fun ImageView.loadImageOrGif() {
         try {
             val executor = Executors.newSingleThreadScheduledExecutor()
             executor.scheduleWithFixedDelay({
@@ -284,17 +277,17 @@ class HeaderImage(context: Context) : ModPack(context) {
                         )
                         val drawable = ImageDecoder.decodeDrawable(source)
 
-                        iv.setImageDrawable(drawable)
-                        iv.clipToOutline = true
+                        setImageDrawable(drawable)
+                        clipToOutline = true
 
                         if (!zoomToFit) {
-                            iv.scaleType = ImageView.ScaleType.FIT_XY
+                            scaleType = ImageView.ScaleType.FIT_XY
                         } else {
-                            iv.scaleType = ImageView.ScaleType.CENTER_CROP
-                            iv.adjustViewBounds = false
-                            iv.cropToPadding = false
-                            iv.minimumWidth = ViewGroup.LayoutParams.MATCH_PARENT
-                            iv.addCenterProperty()
+                            scaleType = ImageView.ScaleType.CENTER_CROP
+                            adjustViewBounds = false
+                            cropToPadding = false
+                            minimumWidth = ViewGroup.LayoutParams.MATCH_PARENT
+                            addCenterProperty()
                         }
 
                         if (drawable is AnimatedImageDrawable) {

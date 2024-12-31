@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_gravity="start|top"
@@ -11,7 +12,8 @@
         android:layout_height="wrap_content"
         android:layout_marginVertical="10dp"
         android:layout_marginStart="25dp"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        tools:ignore="UselessParent">
 
         <TextClock
             android:layout_width="wrap_content"
@@ -25,16 +27,41 @@
             android:textColor="@android:color/white"
             android:textSize="36dp" />
 
-        <TextView
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:includeFontPadding="false"
-            android:singleLine="true"
-            android:tag="text1"
-            android:text="𝗡𝗘𝗩𝗘𝗥 𝘚𝘌𝘛𝘛𝘓𝘌"
-            android:textAlignment="viewStart"
-            android:textColor="@android:color/white"
-            android:textSize="30sp" />
+            android:layout_marginTop="3dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:includeFontPadding="false"
+                android:letterSpacing="0.05"
+                android:singleLine="true"
+                android:tag="text1"
+                android:text="NEVER "
+                android:textAlignment="viewStart"
+                android:textAllCaps="true"
+                android:textColor="@android:color/white"
+                android:textFontWeight="800"
+                android:textSize="31dp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:includeFontPadding="false"
+                android:singleLine="true"
+                android:tag="text1"
+                android:text="SETTLE"
+                android:textAlignment="viewStart"
+                android:textAllCaps="true"
+                android:textColor="@android:color/white"
+                android:textSize="31dp"
+                android:textStyle="italic" />
+
+        </LinearLayout>
 
         <FrameLayout
             android:layout_width="wrap_content"

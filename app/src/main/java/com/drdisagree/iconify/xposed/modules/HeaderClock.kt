@@ -7,6 +7,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.content.res.Configuration
+import android.content.res.XResources
 import android.graphics.Bitmap
 import android.graphics.Typeface
 import android.graphics.drawable.BitmapDrawable
@@ -58,16 +59,14 @@ import com.drdisagree.iconify.xposed.modules.utils.ViewHelper.applyTextScalingRe
 import com.drdisagree.iconify.xposed.modules.utils.ViewHelper.findViewContainsTag
 import com.drdisagree.iconify.xposed.modules.utils.ViewHelper.findViewWithTagAndChangeColor
 import com.drdisagree.iconify.xposed.modules.utils.ViewHelper.setMargins
+import com.drdisagree.iconify.xposed.modules.utils.toolkit.XposedHook.Companion.findClass
+import com.drdisagree.iconify.xposed.modules.utils.toolkit.hookConstructor
+import com.drdisagree.iconify.xposed.modules.utils.toolkit.hookMethod
 import com.drdisagree.iconify.xposed.utils.XPrefs.Xprefs
 import com.drdisagree.iconify.xposed.utils.XPrefs.XprefsIsInitialized
-import de.robv.android.xposed.XC_MethodHook
-import de.robv.android.xposed.XposedBridge.hookAllConstructors
-import de.robv.android.xposed.XposedBridge.hookAllMethods
 import de.robv.android.xposed.XposedBridge.log
 import de.robv.android.xposed.XposedHelpers.callMethod
 import de.robv.android.xposed.XposedHelpers.callStaticMethod
-import de.robv.android.xposed.XposedHelpers.findClass
-import de.robv.android.xposed.XposedHelpers.findClassIfExists
 import de.robv.android.xposed.XposedHelpers.getObjectField
 import de.robv.android.xposed.callbacks.XC_InitPackageResources.InitPackageResourcesParam
 import de.robv.android.xposed.callbacks.XC_LayoutInflated
@@ -160,40 +159,31 @@ class HeaderClock(context: Context) : ModPack(context) {
 
         initResources(mContext)
 
-        val qsSecurityFooterUtilsClass = findClassIfExists(
-            "$SYSTEMUI_PACKAGE.qs.QSSecurityFooterUtils",
-            loadPackageParam.classLoader
-        )
-        val quickStatusBarHeaderClass = findClass(
-            "$SYSTEMUI_PACKAGE.qs.QuickStatusBarHeader",
-            loadPackageParam.classLoader
-        )
-        val dependencyClass =
-            findClass("$SYSTEMUI_PACKAGE.Dependency", loadPackageParam.classLoader)
-        val activityStarterClass = findClass(
-            "$SYSTEMUI_PACKAGE.plugins.ActivityStarter",
-            loadPackageParam.classLoader
-        )
+        val qsSecurityFooterUtilsClass = findClass("$SYSTEMUI_PACKAGE.qs.QSSecurityFooterUtils")
+        val quickStatusBarHeaderClass = findClass("$SYSTEMUI_PACKAGE.qs.QuickStatusBarHeader")
+        val dependencyClass = findClass("$SYSTEMUI_PACKAGE.Dependency")
+        val activityStarterClass = findClass("$SYSTEMUI_PACKAGE.plugins.ActivityStarter")
 
-        if (qsSecurityFooterUtilsClass == null) {
-            hookAllConstructors(quickStatusBarHeaderClass, object : XC_MethodHook() {
-                override fun afterHookedMethod(param: MethodHookParam) {
+        quickStatusBarHeaderClass
+            .hookConstructor()
+            .runAfter {
+                try {
                     mActivityStarter =
                         callStaticMethod(dependencyClass, "get", activityStarterClass)
+                } catch (ignored: Throwable) {
                 }
-            })
-        } else {
-            hookAllConstructors(qsSecurityFooterUtilsClass, object : XC_MethodHook() {
-                override fun afterHookedMethod(param: MethodHookParam) {
-                    mActivityStarter =
-                        getObjectField(param.thisObject, "mActivityStarter")
-                }
-            })
-        }
+            }
 
-        hookAllMethods(quickStatusBarHeaderClass, "onFinishInflate", object : XC_MethodHook() {
-            override fun afterHookedMethod(param: MethodHookParam) {
-                if (!showHeaderClock) return
+        qsSecurityFooterUtilsClass
+            .hookConstructor()
+            .runAfter { param ->
+                mActivityStarter = getObjectField(param.thisObject, "mActivityStarter")
+            }
+
+        quickStatusBarHeaderClass
+            .hookMethod("onFinishInflate")
+            .runAfter { param ->
+                if (!showHeaderClock) return@runAfter
 
                 val mQuickStatusBarHeader = param.thisObject as FrameLayout
 
@@ -251,19 +241,16 @@ class HeaderClock(context: Context) : ModPack(context) {
 
                 updateClockView()
             }
-        })
 
-        hookAllMethods(quickStatusBarHeaderClass, "updateResources", object : XC_MethodHook() {
-            override fun afterHookedMethod(param: MethodHookParam) {
-                updateClockView()
-            }
-        })
+        quickStatusBarHeaderClass
+            .hookMethod("updateResources")
+            .runAfter { updateClockView() }
 
         if (Build.VERSION.SDK_INT < 33) {
             try {
-                val resParam: InitPackageResourcesParam? = resParams[SYSTEMUI_PACKAGE]
+                val xResources: XResources? = resParams[SYSTEMUI_PACKAGE]?.res
 
-                resParam?.res?.setReplacement(
+                xResources?.setReplacement(
                     SYSTEMUI_PACKAGE,
                     "bool",
                     "config_use_large_screen_shade_header",
@@ -273,48 +260,39 @@ class HeaderClock(context: Context) : ModPack(context) {
             }
         }
 
-        try {
-            var shadeHeaderControllerClass = findClassIfExists(
-                "$SYSTEMUI_PACKAGE.shade.LargeScreenShadeHeaderController",
-                loadPackageParam.classLoader
-            )
-            if (shadeHeaderControllerClass == null) {
-                shadeHeaderControllerClass = findClass(
-                    "$SYSTEMUI_PACKAGE.shade.ShadeHeaderController",
-                    loadPackageParam.classLoader
-                )
-            }
+        val shadeHeaderControllerClass = findClass(
+            "$SYSTEMUI_PACKAGE.shade.LargeScreenShadeHeaderController",
+            "$SYSTEMUI_PACKAGE.shade.ShadeHeaderController"
+        )
 
-            hookAllMethods(shadeHeaderControllerClass, "onInit", object : XC_MethodHook() {
-                override fun afterHookedMethod(param: MethodHookParam) {
-                    if (!showHeaderClock) return
+        shadeHeaderControllerClass
+            .hookMethod("onInit")
+            .runAfter { param ->
+                if (!showHeaderClock) return@runAfter
 
-                    try {
-                        val clock =
-                            getObjectField(param.thisObject, "clock") as TextView
-                        (clock.parent as ViewGroup).removeView(clock)
-                    } catch (ignored: Throwable) {
-                    }
-
-                    try {
-                        val date =
-                            getObjectField(param.thisObject, "date") as TextView
-                        (date.parent as ViewGroup).removeView(date)
-                    } catch (ignored: Throwable) {
-                    }
-
-                    try {
-                        val qsCarrierGroup = getObjectField(
-                            param.thisObject,
-                            "qsCarrierGroup"
-                        ) as LinearLayout
-                        (qsCarrierGroup.parent as ViewGroup).removeView(qsCarrierGroup)
-                    } catch (ignored: Throwable) {
-                    }
+                try {
+                    val clock =
+                        getObjectField(param.thisObject, "clock") as TextView
+                    (clock.parent as ViewGroup).removeView(clock)
+                } catch (ignored: Throwable) {
                 }
-            })
-        } catch (ignored: Throwable) {
-        }
+
+                try {
+                    val date =
+                        getObjectField(param.thisObject, "date") as TextView
+                    (date.parent as ViewGroup).removeView(date)
+                } catch (ignored: Throwable) {
+                }
+
+                try {
+                    val qsCarrierGroup = getObjectField(
+                        param.thisObject,
+                        "qsCarrierGroup"
+                    ) as LinearLayout
+                    (qsCarrierGroup.parent as ViewGroup).removeView(qsCarrierGroup)
+                } catch (ignored: Throwable) {
+                }
+            }
 
         hideStockClockDate()
 
@@ -606,7 +584,7 @@ class HeaderClock(context: Context) : ModPack(context) {
         findViewWithTagAndChangeColor(clockView, "accent3", accent3)
         findViewWithTagAndChangeColor(clockView, "text1", textPrimary)
         findViewWithTagAndChangeColor(clockView, "text2", textInverse)
-        findViewWithTagAndChangeColor(clockView, "gradient", accent1, accent2, 26);
+        findViewWithTagAndChangeColor(clockView, "gradient", accent1, accent2, 26)
 
         if (typeface != null) {
             applyFontRecursively(clockView, typeface)

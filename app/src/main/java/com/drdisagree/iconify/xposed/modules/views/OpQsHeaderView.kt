@@ -4,18 +4,19 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.content.res.ColorStateList
 import android.content.res.Configuration
-import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
+import android.graphics.drawable.ShapeDrawable
+import android.graphics.drawable.shapes.RoundRectShape
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
+import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
-import androidx.cardview.widget.CardView
 import androidx.core.content.ContextCompat
 import androidx.viewpager.widget.ViewPager
 import com.drdisagree.iconify.BuildConfig
@@ -251,15 +252,20 @@ class OpQsHeaderView(private val mContext: Context) : LinearLayout(mContext) {
             addView(mBluetoothTile)
         }
 
-        val rightSection = CardView(mContext).apply {
+        val rightSection = FrameLayout(mContext).apply {
             layoutParams = LayoutParams(
                 0,
                 LayoutParams.MATCH_PARENT,
                 1F
             )
-            setBackgroundColor(Color.TRANSPARENT)
-            radius = qsTileCornerRadius
-            cardElevation = 0F
+            background = ShapeDrawable(
+                RoundRectShape(
+                    FloatArray(8) { qsTileCornerRadius },
+                    null,
+                    null
+                )
+            )
+            clipToOutline = true
             (layoutParams as MarginLayoutParams).marginStart = qsTileMarginHorizontal / 2
         }
 

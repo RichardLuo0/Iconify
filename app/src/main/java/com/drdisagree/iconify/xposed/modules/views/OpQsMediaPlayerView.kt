@@ -5,19 +5,20 @@ import android.content.pm.PackageManager
 import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.graphics.Bitmap
-import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.Icon
+import android.graphics.drawable.ShapeDrawable
+import android.graphics.drawable.shapes.RoundRectShape
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
+import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
-import androidx.cardview.widget.CardView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.ConstraintSet
 import androidx.core.content.ContextCompat
@@ -29,7 +30,7 @@ import com.drdisagree.iconify.xposed.modules.utils.ViewHelper.toPx
 import kotlin.properties.Delegates
 
 @Suppress("DiscouragedApi")
-class OpQsMediaPlayerView(private val mContext: Context) : CardView(mContext) {
+class OpQsMediaPlayerView(private val mContext: Context) : FrameLayout(mContext) {
 
     private lateinit var appContext: Context
 
@@ -194,9 +195,14 @@ class OpQsMediaPlayerView(private val mContext: Context) : CardView(mContext) {
             LayoutParams.MATCH_PARENT
         )
         id = generateViewId()
-        radius = qsTileCornerRadius
-        cardElevation = 0F
-        setBackgroundColor(Color.TRANSPARENT)
+        background = ShapeDrawable(
+            RoundRectShape(
+                FloatArray(8) { qsTileCornerRadius },
+                null,
+                null
+            )
+        )
+        clipToOutline = true
 
         createOpMediaArtworkLayout()
         addView(mMediaPlayerBackground)

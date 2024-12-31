@@ -19,6 +19,7 @@ import com.drdisagree.iconify.common.Preferences.QS_TEXT_FOLLOW_ACCENT
 import com.drdisagree.iconify.xposed.ModPack
 import com.drdisagree.iconify.xposed.modules.utils.SettingsLibUtils.Companion.getColorAttr
 import com.drdisagree.iconify.xposed.modules.utils.SettingsLibUtils.Companion.getColorAttrDefaultColor
+import com.drdisagree.iconify.xposed.modules.utils.toolkit.XposedHook.Companion.findClass
 import com.drdisagree.iconify.xposed.utils.SystemUtils
 import com.drdisagree.iconify.xposed.utils.XPrefs.Xprefs
 import com.drdisagree.iconify.xposed.utils.XPrefs.XprefsIsInitialized
@@ -27,8 +28,8 @@ import de.robv.android.xposed.XposedBridge.hookAllConstructors
 import de.robv.android.xposed.XposedBridge.hookAllMethods
 import de.robv.android.xposed.XposedBridge.log
 import de.robv.android.xposed.XposedHelpers.callMethod
-import de.robv.android.xposed.XposedHelpers.findClass
-import de.robv.android.xposed.XposedHelpers.findClassIfExists
+
+
 import de.robv.android.xposed.XposedHelpers.getFloatField
 import de.robv.android.xposed.XposedHelpers.getIntField
 import de.robv.android.xposed.XposedHelpers.getObjectField
@@ -74,56 +75,23 @@ class QSLightThemeA13(context: Context) : ModPack(context) {
     }
 
     override fun handleLoadPackage(loadPackageParam: LoadPackageParam) {
-        val qsTileViewImplClass = findClass(
-            "$SYSTEMUI_PACKAGE.qs.tileimpl.QSTileViewImpl",
-            loadPackageParam.classLoader
-        )
-        val fragmentHostManagerClass = findClass(
-            "$SYSTEMUI_PACKAGE.fragments.FragmentHostManager",
-            loadPackageParam.classLoader
-        )
-        val scrimControllerClass = findClass(
-            "$SYSTEMUI_PACKAGE.statusbar.phone.ScrimController",
-            loadPackageParam.classLoader
-        )
-        val gradientColorsClass = findClass(
-            "com.android.internal.colorextraction.ColorExtractor\$GradientColors",
-            loadPackageParam.classLoader
-        )
-        val qsPanelControllerClass = findClass(
-            "$SYSTEMUI_PACKAGE.qs.QSPanelController",
-            loadPackageParam.classLoader
-        )
-        val interestingConfigChangesClass = findClass(
-            "com.android.settingslib.applications.InterestingConfigChanges",
-            loadPackageParam.classLoader
-        )
-        val scrimStateEnum = findClass(
-            "$SYSTEMUI_PACKAGE.statusbar.phone.ScrimState",
-            loadPackageParam.classLoader
-        )
-        val qsIconViewImplClass = findClass(
-            "$SYSTEMUI_PACKAGE.qs.tileimpl.QSIconViewImpl",
-            loadPackageParam.classLoader
-        )
-        val centralSurfacesImplClass = findClassIfExists(
-            "$SYSTEMUI_PACKAGE.statusbar.phone.CentralSurfacesImpl",
-            loadPackageParam.classLoader
-        )
-        val clockClass = findClass(
-            "$SYSTEMUI_PACKAGE.statusbar.policy.Clock",
-            loadPackageParam.classLoader
-        )
-        val quickStatusBarHeaderClass = findClass(
-            "$SYSTEMUI_PACKAGE.qs.QuickStatusBarHeader",
-            loadPackageParam.classLoader
-        )
+        val qsTileViewImplClass = findClass("$SYSTEMUI_PACKAGE.qs.tileimpl.QSTileViewImpl")
+        val fragmentHostManagerClass = findClass("$SYSTEMUI_PACKAGE.fragments.FragmentHostManager")
+        val scrimControllerClass = findClass("$SYSTEMUI_PACKAGE.statusbar.phone.ScrimController")
+        val gradientColorsClass =
+            findClass("com.android.internal.colorextraction.ColorExtractor\$GradientColors")!!
+        val qsPanelControllerClass = findClass("$SYSTEMUI_PACKAGE.qs.QSPanelController")
+        val interestingConfigChangesClass =
+            findClass("com.android.settingslib.applications.InterestingConfigChanges")!!
+        val scrimStateEnum = findClass("$SYSTEMUI_PACKAGE.statusbar.phone.ScrimState")!!
+        val qsIconViewImplClass = findClass("$SYSTEMUI_PACKAGE.qs.tileimpl.QSIconViewImpl")
+        val centralSurfacesImplClass =
+            findClass("$SYSTEMUI_PACKAGE.statusbar.phone.CentralSurfacesImpl")
+        val clockClass = findClass("$SYSTEMUI_PACKAGE.statusbar.policy.Clock")
+        val quickStatusBarHeaderClass = findClass("$SYSTEMUI_PACKAGE.qs.QuickStatusBarHeader")
 
         try {
-            val batteryStatusChipClass = findClass(
-                "$SYSTEMUI_PACKAGE.statusbar.BatteryStatusChip",
-                loadPackageParam.classLoader
-            )
+            val batteryStatusChipClass = findClass("$SYSTEMUI_PACKAGE.statusbar.BatteryStatusChip")
 
             // Background color of android 14's charging chip. Fix for light QS theme situation
             hookAllMethods(batteryStatusChipClass, "updateResources", object : XC_MethodHook() {
@@ -175,14 +143,9 @@ class QSLightThemeA13(context: Context) : ModPack(context) {
         })
 
         try { // 13QPR1
-            val qsFgsManagerFooterClass = findClass(
-                "$SYSTEMUI_PACKAGE.qs.QSFgsManagerFooter",
-                loadPackageParam.classLoader
-            )
-            val footerActionsControllerClass = findClass(
-                "$SYSTEMUI_PACKAGE.qs.FooterActionsController",
-                loadPackageParam.classLoader
-            )
+            val qsFgsManagerFooterClass = findClass("$SYSTEMUI_PACKAGE.qs.QSFgsManagerFooter")
+            val footerActionsControllerClass =
+                findClass("$SYSTEMUI_PACKAGE.qs.FooterActionsController")
 
             hookAllConstructors(qsFgsManagerFooterClass, object : XC_MethodHook() {
                 override fun afterHookedMethod(param: MethodHookParam) {
@@ -274,21 +237,11 @@ class QSLightThemeA13(context: Context) : ModPack(context) {
             })
         } catch (throwable: Throwable) { // 13QPR2&3
             // 13QPR3
-            var shadeHeaderControllerClass = findClassIfExists(
+            val shadeHeaderControllerClass = findClass(
                 "$SYSTEMUI_PACKAGE.shade.ShadeHeaderController",
-                loadPackageParam.classLoader
+                "$SYSTEMUI_PACKAGE.shade.LargeScreenShadeHeaderController"
             )
-            // 13QPR2
-            if (shadeHeaderControllerClass == null) {
-                shadeHeaderControllerClass = findClass(
-                    "$SYSTEMUI_PACKAGE.shade.LargeScreenShadeHeaderController",
-                    loadPackageParam.classLoader
-                )
-            }
-            val qsContainerImplClass = findClass(
-                "$SYSTEMUI_PACKAGE.qs.QSContainerImpl",
-                loadPackageParam.classLoader
-            )
+            val qsContainerImplClass = findClass("$SYSTEMUI_PACKAGE.qs.QSContainerImpl")
 
             hookAllMethods(shadeHeaderControllerClass, "onInit", object : XC_MethodHook() {
                 override fun afterHookedMethod(param: MethodHookParam) {

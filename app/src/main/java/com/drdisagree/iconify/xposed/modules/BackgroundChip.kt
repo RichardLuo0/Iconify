@@ -3,6 +3,7 @@ package com.drdisagree.iconify.xposed.modules
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.Configuration
+import android.content.res.XResources
 import android.graphics.Color
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffXfermode
@@ -69,26 +70,21 @@ import com.drdisagree.iconify.common.Preferences.HEADER_CLOCK_SWITCH
 import com.drdisagree.iconify.common.Preferences.HIDE_STATUS_ICONS_SWITCH
 import com.drdisagree.iconify.xposed.HookRes.Companion.resParams
 import com.drdisagree.iconify.xposed.ModPack
-import com.drdisagree.iconify.xposed.modules.utils.Helpers.findClassInArray
 import com.drdisagree.iconify.xposed.modules.utils.StatusBarClock
 import com.drdisagree.iconify.xposed.modules.utils.StatusBarClock.setClockGravity
 import com.drdisagree.iconify.xposed.modules.utils.ViewHelper.toPx
+import com.drdisagree.iconify.xposed.modules.utils.toolkit.XposedHook.Companion.findClass
+import com.drdisagree.iconify.xposed.modules.utils.toolkit.hookLayout
+import com.drdisagree.iconify.xposed.modules.utils.toolkit.hookMethod
 import com.drdisagree.iconify.xposed.modules.views.ChipDrawable
 import com.drdisagree.iconify.xposed.modules.views.ChipDrawable.GradientDirection.Companion.toIndex
 import com.drdisagree.iconify.xposed.utils.XPrefs.Xprefs
 import com.drdisagree.iconify.xposed.utils.XPrefs.XprefsIsInitialized
-import de.robv.android.xposed.XC_MethodHook
-import de.robv.android.xposed.XposedBridge.hookAllMethods
 import de.robv.android.xposed.XposedBridge.log
 import de.robv.android.xposed.XposedHelpers.callMethod
 import de.robv.android.xposed.XposedHelpers.callStaticMethod
-import de.robv.android.xposed.XposedHelpers.findAndHookMethod
-import de.robv.android.xposed.XposedHelpers.findClass
-import de.robv.android.xposed.XposedHelpers.findClassIfExists
 import de.robv.android.xposed.XposedHelpers.getObjectField
 import de.robv.android.xposed.XposedHelpers.getStaticObjectField
-import de.robv.android.xposed.callbacks.XC_InitPackageResources.InitPackageResourcesParam
-import de.robv.android.xposed.callbacks.XC_LayoutInflated
 import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam
 
 @SuppressLint("DiscouragedApi")
@@ -111,7 +107,6 @@ class BackgroundChip(context: Context) : ModPack(context) {
     private var mRightClockView: View? = null
     private var dependencyClass: Class<*>? = null
     private var darkIconDispatcherClass: Class<*>? = null
-    private var mLoadPackageParam: LoadPackageParam? = null
     private var accentFillEnabled: Boolean = true
     private var startColor: Int = Color.RED
     private var endColor: Int = Color.BLUE
@@ -256,100 +251,87 @@ class BackgroundChip(context: Context) : ModPack(context) {
     }
 
     override fun handleLoadPackage(loadPackageParam: LoadPackageParam) {
-        mLoadPackageParam = loadPackageParam
-        statusBarClockChip(loadPackageParam)
+        statusBarClockChip()
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            statusIconsChip(loadPackageParam)
+            statusIconsChip()
         }
     }
 
-    private fun statusBarClockChip(loadPackageParam: LoadPackageParam) {
-        val collapsedStatusBarFragment = findClassInArray(
-            loadPackageParam.classLoader,
+    private fun statusBarClockChip() {
+        val collapsedStatusBarFragment = findClass(
             "$SYSTEMUI_PACKAGE.statusbar.phone.CollapsedStatusBarFragment",
             "$SYSTEMUI_PACKAGE.statusbar.phone.fragment.CollapsedStatusBarFragment"
-
         )
-        dependencyClass = findClass(
-            "$SYSTEMUI_PACKAGE.Dependency",
-            loadPackageParam.classLoader
-        )
-        darkIconDispatcherClass = findClass(
-            "$SYSTEMUI_PACKAGE.plugins.DarkIconDispatcher",
-            loadPackageParam.classLoader
-        )
+        dependencyClass = findClass("$SYSTEMUI_PACKAGE.Dependency")
+        darkIconDispatcherClass = findClass("$SYSTEMUI_PACKAGE.plugins.DarkIconDispatcher")
 
-        findAndHookMethod(
-            collapsedStatusBarFragment,
-            "onViewCreated",
-            View::class.java,
-            Bundle::class.java,
-            object : XC_MethodHook() {
-                override fun afterHookedMethod(param: MethodHookParam) {
-                    mClockView = StatusBarClock.getLeftClockView(mContext, param)
-                    mCenterClockView = StatusBarClock.getCenterClockView(mContext, param)
-                    mRightClockView = StatusBarClock.getRightClockView(mContext, param)
+        collapsedStatusBarFragment
+            .hookMethod("onViewCreated")
+            .parameters(View::class.java, Bundle::class.java)
+            .runAfter { param ->
+                mClockView = StatusBarClock.getLeftClockView(mContext, param)
+                mCenterClockView = StatusBarClock.getCenterClockView(mContext, param)
+                mRightClockView = StatusBarClock.getRightClockView(mContext, param)
 
-                    (getObjectField(
-                        param.thisObject,
-                        "mStatusBar"
-                    ) as ViewGroup).addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
-                        updateStatusBarClock(false)
-                    }
+                (getObjectField(
+                    param.thisObject,
+                    "mStatusBar"
+                ) as ViewGroup).addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
+                    updateStatusBarClock(false)
+                }
 
-                    updateStatusBarClock(true)
+                updateStatusBarClock(true)
 
-                    if (mShowSBClockBg) {
-                        try {
-                            val mStatusBar = getObjectField(
-                                param.thisObject,
-                                "mStatusBar"
-                            ) as FrameLayout
+                if (mShowSBClockBg) {
+                    try {
+                        val mStatusBar = getObjectField(
+                            param.thisObject,
+                            "mStatusBar"
+                        ) as FrameLayout
 
-                            val statusBarStartSideContent =
-                                mStatusBar.findViewById<FrameLayout>(
-                                    mContext.resources.getIdentifier(
-                                        "status_bar_start_side_content",
-                                        "id",
-                                        mContext.packageName
-                                    )
+                        val statusBarStartSideContent =
+                            mStatusBar.findViewById<FrameLayout>(
+                                mContext.resources.getIdentifier(
+                                    "status_bar_start_side_content",
+                                    "id",
+                                    mContext.packageName
                                 )
+                            )
 
-                            statusBarStartSideContent.post {
-                                statusBarStartSideContent.layoutParams.height =
-                                    FrameLayout.LayoutParams.MATCH_PARENT
-                                statusBarStartSideContent.requestLayout()
-                            }
-
-                            val statusBarStartSideExceptHeadsUp =
-                                mStatusBar.findViewById<LinearLayout>(
-                                    mContext.resources.getIdentifier(
-                                        "status_bar_start_side_except_heads_up",
-                                        "id",
-                                        mContext.packageName
-                                    )
-                                )
-
-                            statusBarStartSideExceptHeadsUp.post {
-                                (statusBarStartSideExceptHeadsUp.layoutParams as FrameLayout.LayoutParams).gravity =
-                                    Gravity.START or Gravity.CENTER
-                            }
-
-                            statusBarStartSideExceptHeadsUp.gravity =
-                                Gravity.START or Gravity.CENTER
-                            statusBarStartSideExceptHeadsUp.requestLayout()
-                        } catch (throwable: Throwable) {
-                            log(TAG + throwable)
+                        statusBarStartSideContent.post {
+                            statusBarStartSideContent.layoutParams.height =
+                                FrameLayout.LayoutParams.MATCH_PARENT
+                            statusBarStartSideContent.requestLayout()
                         }
+
+                        val statusBarStartSideExceptHeadsUp =
+                            mStatusBar.findViewById<LinearLayout>(
+                                mContext.resources.getIdentifier(
+                                    "status_bar_start_side_except_heads_up",
+                                    "id",
+                                    mContext.packageName
+                                )
+                            )
+
+                        statusBarStartSideExceptHeadsUp.post {
+                            (statusBarStartSideExceptHeadsUp.layoutParams as FrameLayout.LayoutParams).gravity =
+                                Gravity.START or Gravity.CENTER
+                        }
+
+                        statusBarStartSideExceptHeadsUp.gravity =
+                            Gravity.START or Gravity.CENTER
+                        statusBarStartSideExceptHeadsUp.requestLayout()
+                    } catch (throwable: Throwable) {
+                        log(TAG + throwable)
                     }
                 }
-            })
+            }
     }
 
-    private fun statusIconsChip(loadPackageParam: LoadPackageParam) {
+    private fun statusIconsChip() {
         setQSStatusIconsBgA12()
-        setQSStatusIconsBgA13Plus(loadPackageParam)
+        setQSStatusIconsBgA13Plus()
     }
 
     @SuppressLint("RtlHardcoded")
@@ -421,12 +403,10 @@ class BackgroundChip(context: Context) : ModPack(context) {
                 (mQsStatusIconsContainer.layoutParams as LinearLayout.LayoutParams).marginEnd =
                     mContext.toPx(sideMarginStatusIcons)
             }
-        } else if (mLoadPackageParam != null && header != null && constraintLayoutId != -1) {
+        } else if (header != null && constraintLayoutId != -1) {
             try {
-                val constraintSetClass = findClass(
-                    "androidx.constraintlayout.widget.ConstraintSet",
-                    mLoadPackageParam!!.classLoader
-                )
+                val constraintSetClass =
+                    findClass("androidx.constraintlayout.widget.ConstraintSet")!!
                 val mConstraintSet = constraintSetClass.getDeclaredConstructor().newInstance()
 
                 callMethod(mConstraintSet, "clone", header)
@@ -602,37 +582,68 @@ class BackgroundChip(context: Context) : ModPack(context) {
     private fun setQSStatusIconsBgA12() {
         if (Build.VERSION.SDK_INT >= 33) return
 
-        val resParam: InitPackageResourcesParam = resParams[SYSTEMUI_PACKAGE] ?: return
+        val xResources: XResources = resParams[SYSTEMUI_PACKAGE]?.res ?: return
 
-        resParam.res.hookLayout(
-            SYSTEMUI_PACKAGE,
-            "layout",
-            "quick_qs_status_icons",
-            object : XC_LayoutInflated() {
-                override fun handleLayoutInflated(liparam: LayoutInflatedParam) {
-                    if (!mShowQSStatusIconsBg || hideStatusIcons || fixedStatusIcons) return
+        xResources.hookLayout()
+            .packageName(SYSTEMUI_PACKAGE)
+            .resource("layout", "quick_qs_status_icons")
+            .suppressError()
+            .run { param ->
+                if (!mShowQSStatusIconsBg || hideStatusIcons || fixedStatusIcons) return@run
 
-                    try {
-                        val statusIcons =
-                            liparam.view.findViewById<LinearLayout>(
-                                liparam.res.getIdentifier(
-                                    "statusIcons",
-                                    "id",
-                                    mContext.packageName
-                                )
+                try {
+                    val statusIcons =
+                        param.view.findViewById<LinearLayout>(
+                            param.res.getIdentifier(
+                                "statusIcons",
+                                "id",
+                                mContext.packageName
                             )
+                        )
 
+                    val statusIconContainer = statusIcons.parent as LinearLayout
+                    statusIconContainer.post {
+                        (statusIconContainer.layoutParams as FrameLayout.LayoutParams).gravity =
+                            Gravity.CENTER_VERTICAL or Gravity.END
+                        statusIconContainer.layoutParams.height = TypedValue.applyDimension(
+                            TypedValue.COMPLEX_UNIT_DIP,
+                            28f,
+                            mContext.resources.displayMetrics
+                        ).toInt()
+                        statusIconContainer.requestLayout()
+                    }
+
+                    statusIconContainer.setPadding(
+                        mContext.toPx(padding2[0]),
+                        mContext.toPx(padding2[1]),
+                        mContext.toPx(padding2[2]),
+                        mContext.toPx(padding2[3])
+                    )
+
+                    setStatusIconsBackgroundChip(statusIconContainer)
+                } catch (throwable: Throwable) {
+                    log(TAG + throwable)
+                }
+            }
+
+        xResources.hookLayout()
+            .packageName(SYSTEMUI_PACKAGE)
+            .resource("layout", "quick_status_bar_header_date_privacy")
+            .suppressError()
+            .run { param ->
+                if (!mShowQSStatusIconsBg || hideStatusIcons || !fixedStatusIcons) return@run
+
+                try {
+                    val statusIcons =
+                        param.view.findViewById<LinearLayout>(
+                            param.res.getIdentifier(
+                                "statusIcons",
+                                "id",
+                                mContext.packageName
+                            )
+                        )
+                    if (statusIcons != null) {
                         val statusIconContainer = statusIcons.parent as LinearLayout
-                        statusIconContainer.post {
-                            (statusIconContainer.layoutParams as FrameLayout.LayoutParams).gravity =
-                                Gravity.CENTER_VERTICAL or Gravity.END
-                            statusIconContainer.layoutParams.height = TypedValue.applyDimension(
-                                TypedValue.COMPLEX_UNIT_DIP,
-                                28f,
-                                mContext.resources.displayMetrics
-                            ).toInt()
-                            statusIconContainer.requestLayout()
-                        }
 
                         statusIconContainer.setPadding(
                             mContext.toPx(padding2[0]),
@@ -642,57 +653,19 @@ class BackgroundChip(context: Context) : ModPack(context) {
                         )
 
                         setStatusIconsBackgroundChip(statusIconContainer)
-                    } catch (throwable: Throwable) {
-                        log(TAG + throwable)
                     }
+                } catch (throwable: Throwable) {
+                    log(TAG + throwable)
                 }
-            })
-
-        resParam.res.hookLayout(
-            SYSTEMUI_PACKAGE,
-            "layout",
-            "quick_status_bar_header_date_privacy",
-            object : XC_LayoutInflated() {
-                override fun handleLayoutInflated(liparam: LayoutInflatedParam) {
-                    if (!mShowQSStatusIconsBg || hideStatusIcons || !fixedStatusIcons) return
-
-                    try {
-                        val statusIcons =
-                            liparam.view.findViewById<LinearLayout>(
-                                liparam.res.getIdentifier(
-                                    "statusIcons",
-                                    "id",
-                                    mContext.packageName
-                                )
-                            )
-                        if (statusIcons != null) {
-                            val statusIconContainer = statusIcons.parent as LinearLayout
-
-                            statusIconContainer.setPadding(
-                                mContext.toPx(padding2[0]),
-                                mContext.toPx(padding2[1]),
-                                mContext.toPx(padding2[2]),
-                                mContext.toPx(padding2[3])
-                            )
-
-                            setStatusIconsBackgroundChip(statusIconContainer)
-                        }
-                    } catch (throwable: Throwable) {
-                        log(TAG + throwable)
-                    }
-                }
-            })
+            }
     }
 
-    private fun setQSStatusIconsBgA13Plus(loadPackageParam: LoadPackageParam) {
+    private fun setQSStatusIconsBgA13Plus() {
         if (Build.VERSION.SDK_INT < 33) return
 
-        val quickStatusBarHeader = findClass(
-            "$SYSTEMUI_PACKAGE.qs.QuickStatusBarHeader",
-            loadPackageParam.classLoader
-        )
+        val quickStatusBarHeader = findClass("$SYSTEMUI_PACKAGE.qs.QuickStatusBarHeader")
         var correctClass = false
-        val fs = quickStatusBarHeader.declaredFields
+        val fs = quickStatusBarHeader!!.declaredFields
         for (f in fs) {
             if (f.name == "mIconContainer") {
                 correctClass = true
@@ -700,9 +673,10 @@ class BackgroundChip(context: Context) : ModPack(context) {
         }
 
         if (correctClass) {
-            hookAllMethods(quickStatusBarHeader, "onFinishInflate", object : XC_MethodHook() {
-                override fun afterHookedMethod(param: MethodHookParam) {
-                    if (!mShowQSStatusIconsBg && !fixedStatusIcons || hideStatusIcons) return
+            quickStatusBarHeader
+                .hookMethod("onFinishInflate")
+                .runAfter { param ->
+                    if (!mShowQSStatusIconsBg && !fixedStatusIcons || hideStatusIcons) return@runAfter
 
                     val mQuickStatusBarHeader = param.thisObject as FrameLayout
                     val mIconContainer = getObjectField(
@@ -768,30 +742,24 @@ class BackgroundChip(context: Context) : ModPack(context) {
 
                     updateStatusIcons()
                 }
-            })
 
-            hookAllMethods(quickStatusBarHeader, "updateResources", object : XC_MethodHook() {
-                override fun afterHookedMethod(param: MethodHookParam) {
-                    if (!mShowQSStatusIconsBg && !fixedStatusIcons || hideStatusIcons) return
+            quickStatusBarHeader
+                .hookMethod("updateResources")
+                .runAfter {
+                    if (!mShowQSStatusIconsBg && !fixedStatusIcons || hideStatusIcons) return@runAfter
 
                     updateStatusIcons()
                 }
-            })
         } else {
-            var shadeHeaderControllerClass = findClassIfExists(
+            val shadeHeaderControllerClass = findClass(
                 "$SYSTEMUI_PACKAGE.shade.ShadeHeaderController",
-                loadPackageParam.classLoader
+                "$SYSTEMUI_PACKAGE.shade.LargeScreenShadeHeaderController"
             )
-            if (shadeHeaderControllerClass == null) {
-                shadeHeaderControllerClass = findClass(
-                    "$SYSTEMUI_PACKAGE.shade.LargeScreenShadeHeaderController",
-                    loadPackageParam.classLoader
-                )
-            }
 
-            hookAllMethods(shadeHeaderControllerClass, "onInit", object : XC_MethodHook() {
-                override fun afterHookedMethod(param: MethodHookParam) {
-                    if (!mShowQSStatusIconsBg && !fixedStatusIcons || hideStatusIcons) return
+            shadeHeaderControllerClass
+                .hookMethod("onInit")
+                .runAfter { param ->
+                    if (!mShowQSStatusIconsBg && !fixedStatusIcons || hideStatusIcons) return@runAfter
 
                     val iconContainer = getObjectField(
                         param.thisObject,
@@ -854,15 +822,14 @@ class BackgroundChip(context: Context) : ModPack(context) {
 
                     updateStatusIcons()
                 }
-            })
 
-            hookAllMethods(shadeHeaderControllerClass, "updateResources", object : XC_MethodHook() {
-                override fun afterHookedMethod(param: MethodHookParam) {
-                    if (!mShowQSStatusIconsBg && !fixedStatusIcons || hideStatusIcons) return
+            shadeHeaderControllerClass
+                .hookMethod("updateResources")
+                .runAfter {
+                    if (!mShowQSStatusIconsBg && !fixedStatusIcons || hideStatusIcons) return@runAfter
 
                     updateStatusIcons()
                 }
-            })
         }
     }
 

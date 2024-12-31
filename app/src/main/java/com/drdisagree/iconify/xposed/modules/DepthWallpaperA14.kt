@@ -41,17 +41,13 @@ import com.drdisagree.iconify.common.Preferences.LOCKSCREEN_SHADE_SWITCH
 import com.drdisagree.iconify.xposed.HookEntry.Companion.enqueueProxyCommand
 import com.drdisagree.iconify.xposed.HookRes.Companion.modRes
 import com.drdisagree.iconify.xposed.ModPack
-import com.drdisagree.iconify.xposed.modules.utils.Helpers.findClassInArray
-import com.drdisagree.iconify.xposed.modules.utils.Helpers.tryHookAllConstructors
+import com.drdisagree.iconify.xposed.modules.utils.toolkit.XposedHook.Companion.findClass
+import com.drdisagree.iconify.xposed.modules.utils.toolkit.hookConstructor
+import com.drdisagree.iconify.xposed.modules.utils.toolkit.hookMethod
 import com.drdisagree.iconify.xposed.utils.XPrefs.Xprefs
 import com.drdisagree.iconify.xposed.utils.XPrefs.XprefsIsInitialized
-import de.robv.android.xposed.XC_MethodHook
-import de.robv.android.xposed.XposedBridge.hookAllConstructors
-import de.robv.android.xposed.XposedBridge.hookAllMethods
 import de.robv.android.xposed.XposedBridge.log
 import de.robv.android.xposed.XposedHelpers.callMethod
-import de.robv.android.xposed.XposedHelpers.findClass
-import de.robv.android.xposed.XposedHelpers.findClassIfExists
 import de.robv.android.xposed.XposedHelpers.getFloatField
 import de.robv.android.xposed.XposedHelpers.getObjectField
 import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam
@@ -121,7 +117,7 @@ class DepthWallpaperA14(context: Context) : ModPack(context) {
         }
     }
 
-    @SuppressLint("UnspecifiedRegisterReceiverFlag")
+    @SuppressLint("UnspecifiedRegisterReceiverFlag", "NewApi")
     override fun handleLoadPackage(loadPackageParam: LoadPackageParam) {
         mPluginReceiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context, intent: Intent) {
@@ -173,91 +169,76 @@ class DepthWallpaperA14(context: Context) : ModPack(context) {
             mPluginReceiverRegistered = true
         }
 
-        val qsImplClass = findClassInArray(
-            loadPackageParam.classLoader,
+        val qsImplClass = findClass(
             "$SYSTEMUI_PACKAGE.qs.QSImpl",
             "$SYSTEMUI_PACKAGE.qs.QSFragment"
         )
-        val canvasEngineClass = findClass(
-            "$SYSTEMUI_PACKAGE.wallpapers.ImageWallpaper\$CanvasEngine",
-            loadPackageParam.classLoader
-        )
-        val centralSurfacesImplClass = findClass(
-            "$SYSTEMUI_PACKAGE.statusbar.phone.CentralSurfacesImpl",
-            loadPackageParam.classLoader
-        )
-        val scrimControllerClass = findClass(
-            "$SYSTEMUI_PACKAGE.statusbar.phone.ScrimController",
-            loadPackageParam.classLoader
-        )
-        val scrimViewClass = findClass(
-            "$SYSTEMUI_PACKAGE.scrim.ScrimView",
-            loadPackageParam.classLoader
-        )
-        val aodBurnInLayerClass = findClassIfExists(
-            "$SYSTEMUI_PACKAGE.keyguard.ui.view.layout.sections.AodBurnInLayer",
-            loadPackageParam.classLoader
-        )
-        val keyguardBottomAreaViewClass = findClass(
-            "$SYSTEMUI_PACKAGE.statusbar.phone.KeyguardBottomAreaView",
-            loadPackageParam.classLoader
-        )
+        val canvasEngineClass =
+            findClass("$SYSTEMUI_PACKAGE.wallpapers.ImageWallpaper\$CanvasEngine")
+        val centralSurfacesImplClass =
+            findClass("$SYSTEMUI_PACKAGE.statusbar.phone.CentralSurfacesImpl")
+        val scrimControllerClass =
+            findClass("$SYSTEMUI_PACKAGE.statusbar.phone.ScrimController")
+        val scrimViewClass = findClass("$SYSTEMUI_PACKAGE.scrim.ScrimView")
+        val aodBurnInLayerClass =
+            findClass("$SYSTEMUI_PACKAGE.keyguard.ui.view.layout.sections.AodBurnInLayer")
+        val keyguardBottomAreaViewClass =
+            findClass("$SYSTEMUI_PACKAGE.statusbar.phone.KeyguardBottomAreaView")
 
-        if (aodBurnInLayerClass != null) {
-            tryHookAllConstructors(aodBurnInLayerClass, object : XC_MethodHook() {
-                override fun afterHookedMethod(param: MethodHookParam) { // A15 compose keyguard
-                    if (!showDepthWallpaper) return
+        aodBurnInLayerClass
+            .hookConstructor()
+            .runAfter { param ->
+                if (!showDepthWallpaper) return@runAfter
 
-                    val entryV = param.thisObject as View
+                val entryV = param.thisObject as View
 
-                    entryV.addOnAttachStateChangeListener(object : OnAttachStateChangeListener {
-                        override fun onViewAttachedToWindow(v: View) {
-                            Handler(Looper.getMainLooper()).postDelayed({
-                                val rootView = entryV.parent as ViewGroup
+                entryV.addOnAttachStateChangeListener(object : OnAttachStateChangeListener {
+                    override fun onViewAttachedToWindow(v: View) {
+                        Handler(Looper.getMainLooper()).postDelayed({
+                            val rootView = entryV.parent as ViewGroup
 
-                                if (!mLayersCreated) {
-                                    createLayers()
-                                }
+                            if (!mLayersCreated) {
+                                createLayers()
+                            }
 
-                                reAddView(
-                                    rootView,
-                                    mWallpaperForeground,
-                                    0
-                                )
-                                reAddView(
-                                    rootView,
-                                    rootView.findViewById(
-                                        mContext.resources.getIdentifier(
-                                            "lockscreen_clock_view_large",
-                                            "id",
-                                            mContext.packageName
-                                        )
-                                    ),
-                                    0
-                                )
-                                reAddView(
-                                    rootView,
-                                    rootView.findViewById(
-                                        mContext.resources.getIdentifier(
-                                            "lockscreen_clock_view",
-                                            "id",
-                                            mContext.packageName
-                                        )
-                                    ),
-                                    0
-                                )
-                            }, 1000)
-                        }
+                            reAddView(
+                                rootView,
+                                mWallpaperForeground,
+                                0
+                            )
+                            reAddView(
+                                rootView,
+                                rootView.findViewById(
+                                    mContext.resources.getIdentifier(
+                                        "lockscreen_clock_view_large",
+                                        "id",
+                                        mContext.packageName
+                                    )
+                                ),
+                                0
+                            )
+                            reAddView(
+                                rootView,
+                                rootView.findViewById(
+                                    mContext.resources.getIdentifier(
+                                        "lockscreen_clock_view",
+                                        "id",
+                                        mContext.packageName
+                                    )
+                                ),
+                                0
+                            )
+                        }, 1000)
+                    }
 
-                        override fun onViewDetachedFromWindow(v: View) {}
-                    })
-                }
-            })
-        }
+                    override fun onViewDetachedFromWindow(v: View) {}
+                })
+            }
 
-        hookAllMethods(scrimViewClass, "setViewAlpha", object : XC_MethodHook() {
-            override fun beforeHookedMethod(param: MethodHookParam) {
-                if (!mLayersCreated) return
+        scrimViewClass
+            .hookMethod("setViewAlpha")
+            .runBefore { param ->
+                if (!mLayersCreated) return@runBefore
 
                 if (showOnAOD && getObjectField(
                         mScrimController,
@@ -290,10 +271,10 @@ class DepthWallpaperA14(context: Context) : ModPack(context) {
                     mWallpaperForeground.post { mWallpaperForeground.alpha = foregroundAlpha }
                 }
             }
-        })
 
-        hookAllMethods(centralSurfacesImplClass, "start", object : XC_MethodHook() {
-            override fun afterHookedMethod(param: MethodHookParam) {
+        centralSurfacesImplClass
+            .hookMethod("start")
+            .runAfter {
                 val scrimBehind = getObjectField(mScrimController, "mScrimBehind") as View
                 val rootView = scrimBehind.parent as ViewGroup
 
@@ -312,25 +293,24 @@ class DepthWallpaperA14(context: Context) : ModPack(context) {
                 reAddView(rootView, mWallpaperBackground, 0)
                 reAddView(targetView, mWallpaperForeground, 1)
             }
-        })
 
-        hookAllMethods(centralSurfacesImplClass, "onStartedWakingUp", object : XC_MethodHook() {
-            override fun afterHookedMethod(param: MethodHookParam) {
-                setDepthWallpaper()
-            }
-        })
+        centralSurfacesImplClass
+            .hookMethod("onStartedWakingUp")
+            .suppressError()
+            .runAfter { setDepthWallpaper() }
 
-        hookAllMethods(canvasEngineClass, "onSurfaceDestroyed", object : XC_MethodHook() {
-            // lockscreen wallpaper changed
-            override fun afterHookedMethod(param: MethodHookParam) {
+        canvasEngineClass
+            .hookMethod("onSurfaceDestroyed")
+            .runAfter { param ->
+                // lockscreen wallpaper changed
                 if (showDepthWallpaper && !showCustomImages && isLockScreenWallpaper(param.thisObject)) {
                     invalidateCache()
                 }
             }
-        })
 
-        hookAllMethods(canvasEngineClass, "onCreate", object : XC_MethodHook() {
-            override fun afterHookedMethod(param: MethodHookParam) {
+        canvasEngineClass
+            .hookMethod("onCreate")
+            .runAfter { param ->
                 if (callMethod(
                         getObjectField(
                             param.thisObject,
@@ -343,11 +323,10 @@ class DepthWallpaperA14(context: Context) : ModPack(context) {
                     invalidateCache()
                 }
             }
-        })
 
-        hookAllMethods(canvasEngineClass, "drawFrameOnCanvas", object : XC_MethodHook() {
-            @SuppressLint("NewApi")
-            override fun afterHookedMethod(param: MethodHookParam) {
+        canvasEngineClass
+            .hookMethod("drawFrameOnCanvas")
+            .runAfter { param ->
                 wallpaperProcessorThread?.interrupt()
 
                 if (showDepthWallpaper && !showCustomImages && isLockScreenWallpaper(param.thisObject)) {
@@ -464,45 +443,34 @@ class DepthWallpaperA14(context: Context) : ModPack(context) {
                     wallpaperProcessorThread?.start()
                 }
             }
-        })
 
-        hookAllConstructors(scrimControllerClass, object : XC_MethodHook() {
-            override fun afterHookedMethod(param: MethodHookParam) {
-                mScrimController = param.thisObject
-            }
-        })
+        scrimControllerClass
+            .hookConstructor()
+            .runAfter { param -> mScrimController = param.thisObject }
 
-        hookAllMethods(scrimControllerClass, "applyAndDispatchState", object : XC_MethodHook() {
-            override fun afterHookedMethod(param: MethodHookParam) {
-                setDepthWallpaper()
-            }
-        })
+        scrimControllerClass
+            .hookMethod("applyAndDispatchState")
+            .runAfter { setDepthWallpaper() }
 
-        hookAllMethods(qsImplClass, "setQsExpansion", object : XC_MethodHook() {
-            override fun beforeHookedMethod(param: MethodHookParam) {
+        qsImplClass
+            .hookMethod("setQsExpansion")
+            .runAfter { param ->
                 if (callMethod(param.thisObject, "isKeyguardState") as Boolean) {
                     setDepthWallpaper()
                 }
             }
-        })
 
         /*
          * Custom depth wallpaper images
          */
-        hookAllMethods(
-            keyguardBottomAreaViewClass,
-            "onConfigurationChanged",
-            object : XC_MethodHook() {
-                override fun afterHookedMethod(param: MethodHookParam) {
-                    setCustomDepthWallpaper()
-                }
-            }
-        )
+        keyguardBottomAreaViewClass
+            .hookMethod("onConfigurationChanged")
+            .runAfter { setCustomDepthWallpaper() }
 
         setCustomDepthWallpaper()
     }
 
-    fun sendPluginIntent() {
+    private fun sendPluginIntent() {
         try {
             Handler(Looper.getMainLooper()).post {
                 Toast.makeText(

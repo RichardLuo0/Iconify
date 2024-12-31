@@ -26,12 +26,11 @@ import com.drdisagree.iconify.common.Preferences.WEATHER_TEXT_COLOR_SWITCH
 import com.drdisagree.iconify.common.Preferences.WEATHER_TEXT_SIZE
 import com.drdisagree.iconify.xposed.ModPack
 import com.drdisagree.iconify.xposed.modules.utils.ViewHelper.setMargins
+import com.drdisagree.iconify.xposed.modules.utils.toolkit.XposedHook.Companion.findClass
+import com.drdisagree.iconify.xposed.modules.utils.toolkit.hookMethod
 import com.drdisagree.iconify.xposed.modules.views.CurrentWeatherView
 import com.drdisagree.iconify.xposed.utils.XPrefs.Xprefs
 import com.drdisagree.iconify.xposed.utils.XPrefs.XprefsIsInitialized
-import de.robv.android.xposed.XC_MethodHook
-import de.robv.android.xposed.XposedBridge.hookAllMethods
-import de.robv.android.xposed.XposedHelpers.findClass
 import de.robv.android.xposed.XposedHelpers.getObjectField
 import de.robv.android.xposed.callbacks.XC_LoadPackage
 
@@ -103,14 +102,12 @@ class LockscreenWeather(context: Context) : ModPack(context) {
             ViewGroup.LayoutParams.WRAP_CONTENT
         )
 
-        val keyguardStatusViewClass = findClass(
-            "com.android.keyguard.KeyguardStatusView",
-            loadPackageParam.classLoader
-        )
+        val keyguardStatusViewClass = findClass("com.android.keyguard.KeyguardStatusView")
 
-        hookAllMethods(keyguardStatusViewClass, "onFinishInflate", object : XC_MethodHook() {
-            override fun afterHookedMethod(param: MethodHookParam) {
-                if (!weatherEnabled) return
+        keyguardStatusViewClass
+            .hookMethod("onFinishInflate")
+            .runAfter { param ->
+                if (!weatherEnabled) return@runAfter
 
                 mStatusViewContainer = getObjectField(
                     param.thisObject,
@@ -118,18 +115,14 @@ class LockscreenWeather(context: Context) : ModPack(context) {
                 ) as ViewGroup
 
                 placeWeatherView()
-
             }
-        })
 
-        val keyguardClockSwitch = findClass(
-            "com.android.keyguard.KeyguardClockSwitch",
-            loadPackageParam.classLoader
-        )
+        val keyguardClockSwitch = findClass("com.android.keyguard.KeyguardClockSwitch")
 
-        hookAllMethods(keyguardClockSwitch, "onFinishInflate", object : XC_MethodHook() {
-            override fun afterHookedMethod(param: MethodHookParam) {
-                if (!weatherEnabled) return
+        keyguardClockSwitch
+            .hookMethod("onFinishInflate")
+            .runAfter { param ->
+                if (!weatherEnabled) return@runAfter
 
                 mStatusArea = getObjectField(
                     param.thisObject,
@@ -137,9 +130,7 @@ class LockscreenWeather(context: Context) : ModPack(context) {
                 ) as ViewGroup
 
                 placeWeatherView()
-
             }
-        })
     }
 
     private fun placeWeatherView() {

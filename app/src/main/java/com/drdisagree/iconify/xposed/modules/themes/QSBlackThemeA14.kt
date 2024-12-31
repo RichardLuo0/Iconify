@@ -1,5 +1,6 @@
 package com.drdisagree.iconify.xposed.modules.themes
 
+
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.ColorStateList
@@ -18,8 +19,8 @@ import com.drdisagree.iconify.common.Preferences.BLACK_QSPANEL
 import com.drdisagree.iconify.common.Preferences.QS_TEXT_ALWAYS_WHITE
 import com.drdisagree.iconify.common.Preferences.QS_TEXT_FOLLOW_ACCENT
 import com.drdisagree.iconify.xposed.ModPack
-import com.drdisagree.iconify.xposed.modules.utils.Helpers.findClassInArray
 import com.drdisagree.iconify.xposed.modules.utils.SettingsLibUtils.Companion.getColorAttr
+import com.drdisagree.iconify.xposed.modules.utils.toolkit.XposedHook.Companion.findClass
 import com.drdisagree.iconify.xposed.utils.SystemUtils
 import com.drdisagree.iconify.xposed.utils.XPrefs.Xprefs
 import com.drdisagree.iconify.xposed.utils.XPrefs.XprefsIsInitialized
@@ -29,14 +30,11 @@ import de.robv.android.xposed.XposedBridge.hookAllMethods
 import de.robv.android.xposed.XposedBridge.log
 import de.robv.android.xposed.XposedHelpers.callMethod
 import de.robv.android.xposed.XposedHelpers.callStaticMethod
-import de.robv.android.xposed.XposedHelpers.findClass
-import de.robv.android.xposed.XposedHelpers.findClassIfExists
 import de.robv.android.xposed.XposedHelpers.getFloatField
 import de.robv.android.xposed.XposedHelpers.getIntField
 import de.robv.android.xposed.XposedHelpers.getObjectField
 import de.robv.android.xposed.XposedHelpers.setObjectField
 import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam
-
 
 @SuppressLint("DiscouragedApi")
 class QSBlackThemeA14(context: Context) : ModPack(context) {
@@ -70,108 +68,43 @@ class QSBlackThemeA14(context: Context) : ModPack(context) {
     }
 
     override fun handleLoadPackage(loadPackageParam: LoadPackageParam) {
-        val qsTileViewImplClass = findClass(
-            "$SYSTEMUI_PACKAGE.qs.tileimpl.QSTileViewImpl",
-            loadPackageParam.classLoader
-        )
-        val fragmentHostManagerClass = findClass(
-            "$SYSTEMUI_PACKAGE.fragments.FragmentHostManager",
-            loadPackageParam.classLoader
-        )
-        val scrimControllerClass = findClass(
-            "$SYSTEMUI_PACKAGE.statusbar.phone.ScrimController",
-            loadPackageParam.classLoader
-        )
-        val gradientColorsClass = findClass(
-            "com.android.internal.colorextraction.ColorExtractor\$GradientColors",
-            loadPackageParam.classLoader
-        )
-        val qsPanelControllerClass = findClass(
-            "$SYSTEMUI_PACKAGE.qs.QSPanelController",
-            loadPackageParam.classLoader
-        )
-        val scrimStateEnum = findClass(
-            "$SYSTEMUI_PACKAGE.statusbar.phone.ScrimState",
-            loadPackageParam.classLoader
-        )
-        val qsIconViewImplClass = findClass(
-            "$SYSTEMUI_PACKAGE.qs.tileimpl.QSIconViewImpl",
-            loadPackageParam.classLoader
-        )
-        val centralSurfacesImplClass = findClassIfExists(
-            "$SYSTEMUI_PACKAGE.statusbar.phone.CentralSurfacesImpl",
-            loadPackageParam.classLoader
-        )
-        val qsCustomizerClass = findClass(
-            "$SYSTEMUI_PACKAGE.qs.customize.QSCustomizer",
-            loadPackageParam.classLoader
-        )
-        val qsContainerImplClass = findClass(
-            "$SYSTEMUI_PACKAGE.qs.QSContainerImpl",
-            loadPackageParam.classLoader
-        )
-        val shadeCarrierClass = findClass(
-            "$SYSTEMUI_PACKAGE.shade.carrier.ShadeCarrier",
-            loadPackageParam.classLoader
-        )
-        val interestingConfigChangesClass = findClass(
-            "com.android.settingslib.applications.InterestingConfigChanges",
-            loadPackageParam.classLoader
-        )
-        val batteryStatusChipClass = findClass(
-            "$SYSTEMUI_PACKAGE.statusbar.BatteryStatusChip",
-            loadPackageParam.classLoader
-        )
-        val textButtonViewHolderClass = findClassIfExists(
-            "$SYSTEMUI_PACKAGE.qs.footer.ui.binder.TextButtonViewHolder",
-            loadPackageParam.classLoader
-        )
-        val numberButtonViewHolderClass = findClassIfExists(
-            "$SYSTEMUI_PACKAGE.qs.footer.ui.binder.NumberButtonViewHolder",
-            loadPackageParam.classLoader
-        )
-        val qsFooterViewClass = findClass(
-            "$SYSTEMUI_PACKAGE.qs.QSFooterView",
-            loadPackageParam.classLoader
-        )
-        val brightnessControllerClass = findClass(
-            "$SYSTEMUI_PACKAGE.settings.brightness.BrightnessController",
-            loadPackageParam.classLoader
-        )
-        val brightnessMirrorControllerClass = findClass(
-            "$SYSTEMUI_PACKAGE.statusbar.policy.BrightnessMirrorController",
-            loadPackageParam.classLoader
-        )
-        val brightnessSliderControllerClass = findClassIfExists(
-            "$SYSTEMUI_PACKAGE.settings.brightness.BrightnessSliderController",
-            loadPackageParam.classLoader
-        )
-        val quickStatusBarHeaderClass = findClass(
-            "$SYSTEMUI_PACKAGE.qs.QuickStatusBarHeader",
-            loadPackageParam.classLoader
-        )
-        val clockClass = findClass(
-            "$SYSTEMUI_PACKAGE.statusbar.policy.Clock",
-            loadPackageParam.classLoader
-        )
-        val themeColorKtClass = findClassIfExists(
-            "com.android.compose.theme.ColorKt",
-            loadPackageParam.classLoader
-        )
-        val expandableControllerImplClass = findClassIfExists(
-            "com.android.compose.animation.ExpandableControllerImpl",
-            loadPackageParam.classLoader
-        )
-        val footerActionsViewModelClass = findClassIfExists(
-            "$SYSTEMUI_PACKAGE.qs.footer.ui.viewmodel.FooterActionsViewModel",
-            loadPackageParam.classLoader
-        )
-        val footerActionsViewBinderClass = findClassIfExists(
-            "$SYSTEMUI_PACKAGE.qs.footer.ui.binder.FooterActionsViewBinder",
-            loadPackageParam.classLoader
-        )
-        val shadeHeaderControllerClass = findClassInArray(
-            loadPackageParam.classLoader,
+        val qsTileViewImplClass = findClass("$SYSTEMUI_PACKAGE.qs.tileimpl.QSTileViewImpl")
+        val fragmentHostManagerClass = findClass("$SYSTEMUI_PACKAGE.fragments.FragmentHostManager")
+        val scrimControllerClass = findClass("$SYSTEMUI_PACKAGE.statusbar.phone.ScrimController")
+        val gradientColorsClass =
+            findClass("com.android.internal.colorextraction.ColorExtractor\$GradientColors")!!
+        val qsPanelControllerClass = findClass("$SYSTEMUI_PACKAGE.qs.QSPanelController")
+        val scrimStateEnum = findClass("$SYSTEMUI_PACKAGE.statusbar.phone.ScrimState")!!
+        val qsIconViewImplClass = findClass("$SYSTEMUI_PACKAGE.qs.tileimpl.QSIconViewImpl")
+        val centralSurfacesImplClass =
+            findClass("$SYSTEMUI_PACKAGE.statusbar.phone.CentralSurfacesImpl")
+        val qsCustomizerClass = findClass("$SYSTEMUI_PACKAGE.qs.customize.QSCustomizer")
+        val qsContainerImplClass = findClass("$SYSTEMUI_PACKAGE.qs.QSContainerImpl")
+        val shadeCarrierClass = findClass("$SYSTEMUI_PACKAGE.shade.carrier.ShadeCarrier")
+        val interestingConfigChangesClass =
+            findClass("com.android.settingslib.applications.InterestingConfigChanges")!!
+        val batteryStatusChipClass = findClass("$SYSTEMUI_PACKAGE.statusbar.BatteryStatusChip")
+        val textButtonViewHolderClass =
+            findClass("$SYSTEMUI_PACKAGE.qs.footer.ui.binder.TextButtonViewHolder")
+        val numberButtonViewHolderClass =
+            findClass("$SYSTEMUI_PACKAGE.qs.footer.ui.binder.NumberButtonViewHolder")
+        val qsFooterViewClass = findClass("$SYSTEMUI_PACKAGE.qs.QSFooterView")
+        val brightnessControllerClass =
+            findClass("$SYSTEMUI_PACKAGE.settings.brightness.BrightnessController")
+        val brightnessMirrorControllerClass =
+            findClass("$SYSTEMUI_PACKAGE.statusbar.policy.BrightnessMirrorController")
+        val brightnessSliderControllerClass =
+            findClass("$SYSTEMUI_PACKAGE.settings.brightness.BrightnessSliderController")
+        val quickStatusBarHeaderClass = findClass("$SYSTEMUI_PACKAGE.qs.QuickStatusBarHeader")
+        val clockClass = findClass("$SYSTEMUI_PACKAGE.statusbar.policy.Clock")
+        val themeColorKtClass = findClass("com.android.compose.theme.ColorKt")
+        val expandableControllerImplClass =
+            findClass("com.android.compose.animation.ExpandableControllerImpl")
+        val footerActionsViewModelClass =
+            findClass("$SYSTEMUI_PACKAGE.qs.footer.ui.viewmodel.FooterActionsViewModel")
+        val footerActionsViewBinderClass =
+            findClass("$SYSTEMUI_PACKAGE.qs.footer.ui.binder.FooterActionsViewBinder")
+        val shadeHeaderControllerClass = findClass(
             "$SYSTEMUI_PACKAGE.shade.ShadeHeaderController",
             "$SYSTEMUI_PACKAGE.shade.LargeScreenShadeHeaderController"
         )
@@ -246,14 +179,10 @@ class QSBlackThemeA14(context: Context) : ModPack(context) {
         })
 
         try { // A14 ap11 onwards - modern implementation of mobile icons
-            val shadeCarrierGroupControllerClass = findClass(
-                "$SYSTEMUI_PACKAGE.shade.carrier.ShadeCarrierGroupController",
-                loadPackageParam.classLoader
-            )
-            val mobileIconBinderClass = findClass(
-                "$SYSTEMUI_PACKAGE.statusbar.pipeline.mobile.ui.binder.MobileIconBinder",
-                loadPackageParam.classLoader
-            )
+            val shadeCarrierGroupControllerClass =
+                findClass("$SYSTEMUI_PACKAGE.shade.carrier.ShadeCarrierGroupController")
+            val mobileIconBinderClass =
+                findClass("$SYSTEMUI_PACKAGE.statusbar.pipeline.mobile.ui.binder.MobileIconBinder")
 
             hookAllConstructors(shadeCarrierGroupControllerClass, object : XC_MethodHook() {
                 override fun afterHookedMethod(param: MethodHookParam) {
@@ -751,10 +680,7 @@ class QSBlackThemeA14(context: Context) : ModPack(context) {
         }
 
         try { // Compose implementation of QS Footer actions
-            val graphicsColorKtClass = findClass(
-                "androidx.compose.ui.graphics.ColorKt",
-                loadPackageParam.classLoader
-            )
+            val graphicsColorKtClass = findClass("androidx.compose.ui.graphics.ColorKt")
 
             hookAllConstructors(expandableControllerImplClass, object : XC_MethodHook() {
                 override fun beforeHookedMethod(param: MethodHookParam) {
@@ -812,14 +738,9 @@ class QSBlackThemeA14(context: Context) : ModPack(context) {
                     setObjectField(settings, "iconTint", Color.WHITE)
 
                     // We must use the classes defined in the apk. Using our own will fail.
-                    val stateFlowImplClass = findClass(
-                        "kotlinx.coroutines.flow.StateFlowImpl",
-                        loadPackageParam.classLoader
-                    )
-                    val readonlyStateFlowClass = findClass(
-                        "kotlinx.coroutines.flow.ReadonlyStateFlow",
-                        loadPackageParam.classLoader
-                    )
+                    val stateFlowImplClass = findClass("kotlinx.coroutines.flow.StateFlowImpl")!!
+                    val readonlyStateFlowClass =
+                        findClass("kotlinx.coroutines.flow.ReadonlyStateFlow")!!
 
                     try {
                         val zeroAlphaFlow = stateFlowImplClass

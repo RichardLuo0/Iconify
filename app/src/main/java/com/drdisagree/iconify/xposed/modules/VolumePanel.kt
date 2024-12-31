@@ -16,12 +16,11 @@ import com.drdisagree.iconify.common.Preferences.VOLUME_PANEL_SAFETY_WARNING
 import com.drdisagree.iconify.xposed.ModPack
 import com.drdisagree.iconify.xposed.modules.utils.SettingsLibUtils
 import com.drdisagree.iconify.xposed.modules.utils.ViewHelper.toPx
+import com.drdisagree.iconify.xposed.modules.utils.toolkit.XposedHook.Companion.findClass
+import com.drdisagree.iconify.xposed.modules.utils.toolkit.hookMethod
 import com.drdisagree.iconify.xposed.utils.XPrefs.Xprefs
 import com.drdisagree.iconify.xposed.utils.XPrefs.XprefsIsInitialized
-import de.robv.android.xposed.XC_MethodHook
-import de.robv.android.xposed.XposedBridge.hookAllMethods
 import de.robv.android.xposed.XposedHelpers.callMethod
-import de.robv.android.xposed.XposedHelpers.findClass
 import de.robv.android.xposed.XposedHelpers.getObjectField
 import de.robv.android.xposed.XposedHelpers.setObjectField
 import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam
@@ -34,9 +33,9 @@ class VolumePanel(context: Context) : ModPack(context) {
     private var showPercentage = false
     private var showWarning = true
     private var coloredRingerIcon = false
-    private lateinit var mSelectedRingerIcon: ImageView;
-    private var ringerIconDefaultColor by Delegates.notNull<Int>();
-    private var ringerIconTextColor by Delegates.notNull<Int>();
+    private lateinit var mSelectedRingerIcon: ImageView
+    private var ringerIconDefaultColor by Delegates.notNull<Int>()
+    private var ringerIconTextColor by Delegates.notNull<Int>()
 
     override fun updatePrefs(vararg key: String) {
         if (!XprefsIsInitialized) return
@@ -57,18 +56,16 @@ class VolumePanel(context: Context) : ModPack(context) {
     }
 
     override fun handleLoadPackage(loadPackageParam: LoadPackageParam) {
-        coloredSelectedRingerIcon(loadPackageParam)
-        showVolumePercentage(loadPackageParam)
+        coloredSelectedRingerIcon()
+        showVolumePercentage()
     }
 
-    private fun coloredSelectedRingerIcon(loadPackageParam: LoadPackageParam) {
-        val volumeDialogImplClass = findClass(
-            "$SYSTEMUI_PACKAGE.volume.VolumeDialogImpl",
-            loadPackageParam.classLoader
-        )
+    private fun coloredSelectedRingerIcon() {
+        val volumeDialogImplClass = findClass("$SYSTEMUI_PACKAGE.volume.VolumeDialogImpl")
 
-        hookAllMethods(volumeDialogImplClass, "initDialog", object : XC_MethodHook() {
-            override fun afterHookedMethod(param: MethodHookParam) {
+        volumeDialogImplClass
+            .hookMethod("initDialog")
+            .runAfter { param ->
                 mSelectedRingerIcon = getObjectField(
                     param.thisObject,
                     "mSelectedRingerIcon"
@@ -82,7 +79,6 @@ class VolumePanel(context: Context) : ModPack(context) {
 
                 setRingerIconColor()
             }
-        })
     }
 
     private fun setRingerIconColor() {
@@ -95,15 +91,13 @@ class VolumePanel(context: Context) : ModPack(context) {
         )
     }
 
-    private fun showVolumePercentage(loadPackageParam: LoadPackageParam) {
-        val volumeDialogImplClass = findClass(
-            "$SYSTEMUI_PACKAGE.volume.VolumeDialogImpl",
-            loadPackageParam.classLoader
-        )
+    private fun showVolumePercentage() {
+        val volumeDialogImplClass = findClass("$SYSTEMUI_PACKAGE.volume.VolumeDialogImpl")
 
-        hookAllMethods(volumeDialogImplClass, "initRow", object : XC_MethodHook() {
-            override fun afterHookedMethod(param: MethodHookParam) {
-                if (!showPercentage) return
+        volumeDialogImplClass
+            .hookMethod("initRow")
+            .runAfter { param ->
+                if (!showPercentage) return@runAfter
 
                 val rowHeader: TextView = getObjectField(
                     param.args[0],
@@ -117,7 +111,7 @@ class VolumePanel(context: Context) : ModPack(context) {
                             mContext.packageName
                         )
                     ) != null
-                ) return
+                ) return@runAfter
 
                 val volumeNumber = createVolumeTextView()
                 (rowHeader.parent as ViewGroup).addView(volumeNumber, 0)
@@ -134,11 +128,11 @@ class VolumePanel(context: Context) : ModPack(context) {
                     )
                 )
             }
-        })
 
-        hookAllMethods(volumeDialogImplClass, "updateVolumeRowH", object : XC_MethodHook() {
-            override fun afterHookedMethod(param: MethodHookParam) {
-                if (!showPercentage) return
+        volumeDialogImplClass
+            .hookMethod("updateVolumeRowH")
+            .runAfter { param ->
+                if (!showPercentage) return@runAfter
 
                 val volumeNumber: TextView =
                     (getObjectField(param.args[0], "view") as View).findViewById(
@@ -147,15 +141,15 @@ class VolumePanel(context: Context) : ModPack(context) {
                             "id",
                             mContext.packageName
                         )
-                    ) ?: return
+                    ) ?: return@runAfter
 
-                val mState: Any = getObjectField(param.thisObject, "mState") ?: return
+                val mState: Any = getObjectField(param.thisObject, "mState") ?: return@runAfter
 
                 val ss = callMethod(
                     getObjectField(mState, "states"),
                     "get",
                     getObjectField(param.args[0], "stream")
-                ) ?: return
+                ) ?: return@runAfter
 
                 val levelMax: Int = getObjectField(ss, "levelMax") as Int
 
@@ -179,15 +173,14 @@ class VolumePanel(context: Context) : ModPack(context) {
                     it.text = String.format("%d%%", level)
                 }
             }
-        })
 
-        hookAllMethods(volumeDialogImplClass, "onShowSafetyWarning", object : XC_MethodHook() {
-            override fun beforeHookedMethod(param: MethodHookParam) {
+        volumeDialogImplClass
+            .hookMethod("onShowSafetyWarning")
+            .runBefore { param ->
                 if (!showWarning) {
-                    param.result = null;
+                    param.result = null
                 }
             }
-        })
     }
 
     private fun createVolumeTextView(): TextView {
