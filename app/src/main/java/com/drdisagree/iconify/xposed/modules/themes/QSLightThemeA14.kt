@@ -23,12 +23,13 @@ import com.drdisagree.iconify.xposed.ModPack
 import com.drdisagree.iconify.xposed.modules.utils.SettingsLibUtils.Companion.getColorAttr
 import com.drdisagree.iconify.xposed.modules.utils.SettingsLibUtils.Companion.getColorAttrDefaultColor
 import com.drdisagree.iconify.xposed.modules.utils.toolkit.XposedHook.Companion.findClass
+import com.drdisagree.iconify.xposed.modules.utils.toolkit.hookConstructor
+import com.drdisagree.iconify.xposed.modules.utils.toolkit.hookMethod
+import com.drdisagree.iconify.xposed.modules.utils.toolkit.hookMethodMatchPattern
 import com.drdisagree.iconify.xposed.utils.SystemUtils
 import com.drdisagree.iconify.xposed.utils.XPrefs.Xprefs
 import com.drdisagree.iconify.xposed.utils.XPrefs.XprefsIsInitialized
 import de.robv.android.xposed.XC_MethodHook
-import de.robv.android.xposed.XposedBridge.hookAllConstructors
-import de.robv.android.xposed.XposedBridge.hookAllMethods
 import de.robv.android.xposed.XposedBridge.log
 import de.robv.android.xposed.XposedHelpers.callMethod
 import de.robv.android.xposed.XposedHelpers.callStaticMethod
@@ -88,32 +89,48 @@ class QSLightThemeA14(context: Context) : ModPack(context) {
         val qsPanelControllerClass = findClass("$SYSTEMUI_PACKAGE.qs.QSPanelController")
         val scrimStateEnum = findClass("$SYSTEMUI_PACKAGE.statusbar.phone.ScrimState")!!
         val qsIconViewImplClass = findClass("$SYSTEMUI_PACKAGE.qs.tileimpl.QSIconViewImpl")
-        val centralSurfacesImplClass =
-            findClass("$SYSTEMUI_PACKAGE.statusbar.phone.CentralSurfacesImpl")
+        val centralSurfacesImplClass = findClass(
+            "$SYSTEMUI_PACKAGE.statusbar.phone.CentralSurfacesImpl",
+            suppressError = true
+        )
         val qsCustomizerClass = findClass("$SYSTEMUI_PACKAGE.qs.customize.QSCustomizer")
         val qsContainerImplClass = findClass("$SYSTEMUI_PACKAGE.qs.QSContainerImpl")
         val shadeCarrierClass = findClass("$SYSTEMUI_PACKAGE.shade.carrier.ShadeCarrier")
         val batteryStatusChipClass = findClass("$SYSTEMUI_PACKAGE.statusbar.BatteryStatusChip")
-        val textButtonViewHolderClass =
-            findClass("$SYSTEMUI_PACKAGE.qs.footer.ui.binder.TextButtonViewHolder")
-        val numberButtonViewHolderClass =
-            findClass("$SYSTEMUI_PACKAGE.qs.footer.ui.binder.NumberButtonViewHolder")
+        val textButtonViewHolderClass = findClass(
+            "$SYSTEMUI_PACKAGE.qs.footer.ui.binder.TextButtonViewHolder",
+            suppressError = true
+        )
+        val numberButtonViewHolderClass = findClass(
+            "$SYSTEMUI_PACKAGE.qs.footer.ui.binder.NumberButtonViewHolder",
+            suppressError = true
+        )
         val qsFooterViewClass = findClass("$SYSTEMUI_PACKAGE.qs.QSFooterView")
         val brightnessControllerClass =
             findClass("$SYSTEMUI_PACKAGE.settings.brightness.BrightnessController")
         val brightnessMirrorControllerClass =
             findClass("$SYSTEMUI_PACKAGE.statusbar.policy.BrightnessMirrorController")
-        val brightnessSliderControllerClass =
-            findClass("$SYSTEMUI_PACKAGE.settings.brightness.BrightnessSliderController")
+        val brightnessSliderControllerClass = findClass(
+            "$SYSTEMUI_PACKAGE.settings.brightness.BrightnessSliderController",
+            suppressError = true
+        )
         val quickStatusBarHeaderClass = findClass("$SYSTEMUI_PACKAGE.qs.QuickStatusBarHeader")
-        val clockClass = findClass("$SYSTEMUI_PACKAGE.statusbar.policy.Clock")
-        val themeColorKtClass = findClass("com.android.compose.theme.ColorKt")
+        val clockClass = findClass(
+            "$SYSTEMUI_PACKAGE.statusbar.policy.Clock",
+            suppressError = true
+        )
+        val themeColorKtClass = findClass(
+            "com.android.compose.theme.ColorKt",
+            suppressError = true
+        )
         val expandableControllerImplClass =
             findClass("com.android.compose.animation.ExpandableControllerImpl")
         val footerActionsViewModelClass =
             findClass("$SYSTEMUI_PACKAGE.qs.footer.ui.viewmodel.FooterActionsViewModel")
-        val footerActionsViewBinderClass =
-            findClass("$SYSTEMUI_PACKAGE.qs.footer.ui.binder.FooterActionsViewBinder")
+        val footerActionsViewBinderClass = findClass(
+            "$SYSTEMUI_PACKAGE.qs.footer.ui.binder.FooterActionsViewBinder",
+            suppressError = true
+        )
         val shadeHeaderControllerClass = findClass(
             "$SYSTEMUI_PACKAGE.shade.ShadeHeaderController",
             "$SYSTEMUI_PACKAGE.shade.LargeScreenShadeHeaderController",
@@ -122,7 +139,7 @@ class QSLightThemeA14(context: Context) : ModPack(context) {
         // Background color of android 14's charging chip. Fix for light QS theme situation
         val batteryStatusChipColorHook: XC_MethodHook = object : XC_MethodHook() {
             override fun afterHookedMethod(param: MethodHookParam) {
-                if (isDark || !lightQSHeaderEnabled) return
+                if (!lightQSHeaderEnabled || isDark) return
 
                 (getObjectField(param.thisObject, "roundedContainer") as LinearLayout)
                     .background.setTint(colorInactive!!)
@@ -142,8 +159,13 @@ class QSLightThemeA14(context: Context) : ModPack(context) {
             }
         }
 
-        hookAllConstructors(batteryStatusChipClass, batteryStatusChipColorHook)
-        hookAllMethods(batteryStatusChipClass, "onConfigurationChanged", batteryStatusChipColorHook)
+        batteryStatusChipClass
+            .hookConstructor()
+            .run(batteryStatusChipColorHook)
+
+        batteryStatusChipClass
+            .hookMethod("onConfigurationChanged")
+            .run(batteryStatusChipColorHook)
 
         unlockedScrimState = scrimStateEnum.enumConstants?.let {
             Arrays.stream(it)
@@ -151,22 +173,21 @@ class QSLightThemeA14(context: Context) : ModPack(context) {
                 .findFirst().get()
         }
 
-        hookAllMethods(unlockedScrimState!!.javaClass, "prepare", object : XC_MethodHook() {
-            override fun afterHookedMethod(param: MethodHookParam) {
-                if (!lightQSHeaderEnabled) return
+        unlockedScrimState?.javaClass
+            ?.hookMethod("prepare")
+            ?.runAfter {
+                if (!lightQSHeaderEnabled) return@runAfter
 
                 setObjectField(unlockedScrimState, "mBehindTint", Color.TRANSPARENT)
             }
-        })
 
-        hookAllConstructors(qsPanelControllerClass, object : XC_MethodHook() {
-            override fun afterHookedMethod(param: MethodHookParam) {
-                calculateColors()
-            }
-        })
+        qsPanelControllerClass
+            .hookConstructor()
+            .runAfter { calculateColors() }
 
-        hookAllMethods(shadeHeaderControllerClass, "onInit", object : XC_MethodHook() {
-            override fun afterHookedMethod(param: MethodHookParam) {
+        shadeHeaderControllerClass
+            .hookMethod("onInit")
+            .runAfter { param ->
                 try {
                     val mView = getObjectField(param.thisObject, "mView") as View
                     val iconManager = getObjectField(param.thisObject, "iconManager")
@@ -176,72 +197,58 @@ class QSLightThemeA14(context: Context) : ModPack(context) {
                         "configurationControllerListener"
                     )
 
-                    val applyComponentColors = object : XC_MethodHook() {
-                        override fun afterHookedMethod(param: MethodHookParam) {
-                            setHeaderComponentsColor(mView, iconManager, batteryIcon)
-                        }
-                    }
-
-                    val methods = listOf(
-                        "onConfigChanged",
-                        "onDensityOrFontScaleChanged",
-                        "onUiModeChanged",
-                        "onThemeChanged"
-                    )
-
-                    for (method in methods) {
-                        try {
-                            hookAllMethods(
-                                configurationControllerListener.javaClass,
-                                method,
-                                applyComponentColors
-                            )
-                        } catch (ignored: Throwable) {
-                        }
-                    }
+                    configurationControllerListener.javaClass
+                        .hookMethod(
+                            "onConfigChanged",
+                            "onDensityOrFontScaleChanged",
+                            "onUiModeChanged",
+                            "onThemeChanged"
+                        )
+                        .runAfter { setHeaderComponentsColor(mView, iconManager, batteryIcon) }
 
                     setHeaderComponentsColor(mView, iconManager, batteryIcon)
                 } catch (throwable: Throwable) {
                     log(TAG + throwable)
                 }
             }
-        })
 
-        try { // A14 ap11 onwards - modern implementation of mobile icons
-            val shadeCarrierGroupControllerClass =
-                findClass("$SYSTEMUI_PACKAGE.shade.carrier.ShadeCarrierGroupController")
-            val mobileIconBinderClass =
-                findClass("$SYSTEMUI_PACKAGE.statusbar.pipeline.mobile.ui.binder.MobileIconBinder")
+        // A14 ap11 onwards - modern implementation of mobile icons
+        val shadeCarrierGroupControllerClass = findClass(
+            "$SYSTEMUI_PACKAGE.shade.carrier.ShadeCarrierGroupController",
+            suppressError = true
+        )
+        val mobileIconBinderClass = findClass(
+            "$SYSTEMUI_PACKAGE.statusbar.pipeline.mobile.ui.binder.MobileIconBinder",
+            suppressError = true
+        )
 
-            hookAllConstructors(shadeCarrierGroupControllerClass, object : XC_MethodHook() {
-                override fun afterHookedMethod(param: MethodHookParam) {
-                    shadeCarrierGroupController = param.thisObject
-                }
-            })
+        shadeCarrierGroupControllerClass
+            .hookConstructor()
+            .runAfter { param -> shadeCarrierGroupController = param.thisObject }
 
-            hookAllMethods(mobileIconBinderClass, "bind", object : XC_MethodHook() {
-                override fun afterHookedMethod(param: MethodHookParam) {
-                    if (param.args[1].javaClass.name
-                            .contains("ShadeCarrierGroupMobileIconViewModel")
-                    ) {
-                        modernShadeCarrierGroupMobileViews.add(param.result)
+        mobileIconBinderClass
+            .hookMethod("bind")
+            .runAfter { param ->
+                if (param.args[1].javaClass.name
+                        .contains("ShadeCarrierGroupMobileIconViewModel")
+                ) {
+                    modernShadeCarrierGroupMobileViews.add(param.result)
 
-                        if (!isDark && lightQSHeaderEnabled) {
-                            val textColor = getColorAttrDefaultColor(
-                                android.R.attr.textColorPrimary,
-                                mContext
-                            )
-                            setMobileIconTint(param.result, textColor)
-                        }
+                    if (!isDark && lightQSHeaderEnabled) {
+                        val textColor = getColorAttrDefaultColor(
+                            android.R.attr.textColorPrimary,
+                            mContext
+                        )
+                        setMobileIconTint(param.result, textColor)
                     }
                 }
-            })
-        } catch (ignored: Throwable) {
-        }
+            }
 
-        hookAllMethods(qsContainerImplClass, "updateResources", object : XC_MethodHook() {
-            override fun afterHookedMethod(param: MethodHookParam) {
-                if (isDark || !lightQSHeaderEnabled) return
+        qsContainerImplClass
+            .hookMethod("updateResources")
+            .suppressError()
+            .runAfter { param ->
+                if (!lightQSHeaderEnabled || isDark) return@runAfter
 
                 try {
                     val view = (param.thisObject as ViewGroup).findViewById<ViewGroup>(
@@ -301,12 +308,12 @@ class QSLightThemeA14(context: Context) : ModPack(context) {
                     // it will fail on compose implementation
                 }
             }
-        })
 
         // QS Customize panel
-        hookAllConstructors(qsCustomizerClass, object : XC_MethodHook() {
-            override fun afterHookedMethod(param: MethodHookParam) {
-                if (isDark || !lightQSHeaderEnabled) return
+        qsCustomizerClass
+            .hookConstructor()
+            .runAfter { param ->
+                if (!lightQSHeaderEnabled || isDark) return@runAfter
 
                 val mainView = param.thisObject as ViewGroup
 
@@ -314,89 +321,82 @@ class QSLightThemeA14(context: Context) : ModPack(context) {
                     mainView.getChildAt(i).setBackgroundColor(mScrimBehindTint)
                 }
             }
-        })
 
         // Mobile signal icons - this is the legacy model. new model uses viewmodels
-        hookAllMethods(shadeCarrierClass, "updateState", object : XC_MethodHook() {
-            override fun afterHookedMethod(param: MethodHookParam) {
-                if (isDark || !lightQSHeaderEnabled) return
+        shadeCarrierClass
+            .hookMethod("updateState")
+            .runAfter { param ->
+                if (!lightQSHeaderEnabled || isDark) return@runAfter
 
                 (getObjectField(param.thisObject, "mMobileSignal") as ImageView).imageTintList =
                     ColorStateList.valueOf(Color.BLACK)
             }
-        })
 
         // QS security footer count circle
-        if (numberButtonViewHolderClass != null) {
-            hookAllConstructors(numberButtonViewHolderClass, object : XC_MethodHook() {
-                override fun afterHookedMethod(param: MethodHookParam) {
-                    if (isDark || !lightQSHeaderEnabled) return
+        numberButtonViewHolderClass
+            .hookConstructor()
+            .runAfter { param ->
+                if (!lightQSHeaderEnabled || isDark) return@runAfter
 
-                    (getObjectField(param.thisObject, "newDot") as ImageView)
-                        .setColorFilter(Color.BLACK)
+                (getObjectField(param.thisObject, "newDot") as ImageView)
+                    .setColorFilter(Color.BLACK)
 
-                    (getObjectField(param.thisObject, "number") as TextView)
-                        .setTextColor(Color.BLACK)
-                }
-            })
-        }
+                (getObjectField(param.thisObject, "number") as TextView)
+                    .setTextColor(Color.BLACK)
+            }
 
         // QS security footer
-        if (textButtonViewHolderClass != null) {
-            hookAllConstructors(textButtonViewHolderClass, object : XC_MethodHook() {
-                override fun afterHookedMethod(param: MethodHookParam) {
-                    if (isDark || !lightQSHeaderEnabled) return
+        textButtonViewHolderClass
+            .hookConstructor()
+            .runAfter { param ->
+                if (!lightQSHeaderEnabled || isDark) return@runAfter
 
-                    (getObjectField(param.thisObject, "chevron") as ImageView)
-                        .setColorFilter(Color.BLACK)
+                (getObjectField(param.thisObject, "chevron") as ImageView)
+                    .setColorFilter(Color.BLACK)
 
-                    (getObjectField(param.thisObject, "icon") as ImageView)
-                        .setColorFilter(Color.BLACK)
+                (getObjectField(param.thisObject, "icon") as ImageView)
+                    .setColorFilter(Color.BLACK)
 
-                    (getObjectField(param.thisObject, "newDot") as ImageView)
-                        .setColorFilter(Color.BLACK)
+                (getObjectField(param.thisObject, "newDot") as ImageView)
+                    .setColorFilter(Color.BLACK)
 
-                    (getObjectField(param.thisObject, "text") as TextView)
+                (getObjectField(param.thisObject, "text") as TextView)
+                    .setTextColor(Color.BLACK)
+            }
+
+        qsFooterViewClass
+            .hookMethod("onFinishInflate")
+            .runAfter { param ->
+                if (!lightQSHeaderEnabled || isDark) return@runAfter
+
+                try {
+                    (getObjectField(param.thisObject, "mBuildText") as TextView)
                         .setTextColor(Color.BLACK)
+                } catch (ignored: Throwable) {
                 }
-            })
-        }
 
-        try {
-            hookAllMethods(qsFooterViewClass, "onFinishInflate", object : XC_MethodHook() {
-                // QS Footer built text row
-                override fun afterHookedMethod(param: MethodHookParam) {
-                    if (isDark || !lightQSHeaderEnabled) return
-
-                    try {
-                        (getObjectField(param.thisObject, "mBuildText") as TextView)
-                            .setTextColor(Color.BLACK)
-                    } catch (ignored: Throwable) {
-                    }
-
-                    try {
-                        (getObjectField(param.thisObject, "mEditButton") as ImageView)
-                            .setColorFilter(Color.BLACK)
-                    } catch (ignored: Throwable) {
-                    }
-
-                    try {
-                        setObjectField(
-                            getObjectField(param.thisObject, "mPageIndicator"),
-                            "mTint",
-                            ColorStateList.valueOf(Color.BLACK)
-                        )
-                    } catch (ignored: Throwable) {
-                    }
+                try {
+                    (getObjectField(param.thisObject, "mEditButton") as ImageView)
+                        .setColorFilter(Color.BLACK)
+                } catch (ignored: Throwable) {
                 }
-            })
-        } catch (ignored: Throwable) {
-        }
+
+                try {
+                    setObjectField(
+                        getObjectField(param.thisObject, "mPageIndicator"),
+                        "mTint",
+                        ColorStateList.valueOf(Color.BLACK)
+                    )
+                } catch (ignored: Throwable) {
+                }
+            }
 
         // Auto Brightness Icon Color
-        hookAllMethods(brightnessControllerClass, "updateIcon", object : XC_MethodHook() {
-            override fun afterHookedMethod(param: MethodHookParam) {
-                if (isDark || !lightQSHeaderEnabled) return
+        brightnessControllerClass
+            .hookMethod("updateIcon")
+            .suppressError()
+            .runAfter { param ->
+                if (!lightQSHeaderEnabled || isDark) return@runAfter
 
                 try {
                     (getObjectField(param.thisObject, "mIcon") as ImageView).imageTintList =
@@ -405,33 +405,32 @@ class QSLightThemeA14(context: Context) : ModPack(context) {
                     log(TAG + throwable)
                 }
             }
-        })
 
-        if (brightnessSliderControllerClass != null) {
-            hookAllConstructors(brightnessSliderControllerClass, object : XC_MethodHook() {
-                override fun afterHookedMethod(param: MethodHookParam) {
-                    if (isDark || !lightQSHeaderEnabled) return
+        brightnessSliderControllerClass
+            .hookConstructor()
+            .runAfter { param ->
+                if (!lightQSHeaderEnabled || isDark) return@runAfter
 
+                try {
+                    (getObjectField(param.thisObject, "mIcon") as ImageView).imageTintList =
+                        ColorStateList.valueOf(Color.BLACK)
+                } catch (throwable: Throwable) {
                     try {
-                        (getObjectField(param.thisObject, "mIcon") as ImageView).imageTintList =
+                        (getObjectField(
+                            param.thisObject,
+                            "mIconView"
+                        ) as ImageView).imageTintList =
                             ColorStateList.valueOf(Color.BLACK)
-                    } catch (throwable: Throwable) {
-                        try {
-                            (getObjectField(
-                                param.thisObject,
-                                "mIconView"
-                            ) as ImageView).imageTintList =
-                                ColorStateList.valueOf(Color.BLACK)
-                        } catch (ignored: Throwable) {
-                        }
+                    } catch (ignored: Throwable) {
                     }
                 }
-            })
-        }
+            }
 
-        hookAllMethods(brightnessMirrorControllerClass, "updateIcon", object : XC_MethodHook() {
-            override fun afterHookedMethod(param: MethodHookParam) {
-                if (isDark || !lightQSHeaderEnabled) return
+        brightnessMirrorControllerClass
+            .hookMethod("updateIcon")
+            .suppressError()
+            .runAfter { param ->
+                if (!lightQSHeaderEnabled || isDark) return@runAfter
 
                 try {
                     val iconColor = if ((param.args?.get(0) ?: false) as Boolean) {
@@ -446,93 +445,63 @@ class QSLightThemeA14(context: Context) : ModPack(context) {
                     log(TAG + throwable)
                 }
             }
-        })
 
-        hookAllMethods(qsIconViewImplClass, "updateIcon", object : XC_MethodHook() {
-            override fun afterHookedMethod(param: MethodHookParam) {
-                if (lightQSHeaderEnabled && !isDark &&
-                    getIntField(param.args[1], "state") == Tile.STATE_ACTIVE
-                ) {
+        qsIconViewImplClass
+            .hookMethod("setIcon")
+            .runBefore { param ->
+                if (!lightQSHeaderEnabled || isDark) return@runBefore
+
+                try {
+                    if (param.args[0] is ImageView &&
+                        getIntField(param.args[1], "state") == Tile.STATE_ACTIVE
+                    ) {
+                        setObjectField(param.thisObject, "mTint", colorInactive)
+                    }
+                } catch (throwable: Throwable) {
+                    log(TAG + throwable)
+                }
+            }
+
+        // White QS Clock bug
+        quickStatusBarHeaderClass
+            .hookMethod("onFinishInflate")
+            .runAfter { param ->
+                try {
+                    mClockViewQSHeader = getObjectField(param.thisObject, "mClockView")
+                } catch (ignored: Throwable) {
+                }
+
+                if (!isDark && lightQSHeaderEnabled && mClockViewQSHeader != null) {
                     try {
-                        (param.args[0] as ImageView).imageTintList =
-                            ColorStateList.valueOf(colorInactive!!)
+                        (mClockViewQSHeader as TextView).setTextColor(Color.WHITE)
                     } catch (throwable: Throwable) {
                         log(TAG + throwable)
                     }
                 }
             }
-        })
 
-        hookAllMethods(qsIconViewImplClass, "setIcon", object : XC_MethodHook() {
-            override fun beforeHookedMethod(param: MethodHookParam) {
-                if (lightQSHeaderEnabled && !isDark) {
-                    try {
-                        if (param.args[0] is ImageView &&
-                            getIntField(param.args[1], "state") == Tile.STATE_ACTIVE
-                        ) {
-                            setObjectField(param.thisObject, "mTint", colorInactive)
-                        }
-                    } catch (throwable: Throwable) {
-                        log(TAG + throwable)
-                    }
-                }
+        // White QS Clock bug
+        clockClass
+            .hookMethod("onColorsChanged")
+            .suppressError()
+            .runAfter {
+                if (!lightQSHeaderEnabled || isDark) return@runAfter
+
+                (mClockViewQSHeader as? TextView)?.setTextColor(Color.WHITE)
             }
-        })
 
-        try {
-            // White QS Clock bug
-            hookAllMethods(
-                quickStatusBarHeaderClass,
-                "onFinishInflate",
-                object : XC_MethodHook() {
-                    override fun afterHookedMethod(param: MethodHookParam) {
-                        try {
-                            mClockViewQSHeader = getObjectField(param.thisObject, "mClockView")
-                        } catch (ignored: Throwable) {
-                        }
+        centralSurfacesImplClass
+            .hookConstructor()
+            .runAfter { applyOverlays(true) }
 
-                        if (!isDark && lightQSHeaderEnabled && mClockViewQSHeader != null) {
-                            try {
-                                (mClockViewQSHeader as TextView).setTextColor(Color.WHITE)
-                            } catch (throwable: Throwable) {
-                                log(TAG + throwable)
-                            }
-                        }
-                    }
-                })
+        centralSurfacesImplClass
+            .hookMethod("updateTheme")
+            .runAfter { applyOverlays(false) }
 
-            // White QS Clock bug
-            hookAllMethods(clockClass, "onColorsChanged", object : XC_MethodHook() {
-                override fun afterHookedMethod(param: MethodHookParam) {
-                    if (!isDark && lightQSHeaderEnabled && mClockViewQSHeader != null) {
-                        try {
-                            (mClockViewQSHeader as TextView).setTextColor(Color.WHITE)
-                        } catch (throwable: Throwable) {
-                            log(TAG + throwable)
-                        }
-                    }
-                }
-            })
-        } catch (ignored: Throwable) {
-        }
-
-        if (centralSurfacesImplClass != null) {
-            hookAllConstructors(centralSurfacesImplClass, object : XC_MethodHook() {
-                override fun afterHookedMethod(param: MethodHookParam) {
-                    applyOverlays(true)
-                }
-            })
-
-            hookAllMethods(centralSurfacesImplClass, "updateTheme", object : XC_MethodHook() {
-                override fun afterHookedMethod(param: MethodHookParam) {
-                    applyOverlays(false)
-                }
-            })
-        }
-
-        hookAllConstructors(qsTileViewImplClass, object : XC_MethodHook() {
-            override fun afterHookedMethod(param: MethodHookParam) {
-                if (!lightQSHeaderEnabled || isDark) return
+        qsTileViewImplClass
+            .hookConstructor()
+            .runAfter { param ->
+                if (!lightQSHeaderEnabled || isDark) return@runAfter
 
                 try {
                     if (!qsTextAlwaysWhite && !qsTextFollowAccent) {
@@ -566,191 +535,185 @@ class QSLightThemeA14(context: Context) : ModPack(context) {
                     log(TAG + throwable)
                 }
             }
-        })
 
-        hookAllMethods(qsIconViewImplClass, "getIconColorForState", object : XC_MethodHook() {
-            override fun beforeHookedMethod(param: MethodHookParam) {
-                val (isDisabledState: Boolean,
-                    isActiveState: Boolean) = Utils.getTileState(param)
+        qsIconViewImplClass
+            .hookMethod("getIconColorForState", "getColor")
+            .runBefore { param ->
+                if (!lightQSHeaderEnabled || isDark) return@runBefore
 
-                if (!isDark && lightQSHeaderEnabled) {
-                    if (isDisabledState) {
-                        param.result = -0x80000000
-                    } else {
-                        if (isActiveState && !qsTextAlwaysWhite && !qsTextFollowAccent) {
-                            param.result = Color.WHITE
-                        } else if (!isActiveState) {
-                            param.result = Color.BLACK
-                        }
+                val (isDisabledState: Boolean, isActiveState: Boolean) = Utils.getTileState(param)
+
+                if (isDisabledState) {
+                    param.result = -0x80000000
+                } else {
+                    if (isActiveState && !qsTextAlwaysWhite && !qsTextFollowAccent) {
+                        param.result = Color.WHITE
+                    } else if (!isActiveState) {
+                        param.result = Color.BLACK
                     }
                 }
             }
-        })
 
-        try {
-            hookAllMethods(qsIconViewImplClass, "updateIcon", object : XC_MethodHook() {
-                override fun afterHookedMethod(param: MethodHookParam) {
-                    val (isDisabledState: Boolean,
-                        isActiveState: Boolean) = Utils.getTileState(param)
+        qsIconViewImplClass
+            .hookMethod("updateIcon")
+            .runAfter { param ->
+                if (!lightQSHeaderEnabled || isDark) return@runAfter
 
-                    if (!isDark && lightQSHeaderEnabled) {
-                        val mIcon = param.args[0] as ImageView
-                        if (isDisabledState) {
-                            param.result = -0x80000000
-                        } else {
-                            if (isActiveState && !qsTextAlwaysWhite && !qsTextFollowAccent) {
-                                mIcon.imageTintList = ColorStateList.valueOf(Color.WHITE)
-                            } else if (!isActiveState) {
-                                mIcon.imageTintList = ColorStateList.valueOf(Color.BLACK)
-                            }
-                        }
+                val (isDisabledState: Boolean, isActiveState: Boolean) = Utils.getTileState(param)
+
+                val mIcon = param.args[0] as ImageView
+                if (isDisabledState) {
+                    param.result = -0x80000000
+                } else {
+                    if (isActiveState && !qsTextAlwaysWhite && !qsTextFollowAccent) {
+                        mIcon.imageTintList = ColorStateList.valueOf(Color.WHITE)
+                    } else if (!isActiveState) {
+                        mIcon.imageTintList = ColorStateList.valueOf(Color.BLACK)
                     }
                 }
-            })
-        } catch (ignored: Throwable) {
-        }
+            }
 
-        try {
-            hookAllMethods(qsContainerImplClass, "updateResources", object : XC_MethodHook() {
-                override fun afterHookedMethod(param: MethodHookParam) {
-                    if (!lightQSHeaderEnabled || isDark) return
+        qsContainerImplClass
+            .hookMethod("updateResources")
+            .suppressError()
+            .runAfter { param ->
+                if (!lightQSHeaderEnabled || isDark) return@runAfter
+
+                try {
+                    val res = mContext.resources
+
+                    val view = (param.thisObject as ViewGroup).findViewById<ViewGroup>(
+                        res.getIdentifier(
+                            "qs_footer_actions",
+                            "id",
+                            mContext.packageName
+                        )
+                    )
 
                     try {
-                        val res = mContext.resources
-
-                        val view = (param.thisObject as ViewGroup).findViewById<ViewGroup>(
+                        val pmButtonContainer = view.findViewById<ViewGroup>(
                             res.getIdentifier(
-                                "qs_footer_actions",
+                                "pm_lite",
                                 "id",
                                 mContext.packageName
                             )
                         )
 
-                        try {
-                            val pmButtonContainer = view.findViewById<ViewGroup>(
-                                res.getIdentifier(
-                                    "pm_lite",
-                                    "id",
-                                    mContext.packageName
-                                )
+                        (pmButtonContainer.getChildAt(0) as ImageView).setColorFilter(
+                            Color.BLACK,
+                            PorterDuff.Mode.SRC_IN
+                        )
+                    } catch (ignored: Throwable) {
+                        val pmButton = view.findViewById<ImageView>(
+                            res.getIdentifier(
+                                "pm_lite",
+                                "id",
+                                mContext.packageName
                             )
+                        )
 
-                            (pmButtonContainer.getChildAt(0) as ImageView).setColorFilter(
-                                Color.BLACK,
-                                PorterDuff.Mode.SRC_IN
-                            )
-                        } catch (ignored: Throwable) {
-                            val pmButton = view.findViewById<ImageView>(
-                                res.getIdentifier(
-                                    "pm_lite",
-                                    "id",
-                                    mContext.packageName
-                                )
-                            )
+                        pmButton.imageTintList = ColorStateList.valueOf(Color.WHITE)
+                    }
+                } catch (ignored: Throwable) {
+                }
+            }
 
-                            pmButton.imageTintList = ColorStateList.valueOf(Color.WHITE)
+        // Compose implementation of QS Footer actions
+        val graphicsColorKtClass = findClass(
+            "androidx.compose.ui.graphics.ColorKt",
+            suppressError = true
+        )
+
+        expandableControllerImplClass
+            .hookConstructor()
+            .runBefore { param ->
+                if (!lightQSHeaderEnabled || isDark) return@runBefore
+
+                param.args[1] = callStaticMethod(graphicsColorKtClass, "Color", Color.BLACK)
+            }
+
+        themeColorKtClass
+            .hookMethod("colorAttr")
+            .runBefore { param ->
+                if (!lightQSHeaderEnabled || isDark) return@runBefore
+
+                val code = param.args[0] as Int
+                var result = 0
+
+                if (code == PM_LITE_BACKGROUND_CODE) {
+                    result = colorActive!!
+                } else {
+                    try {
+                        when (mContext.resources.getResourceName(code).split("/")[1]) {
+                            "underSurface", "onShadeActive", "shadeInactive" -> {
+                                result = colorInactive!! // button backgrounds
+                            }
+
+                            "onShadeInactiveVariant" -> {
+                                result = Color.BLACK // "number button" text
+                            }
                         }
                     } catch (ignored: Throwable) {
                     }
                 }
-            })
-        } catch (ignored: Throwable) {
-        }
 
-        try { // Compose implementation of QS Footer actions
-            val graphicsColorKtClass = findClass("androidx.compose.ui.graphics.ColorKt")
-
-            hookAllConstructors(expandableControllerImplClass, object : XC_MethodHook() {
-                override fun beforeHookedMethod(param: MethodHookParam) {
-                    if (isDark || !lightQSHeaderEnabled) return
-
-                    param.args[1] = callStaticMethod(graphicsColorKtClass, "Color", Color.BLACK)
+                if (result != 0) {
+                    param.result = callStaticMethod(graphicsColorKtClass, "Color", result)
                 }
-            })
+            }
 
-            hookAllMethods(themeColorKtClass, "colorAttr", object : XC_MethodHook() {
-                override fun beforeHookedMethod(param: MethodHookParam) {
-                    if (isDark || !lightQSHeaderEnabled) return
+        footerActionsViewModelClass
+            .hookConstructor()
+            .runAfter { param ->
+                if (!lightQSHeaderEnabled) return@runAfter
 
-                    val code = param.args[0] as Int
-                    var result = 0
+                if (!isDark) {
+                    // Power button
+                    val power = getObjectField(param.thisObject, "power")
+                    setObjectField(power, "iconTint", Color.WHITE)
+                    setObjectField(power, "backgroundColor", PM_LITE_BACKGROUND_CODE)
 
-                    if (code == PM_LITE_BACKGROUND_CODE) {
-                        result = colorActive!!
-                    } else {
-                        try {
-                            when (mContext.resources.getResourceName(code).split("/")[1]) {
-                                "underSurface", "onShadeActive", "shadeInactive" -> {
-                                    result = colorInactive!! // button backgrounds
-                                }
+                    // Settings button
+                    val settings = getObjectField(param.thisObject, "settings")
+                    setObjectField(settings, "iconTint", Color.BLACK)
+                }
 
-                                "onShadeInactiveVariant" -> {
-                                    result = Color.BLACK // "number button" text
-                                }
-                            }
-                        } catch (ignored: Throwable) {
-                        }
+                // We must use the classes defined in the apk. Using our own will fail.
+                val stateFlowImplClass = findClass("kotlinx.coroutines.flow.StateFlowImpl")!!
+                val readonlyStateFlowClass =
+                    findClass("kotlinx.coroutines.flow.ReadonlyStateFlow")!!
+
+                try {
+                    val zeroAlphaFlow = stateFlowImplClass
+                        .getConstructor(Any::class.java)
+                        .newInstance(0f)
+
+                    val readonlyStateFlowInstance = try {
+                        readonlyStateFlowClass.constructors[0].newInstance(zeroAlphaFlow)
+                    } catch (ignored: Throwable) {
+                        readonlyStateFlowClass.constructors[0].newInstance(zeroAlphaFlow, null)
                     }
 
-                    if (result != 0) {
-                        param.result = callStaticMethod(graphicsColorKtClass, "Color", result)
-                    }
+                    setObjectField(
+                        param.thisObject,
+                        "backgroundAlpha",
+                        readonlyStateFlowInstance
+                    )
+                } catch (throwable: Throwable) {
+                    log(TAG + throwable)
                 }
-            })
+            }
 
-            hookAllConstructors(footerActionsViewModelClass, object : XC_MethodHook() {
-                override fun afterHookedMethod(param: MethodHookParam) {
-                    if (!lightQSHeaderEnabled) return
+        footerActionsViewBinderClass
+            .hookMethod("bind")
+            .suppressError()
+            .runAfter { param ->
+                if (!lightQSHeaderEnabled || isDark) return@runAfter
 
-                    if (!isDark) {
-                        // Power button
-                        val power = getObjectField(param.thisObject, "power")
-                        setObjectField(power, "iconTint", Color.WHITE)
-                        setObjectField(power, "backgroundColor", PM_LITE_BACKGROUND_CODE)
-
-                        // Settings button
-                        val settings = getObjectField(param.thisObject, "settings")
-                        setObjectField(settings, "iconTint", Color.BLACK)
-                    }
-
-                    // We must use the classes defined in the apk. Using our own will fail.
-                    val stateFlowImplClass = findClass("kotlinx.coroutines.flow.StateFlowImpl")!!
-                    val readonlyStateFlowClass =
-                        findClass("kotlinx.coroutines.flow.ReadonlyStateFlow")!!
-
-                    try {
-                        val zeroAlphaFlow = stateFlowImplClass
-                            .getConstructor(Any::class.java)
-                            .newInstance(0f)
-
-                        val readonlyStateFlowInstance = try {
-                            readonlyStateFlowClass.constructors[0].newInstance(zeroAlphaFlow)
-                        } catch (ignored: Throwable) {
-                            readonlyStateFlowClass.constructors[0].newInstance(zeroAlphaFlow, null)
-                        }
-
-                        setObjectField(
-                            param.thisObject,
-                            "backgroundAlpha",
-                            readonlyStateFlowInstance
-                        )
-                    } catch (throwable: Throwable) {
-                        log(TAG + throwable)
-                    }
-                }
-            })
-
-            hookAllMethods(footerActionsViewBinderClass, "bind", object : XC_MethodHook() {
-                override fun afterHookedMethod(param: MethodHookParam) {
-                    if (!lightQSHeaderEnabled || isDark) return
-
-                    val view = param.args[0] as LinearLayout
-                    view.setBackgroundColor(Color.TRANSPARENT)
-                    view.elevation = 0f
-                }
-            })
-        } catch (ignored: Throwable) {
-        }
+                val view = param.args[0] as LinearLayout
+                view.setBackgroundColor(Color.TRANSPARENT)
+                view.elevation = 0f
+            }
 
         try {
             mBehindColors = gradientColorsClass.getDeclaredConstructor().newInstance()
@@ -758,15 +721,14 @@ class QSLightThemeA14(context: Context) : ModPack(context) {
             log(TAG + throwable)
         }
 
-        hookAllMethods(scrimControllerClass, "updateScrims", object : XC_MethodHook() {
-            override fun afterHookedMethod(param: MethodHookParam) {
-                if (!dualToneQSEnabled) return
+        scrimControllerClass
+            .hookMethod("updateScrims")
+            .runAfter { param ->
+                if (!dualToneQSEnabled) return@runAfter
 
                 try {
-                    val mScrimBehind =
-                        getObjectField(param.thisObject, "mScrimBehind")
-                    val mBlankScreen =
-                        getObjectField(param.thisObject, "mBlankScreen") as Boolean
+                    val mScrimBehind = getObjectField(param.thisObject, "mScrimBehind")
+                    val mBlankScreen = getObjectField(param.thisObject, "mBlankScreen") as Boolean
                     val alpha = getFloatField(mScrimBehind, "mViewAlpha")
                     val animateBehindScrim = alpha != 0f && !mBlankScreen
 
@@ -780,13 +742,13 @@ class QSLightThemeA14(context: Context) : ModPack(context) {
                     log(TAG + throwable)
                 }
             }
-        })
 
-        hookAllMethods(scrimControllerClass, "updateThemeColors", object : XC_MethodHook() {
-            override fun afterHookedMethod(param: MethodHookParam) {
+        scrimControllerClass
+            .hookMethod("updateThemeColors")
+            .runAfter {
                 calculateColors()
 
-                if (!dualToneQSEnabled) return
+                if (!dualToneQSEnabled) return@runAfter
 
                 try {
                     val states: ColorStateList = getColorAttr(
@@ -820,15 +782,14 @@ class QSLightThemeA14(context: Context) : ModPack(context) {
                     log(TAG + throwable)
                 }
             }
-        })
 
-        hookAllMethods(scrimControllerClass, "applyState", object : XC_MethodHook() {
-            override fun afterHookedMethod(param: MethodHookParam) {
-                if (!lightQSHeaderEnabled) return
+        scrimControllerClass
+            .hookMethodMatchPattern("applyState.*")
+            .runAfter { param ->
+                if (!lightQSHeaderEnabled) return@runAfter
 
                 try {
-                    val mClipsQsScrim =
-                        getObjectField(param.thisObject, "mClipsQsScrim") as Boolean
+                    val mClipsQsScrim = getObjectField(param.thisObject, "mClipsQsScrim") as Boolean
 
                     if (mClipsQsScrim) {
                         setObjectField(param.thisObject, "mBehindTint", Color.TRANSPARENT)
@@ -837,176 +798,142 @@ class QSLightThemeA14(context: Context) : ModPack(context) {
                     log(TAG + throwable)
                 }
             }
-        })
 
-        try {
-            val constants: Array<out Any>? = scrimStateEnum.enumConstants
-            if (constants != null) {
-                for (constant in constants) {
-                    when (constant.toString()) {
-                        "KEYGUARD" -> hookAllMethods(
-                            constant.javaClass,
-                            "prepare",
-                            object : XC_MethodHook() {
-                                override fun afterHookedMethod(param: MethodHookParam) {
-                                    if (!lightQSHeaderEnabled) return
+        val constants: Array<out Any> = scrimStateEnum.enumConstants ?: arrayOf()
+        constants.forEach { constant ->
+            when (constant.toString()) {
+                "KEYGUARD" -> constant.javaClass
+                    .hookMethod("prepare")
+                    .runAfter { param ->
+                        if (!lightQSHeaderEnabled) return@runAfter
 
-                                    val mClipQsScrim = getObjectField(
-                                        param.thisObject,
-                                        "mClipQsScrim"
-                                    ) as Boolean
+                        val mClipQsScrim = getObjectField(
+                            param.thisObject,
+                            "mClipQsScrim"
+                        ) as Boolean
 
-                                    if (mClipQsScrim) {
-                                        val mScrimBehind = getObjectField(
-                                            param.thisObject,
-                                            "mScrimBehind"
-                                        )
-                                        val mTintColor =
-                                            getIntField(mScrimBehind, "mTintColor")
+                        if (mClipQsScrim) {
+                            val mScrimBehind = getObjectField(
+                                param.thisObject,
+                                "mScrimBehind"
+                            )
+                            val mTintColor = getIntField(mScrimBehind, "mTintColor")
 
-                                        if (mTintColor != Color.TRANSPARENT) {
-                                            setObjectField(
-                                                mScrimBehind,
-                                                "mTintColor",
-                                                Color.TRANSPARENT
-                                            )
+                            if (mTintColor != Color.TRANSPARENT) {
+                                setObjectField(
+                                    mScrimBehind,
+                                    "mTintColor",
+                                    Color.TRANSPARENT
+                                )
 
-                                            callMethod(
-                                                mScrimBehind,
-                                                "updateColorWithTint",
-                                                false
-                                            )
-                                        }
+                                callMethod(
+                                    mScrimBehind,
+                                    "updateColorWithTint",
+                                    false
+                                )
+                            }
 
-                                        callMethod(mScrimBehind, "setViewAlpha", 1f)
-                                    }
-                                }
-                            })
+                            callMethod(mScrimBehind, "setViewAlpha", 1f)
+                        }
+                    }
 
-                        "BOUNCER" -> hookAllMethods(
-                            constant.javaClass,
-                            "prepare",
-                            object : XC_MethodHook() {
-                                override fun afterHookedMethod(param: MethodHookParam) {
-                                    if (!lightQSHeaderEnabled) return
+                "BOUNCER" -> constant.javaClass
+                    .hookMethod("prepare")
+                    .runAfter { param ->
+                        if (!lightQSHeaderEnabled) return@runAfter
 
+                        setObjectField(param.thisObject, "mBehindTint", Color.TRANSPARENT)
+                    }
+
+                "SHADE_LOCKED" -> {
+                    constant.javaClass
+                        .hookMethod("prepare")
+                        .runAfter { param ->
+                            if (!lightQSHeaderEnabled) return@runAfter
+
+                            setObjectField(
+                                param.thisObject,
+                                "mBehindTint",
+                                Color.TRANSPARENT
+                            )
+
+                            val mClipQsScrim = getObjectField(
+                                param.thisObject,
+                                "mClipQsScrim"
+                            ) as Boolean
+                            if (mClipQsScrim) {
+                                val mScrimBehind = getObjectField(
+                                    param.thisObject,
+                                    "mScrimBehind"
+                                )
+                                val mTintColor = getIntField(
+                                    mScrimBehind,
+                                    "mTintColor"
+                                )
+
+                                if (mTintColor != Color.TRANSPARENT) {
                                     setObjectField(
-                                        param.thisObject,
-                                        "mBehindTint",
+                                        mScrimBehind,
+                                        "mTintColor",
                                         Color.TRANSPARENT
                                     )
+
+                                    callMethod(
+                                        mScrimBehind,
+                                        "updateColorWithTint",
+                                        false
+                                    )
                                 }
-                            })
 
-                        "SHADE_LOCKED" -> {
-                            hookAllMethods(
-                                constant.javaClass,
-                                "prepare",
-                                object : XC_MethodHook() {
-                                    @Throws(Throwable::class)
-                                    override fun afterHookedMethod(param: MethodHookParam) {
-                                        if (!lightQSHeaderEnabled) return
-
-                                        setObjectField(
-                                            param.thisObject,
-                                            "mBehindTint",
-                                            Color.TRANSPARENT
-                                        )
-
-                                        val mClipQsScrim = getObjectField(
-                                            param.thisObject,
-                                            "mClipQsScrim"
-                                        ) as Boolean
-                                        if (mClipQsScrim) {
-                                            val mScrimBehind = getObjectField(
-                                                param.thisObject,
-                                                "mScrimBehind"
-                                            )
-                                            val mTintColor =
-                                                getIntField(
-                                                    mScrimBehind,
-                                                    "mTintColor"
-                                                )
-
-                                            if (mTintColor != Color.TRANSPARENT) {
-                                                setObjectField(
-                                                    mScrimBehind,
-                                                    "mTintColor",
-                                                    Color.TRANSPARENT
-                                                )
-
-                                                callMethod(
-                                                    mScrimBehind,
-                                                    "updateColorWithTint",
-                                                    false
-                                                )
-                                            }
-
-                                            callMethod(
-                                                mScrimBehind,
-                                                "setViewAlpha",
-                                                1f
-                                            )
-                                        }
-                                    }
-                                })
-
-                            hookAllMethods(
-                                constant.javaClass,
-                                "getBehindTint",
-                                object : XC_MethodHook() {
-                                    @Throws(Throwable::class)
-                                    override fun beforeHookedMethod(param: MethodHookParam) {
-                                        if (!lightQSHeaderEnabled) return
-
-                                        param.result = Color.TRANSPARENT
-                                    }
-                                })
+                                callMethod(
+                                    mScrimBehind,
+                                    "setViewAlpha",
+                                    1f
+                                )
+                            }
                         }
 
-                        "UNLOCKED" -> hookAllMethods(
-                            constant.javaClass,
-                            "prepare",
-                            object : XC_MethodHook() {
-                                override fun afterHookedMethod(param: MethodHookParam) {
-                                    if (!lightQSHeaderEnabled) return
+                    constant.javaClass
+                        .hookMethod("getBehindTint")
+                        .suppressError()
+                        .runBefore { param ->
+                            if (!lightQSHeaderEnabled) return@runBefore
 
-                                    setObjectField(
-                                        param.thisObject,
-                                        "mBehindTint",
-                                        Color.TRANSPARENT
-                                    )
-
-                                    val mScrimBehind =
-                                        getObjectField(
-                                            param.thisObject,
-                                            "mScrimBehind"
-                                        )
-                                    val mTintColor =
-                                        getIntField(mScrimBehind, "mTintColor")
-
-                                    if (mTintColor != Color.TRANSPARENT) {
-                                        setObjectField(
-                                            mScrimBehind,
-                                            "mTintColor",
-                                            Color.TRANSPARENT
-                                        )
-
-                                        callMethod(
-                                            mScrimBehind,
-                                            "updateColorWithTint",
-                                            false
-                                        )
-                                    }
-
-                                    callMethod(mScrimBehind, "setViewAlpha", 1f)
-                                }
-                            })
-                    }
+                            param.result = Color.TRANSPARENT
+                        }
                 }
+
+                "UNLOCKED" -> constant.javaClass
+                    .hookMethod("prepare")
+                    .runAfter { param ->
+                        if (!lightQSHeaderEnabled) return@runAfter
+
+                        setObjectField(
+                            param.thisObject,
+                            "mBehindTint",
+                            Color.TRANSPARENT
+                        )
+
+                        val mScrimBehind = getObjectField(param.thisObject, "mScrimBehind")
+                        val mTintColor = getIntField(mScrimBehind, "mTintColor")
+
+                        if (mTintColor != Color.TRANSPARENT) {
+                            setObjectField(
+                                mScrimBehind,
+                                "mTintColor",
+                                Color.TRANSPARENT
+                            )
+
+                            callMethod(
+                                mScrimBehind,
+                                "updateColorWithTint",
+                                false
+                            )
+                        }
+
+                        callMethod(mScrimBehind, "setViewAlpha", 1f)
+                    }
             }
-        } catch (throwable: Throwable) {
-            log(TAG + throwable)
         }
     }
 

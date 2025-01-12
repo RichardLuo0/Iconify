@@ -10,8 +10,6 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -21,7 +19,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import com.drdisagree.iconify.R
-import com.drdisagree.iconify.common.Const.SWITCH_ANIMATION_DELAY
 import com.drdisagree.iconify.common.Preferences.HEADER_IMAGE_OVERLAP
 import com.drdisagree.iconify.common.Preferences.HIDE_DATA_DISABLED_ICON
 import com.drdisagree.iconify.common.Preferences.OP_QS_HEADER_GAP_EXPANDED
@@ -34,7 +31,6 @@ import com.drdisagree.iconify.ui.activities.MainActivity
 import com.drdisagree.iconify.ui.base.BaseFragment
 import com.drdisagree.iconify.ui.dialogs.EditTextDialog
 import com.drdisagree.iconify.ui.utils.ViewHelper.setHeader
-import com.drdisagree.iconify.utils.SystemUtils
 import com.google.android.material.slider.Slider
 import kotlin.random.Random
 
@@ -72,9 +68,9 @@ class Experimental : BaseFragment() {
         binding.headerImageOverlap.setSwitchChangeListener { _: CompoundButton?, isChecked: Boolean ->
             putBoolean(HEADER_IMAGE_OVERLAP, isChecked)
 
-            Handler(Looper.getMainLooper()).postDelayed(
-                { SystemUtils.restartSystemUI() },
-                SWITCH_ANIMATION_DELAY
+            MainActivity.showOrHidePendingActionButton(
+                activityBinding = (requireActivity() as MainActivity).binding,
+                requiresSystemUiRestart = true
             )
         }
 

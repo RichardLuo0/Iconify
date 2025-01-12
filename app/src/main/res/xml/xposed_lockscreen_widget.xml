@@ -3,11 +3,9 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:search="http://schemas.android.com/apk/com.drdisagree.iconify.ui.preferences.preferencesearch">
 
-    <com.drdisagree.iconify.ui.preferences.SwitchPreference
+    <com.drdisagree.iconify.ui.preferences.MasterSwitchPreference
         android:key="lockscreen_widgets_enabled"
-        android:summary="@string/lockscreen_widgets_enabled_title"
-        android:title="@string/lockscreen_widgets_enabled_summary"
-        app:iconSpaceReserved="false" />
+        android:title="@string/lockscreen_widgets_enabled_title" />
 
     <com.drdisagree.iconify.ui.preferences.PreferenceCategory
         android:dependency="lockscreen_widgets_enabled"

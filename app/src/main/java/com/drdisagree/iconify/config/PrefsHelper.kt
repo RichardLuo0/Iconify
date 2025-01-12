@@ -29,6 +29,8 @@ import com.drdisagree.iconify.common.Preferences.BATTERY_STYLE_LANDSCAPE_IOS_16
 import com.drdisagree.iconify.common.Preferences.BATTERY_STYLE_LANDSCAPE_KIM
 import com.drdisagree.iconify.common.Preferences.BLUR_RADIUS_VALUE
 import com.drdisagree.iconify.common.Preferences.CHIP_STATUS_ICONS_SWITCH
+import com.drdisagree.iconify.common.Preferences.COLORED_NOTIFICATION_ALTERNATIVE_SWITCH
+import com.drdisagree.iconify.common.Preferences.COLORED_NOTIFICATION_VIEW_SWITCH
 import com.drdisagree.iconify.common.Preferences.CUSTOM_BATTERY_BLEND_COLOR
 import com.drdisagree.iconify.common.Preferences.CUSTOM_BATTERY_CHARGING_COLOR
 import com.drdisagree.iconify.common.Preferences.CUSTOM_BATTERY_CHARGING_ICON_MARGIN_LEFT
@@ -306,6 +308,7 @@ object PrefsHelper {
 
             HEADER_CLOCK_EXPANSION_Y -> Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE
 
+            "xposedOthers",
             "xposedOthersStatusIcons",
             FIXED_STATUS_ICONS_SWITCH -> Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU
 
@@ -318,6 +321,9 @@ object PrefsHelper {
             DEPTH_WALLPAPER_AI_MODE,
             DEPTH_WALLPAPER_AI_STATUS -> Build.VERSION.SDK_INT > Build.VERSION_CODES.TIRAMISU &&
                     !getBoolean(CUSTOM_DEPTH_WALLPAPER_SWITCH)
+
+            COLORED_NOTIFICATION_ALTERNATIVE_SWITCH ->
+                getBoolean(COLORED_NOTIFICATION_VIEW_SWITCH, false)
 
             else -> true
         }

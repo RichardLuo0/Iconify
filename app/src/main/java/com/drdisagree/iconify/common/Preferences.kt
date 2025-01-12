@@ -104,6 +104,9 @@ object Preferences {
     const val LSCLOCK_FONT_TEXT_SCALING = "xposed_lockscreenclocktextscaling"
     const val LSCLOCK_USERNAME = "xposed_lockscreenclockcustomusername"
     const val LSCLOCK_DEVICENAME = "xposed_lockscreenclockcustomdevicename"
+    const val COLORED_NOTIFICATION_ICON_SWITCH = "xposed_colorednotificationicon"
+    const val COLORED_NOTIFICATION_VIEW_SWITCH = "xposed_colorednotificationview"
+    const val COLORED_NOTIFICATION_ALTERNATIVE_SWITCH = "xposed_colorednotificationalternative"
 
     // LS Widgets
     const val LOCKSCREEN_WIDGETS_ENABLED: String = "lockscreen_widgets_enabled"

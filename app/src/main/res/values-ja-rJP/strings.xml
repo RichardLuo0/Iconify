@@ -547,6 +547,9 @@
     <string name="hide_qs_tile_label_title">クイック設定タイルのラベルを非表示</string>
     <string name="hide_qs_tile_label_desc">垂直タイルの時のみ使用してください</string>
     <string name="qs_tile_label_scaling_title">テキストサイズの大きさ</string>
+    <string name="section_title_notifications">Notification</string>
+    <string name="colored_qs_notification_title">Colored Notification Icon</string>
+    <string name="colored_qs_notification_desc">Show app icon as notification icon</string>
     <string name="section_title_qs_margin">クイック設定マージン</string>
     <string name="section_title_qs_elements">クイック設定の要素</string>
     <string name="hide_qs_on_lockscreen_title">Hide QS on Lockscreen</string>
@@ -890,6 +893,10 @@
     <string name="unzoom_depth_wallpaper_desc">Remove the zoom effect on depth wallpaper</string>
     <string name="hide_data_disabled_icon_title">データ通信無効アイコンを非表示</string>
     <string name="hide_data_disabled_icon_desc">データ通信インジケーターを非表示</string>
+    <string name="colorize_notification_view_title">Colorize Notification View</string>
+    <string name="colorize_notification_view_desc">Make notification view same color as app icon</string>
+    <string name="colorize_notification_alternative_color_generation_title">Alternative Color Generation</string>
+    <string name="colorize_notification_alternative_color_generation_desc">Use monet score and quantizer to extract color</string>
     <!-- Bottom Navigation -->
     <string name="navbar_home">ホーム</string>
     <string name="navbar_tweaks">調整</string>

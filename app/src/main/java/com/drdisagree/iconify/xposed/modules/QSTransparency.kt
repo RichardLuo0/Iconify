@@ -125,11 +125,14 @@ class QSTransparency(context: Context) : ModPack(context) {
             }
 
         // Compose implementation of QS Footer actions
-        val footerActionsViewBinderClass =
-            findClass("$SYSTEMUI_PACKAGE.qs.footer.ui.binder.FooterActionsViewBinder")
+        val footerActionsViewBinderClass = findClass(
+            "$SYSTEMUI_PACKAGE.qs.footer.ui.binder.FooterActionsViewBinder",
+            suppressError = true
+        )
 
         footerActionsViewBinderClass
             .hookMethod("bind")
+            .suppressError()
             .runAfter { param ->
                 if (!qsTransparencyActive && !onlyNotifTransparencyActive) return@runAfter
 

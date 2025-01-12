@@ -175,7 +175,10 @@ class VolumePanel(context: Context) : ModPack(context) {
             }
 
         volumeDialogImplClass
-            .hookMethod("onShowSafetyWarning")
+            .hookMethod(
+                "onShowSafetyWarning",
+                "showSafetyWarningH"
+            )
             .runBefore { param ->
                 if (!showWarning) {
                     param.result = null

@@ -136,7 +136,6 @@ import com.drdisagree.iconify.xposed.utils.XPrefs.Xprefs
 import com.drdisagree.iconify.xposed.utils.XPrefs.XprefsIsInitialized
 import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XC_MethodHook.MethodHookParam
-import de.robv.android.xposed.XC_MethodReplacement
 import de.robv.android.xposed.XposedBridge.log
 import de.robv.android.xposed.XposedHelpers.callMethod
 import de.robv.android.xposed.XposedHelpers.getAdditionalInstanceField
@@ -145,6 +144,7 @@ import de.robv.android.xposed.XposedHelpers.getIntField
 import de.robv.android.xposed.XposedHelpers.getObjectField
 import de.robv.android.xposed.XposedHelpers.setAdditionalInstanceField
 import de.robv.android.xposed.XposedHelpers.setObjectField
+import de.robv.android.xposed.XposedHelpers.setStaticIntField
 import de.robv.android.xposed.callbacks.XC_InitPackageResources.InitPackageResourcesParam
 import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam
 
@@ -331,6 +331,7 @@ class BatteryStyleManager(context: Context) : ModPack(context) {
 
         batteryControllerImplClass
             .hookMethod("fireBatteryUnknownStateChanged")
+            .suppressError()
             .runAfter {
                 if (!customBatteryEnabled) return@runAfter
 
@@ -536,9 +537,9 @@ class BatteryStyleManager(context: Context) : ModPack(context) {
 
                     configurationControllerListener.javaClass
                         .hookMethod("onConfigChanged")
-                        .runAfter { param2 ->
+                        .runAfter {
                             if (customBatteryEnabled) {
-                                updateBatteryResources(param2)
+                                updateBatteryResources(param)
                             }
                         }
 
@@ -553,24 +554,23 @@ class BatteryStyleManager(context: Context) : ModPack(context) {
         if (customBatteryEnabled) {
             batteryMeterViewClass
                 .hookMethod("scaleBatteryMeterViews")
-                .replace {
-                    refreshBatteryIcons()
-                }
-        }
+                .replace { refreshBatteryIcons() }
 
-        try {
             batteryMeterViewClass
-                .hookMethod("onBatteryLevelChanged")
-                .runAfter { param ->
-                    if (batteryMeterViewParam == null) {
-                        batteryMeterViewParam = param
-                    }
-
-                    mIsCharging = param.args[1] as Boolean
-                }
-        } catch (throwable: Throwable) {
-            log(TAG + throwable)
+                .hookMethod("scaleBatteryMeterViewsLegacy")
+                .suppressError()
+                .replace { refreshBatteryIcons() }
         }
+
+        batteryMeterViewClass
+            .hookMethod("onBatteryLevelChanged")
+            .runAfter { param ->
+                if (batteryMeterViewParam == null) {
+                    batteryMeterViewParam = param
+                }
+
+                mIsCharging = param.args[1] as Boolean
+            }
 
         batteryMeterViewClass
             .hookMethod("setPercentShowMode")
@@ -596,8 +596,7 @@ class BatteryStyleManager(context: Context) : ModPack(context) {
                     "mBatteryPercentView"
                 ) as TextView?
 
-                mBatteryPercentView?.visibility =
-                    if (mHidePercentage) View.GONE else View.VISIBLE
+                mBatteryPercentView?.visibility = if (mHidePercentage) View.GONE else View.VISIBLE
             }
 
         removeBatteryMeterViewMethods(batteryMeterViewClass)
@@ -731,19 +730,25 @@ class BatteryStyleManager(context: Context) : ModPack(context) {
     }
 
     private fun isBatteryCharging(thisObject: Any): Boolean {
-        var mCharging = mIsCharging
         var mIsIncompatibleCharging = false
 
-        try {
-            mCharging = getObjectField(thisObject, "mCharging") as Boolean
+        val mCharging: Boolean = try {
+            getObjectField(thisObject, "mCharging") as Boolean
         } catch (ignored: Throwable) {
             try {
-                mIsIncompatibleCharging =
-                    getObjectField(thisObject, "mIsIncompatibleCharging") as Boolean
-            } catch (throwable: Throwable) {
-                log(TAG + throwable)
+                getObjectField(thisObject, "mPluggedIn") as Boolean
+            } catch (ignored: Throwable) {
+                mIsCharging
             }
         }
+
+        try {
+            mIsIncompatibleCharging =
+                getObjectField(thisObject, "mIsIncompatibleCharging") as Boolean
+        } catch (throwable: Throwable) {
+            log(TAG + throwable)
+        }
+
         return mCharging && !mIsIncompatibleCharging
     }
 
@@ -864,9 +869,9 @@ class BatteryStyleManager(context: Context) : ModPack(context) {
             else -> null
         }
 
-        if (mBatteryDrawable != null) {
-            mBatteryDrawable.setShowPercentEnabled(mShowPercentInside)
-            mBatteryDrawable.alpha = Math.round(BATTERY_ICON_OPACITY * 2.55f)
+        mBatteryDrawable?.apply {
+            setShowPercentEnabled(mShowPercentInside)
+            alpha = Math.round(BATTERY_ICON_OPACITY * 2.55f)
         }
 
         return mBatteryDrawable
@@ -913,11 +918,69 @@ class BatteryStyleManager(context: Context) : ModPack(context) {
                     "updateSettings",
                     "updateVisibility"
                 )
-                .run(object : XC_MethodReplacement() {
-                    override fun replaceHookedMethod(methodHookParam: MethodHookParam): Any? {
-                        return null
+                .suppressError()
+                .replace { }
+
+            val batteryMeterViewExClass = findClass(
+                "com.nothing.systemui.battery.BatteryMeterViewEx",
+                suppressError = true
+            )
+
+            batteryMeterViewExClass?.let { batteryMeterViewEx ->
+                batteryMeterViewEx
+                    .hookMethod("refreshByBatteryStateEx")
+                    .replace { }
+
+                batteryMeterViewEx
+                    .hookMethod("addBatteryImageView")
+                    .replace { param ->
+                        val context = param.args[0] as Context
+                        val batteryMeterView = param.args[1] as ViewGroup
+                        val batteryIconView = param.args[2] as ImageView
+                        val batteryWidth = TypedValue.applyDimension(
+                            TypedValue.COMPLEX_UNIT_DIP,
+                            mBatteryScaleWidth.toFloat(),
+                            context.resources.displayMetrics
+                        ).toInt()
+                        val batteryHeight = TypedValue.applyDimension(
+                            TypedValue.COMPLEX_UNIT_DIP,
+                            mBatteryScaleHeight.toFloat(),
+                            context.resources.displayMetrics
+                        ).toInt()
+
+                        setStaticIntField(
+                            batteryMeterViewEx,
+                            "sTempMax",
+                            context.resources.getInteger(
+                                context.resources.getIdentifier(
+                                    "config_wire_charging_temp_max",
+                                    "integer",
+                                    context.packageName
+                                )
+                            )
+                        )
+                        setStaticIntField(
+                            batteryMeterViewEx,
+                            "sVoltMax",
+                            context.resources.getInteger(
+                                context.resources.getIdentifier(
+                                    "config_wire_charging_voltage_max",
+                                    "integer",
+                                    context.packageName
+                                )
+                            )
+                        )
+
+                        batteryMeterView.addView(
+                            batteryIconView,
+                            ViewGroup.LayoutParams(batteryWidth, batteryHeight)
+                        )
                     }
-                })
+
+                batteryMeterViewEx
+                    .hookMethod("updateView")
+                    .replace { refreshBatteryIcons() }
+            }
         }
     }
 
@@ -1093,8 +1156,10 @@ class BatteryStyleManager(context: Context) : ModPack(context) {
             )
         )
 
-        mChargingIconView.setLayoutParams(lp)
-        mChargingIconView.setVisibility(if (mCharging && mChargingIconSwitch) View.VISIBLE else View.GONE)
+        mChargingIconView.apply {
+            setLayoutParams(lp)
+            setVisibility(if (mCharging && mChargingIconSwitch) View.VISIBLE else View.GONE)
+        }
     }
 
     private fun updateSettings(param: MethodHookParam) {

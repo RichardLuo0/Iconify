@@ -2,11 +2,9 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <com.drdisagree.iconify.ui.preferences.SwitchPreference
+    <com.drdisagree.iconify.ui.preferences.MasterSwitchPreference
         android:key="xposed_opqsheader"
-        android:summary="@string/oneplus_qs_header_desc"
-        android:title="@string/oneplus_qs_header_title"
-        app:iconSpaceReserved="false" />
+        android:title="@string/oneplus_qs_header_title" />
 
     <com.drdisagree.iconify.ui.preferences.SwitchPreference
         android:dependency="xposed_opqsheader"

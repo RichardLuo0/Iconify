@@ -3,6 +3,41 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:search="http://schemas.android.com/apk/com.drdisagree.iconify.ui.preferences.preferencesearch">
 
+    <com.drdisagree.iconify.ui.preferences.PreferenceMenu
+        android:icon="@drawable/ic_xposed_transparency_blur"
+        android:key="xposedTransparencyBlur"
+        android:summary="@string/activity_desc_transparency_blur"
+        android:title="@string/activity_title_transparency_blur"
+        app:fragment="com.drdisagree.iconify.ui.fragments.xposed.TransparencyBlur" />
+
+    <com.drdisagree.iconify.ui.preferences.PreferenceMenu
+        android:icon="@drawable/ic_xposed_header_image"
+        android:key="xposedHeaderImage"
+        android:summary="@string/activity_desc_header_image"
+        android:title="@string/activity_title_header_image"
+        app:fragment="com.drdisagree.iconify.ui.fragments.xposed.HeaderImage" />
+
+    <com.drdisagree.iconify.ui.preferences.PreferenceMenu
+        android:icon="@drawable/ic_xposed_clock"
+        android:key="xposedHeaderClock"
+        android:summary="@string/activity_desc_header_clock"
+        android:title="@string/activity_title_header_clock"
+        app:fragment="com.drdisagree.iconify.ui.fragments.xposed.HeaderClock" />
+
+    <com.drdisagree.iconify.ui.preferences.PreferenceMenu
+        android:icon="@drawable/ic_xposed_themes"
+        android:key="xposedThemes"
+        android:summary="@string/activity_desc_themes"
+        android:title="@string/activity_title_themes"
+        app:fragment="com.drdisagree.iconify.ui.fragments.xposed.Themes" />
+
+    <com.drdisagree.iconify.ui.preferences.PreferenceMenu
+        android:icon="@drawable/ic_xposed_op_qs_header"
+        android:key="xposedOpQsHeader"
+        android:summary="@string/activity_desc_op_qs_header"
+        android:title="@string/activity_title_op_qs_header"
+        app:fragment="com.drdisagree.iconify.ui.fragments.xposed.OpQsHeader" />
+
     <com.drdisagree.iconify.ui.preferences.PreferenceCategory
         android:key="xposedQuickSettingsQsTiles"
         android:title="@string/section_title_qs_tile"
@@ -81,16 +116,37 @@
     </com.drdisagree.iconify.ui.preferences.PreferenceCategory>
 
     <com.drdisagree.iconify.ui.preferences.PreferenceCategory
-        android:key="xposedQuickSettingsQsElements"
-        android:title="@string/section_title_qs_elements"
+        android:key="xposedQuickSettingsNotifications"
+        android:title="@string/section_title_notifications"
         app:iconSpaceReserved="false"
         search:ignore="true">
 
         <com.drdisagree.iconify.ui.preferences.SwitchPreference
-            android:key="xposed_hideqsonlockscreen"
-            android:summary="@string/hide_qs_on_lockscreen_desc"
-            android:title="@string/hide_qs_on_lockscreen_title"
+            android:key="xposed_colorednotificationicon"
+            android:summary="@string/colored_qs_notification_desc"
+            android:title="@string/colored_qs_notification_title"
             app:iconSpaceReserved="false" />
+
+        <com.drdisagree.iconify.ui.preferences.SwitchPreference
+            android:key="xposed_colorednotificationview"
+            android:summary="@string/colorize_notification_view_desc"
+            android:title="@string/colorize_notification_view_title"
+            app:iconSpaceReserved="false" />
+
+        <com.drdisagree.iconify.ui.preferences.SwitchPreference
+            android:dependency="xposed_colorednotificationview"
+            android:key="xposed_colorednotificationalternative"
+            android:summary="@string/colorize_notification_alternative_color_generation_desc"
+            android:title="@string/colorize_notification_alternative_color_generation_title"
+            app:iconSpaceReserved="false" />
+
+    </com.drdisagree.iconify.ui.preferences.PreferenceCategory>
+
+    <com.drdisagree.iconify.ui.preferences.PreferenceCategory
+        android:key="xposedQuickSettingsQsElements"
+        android:title="@string/section_title_qs_elements"
+        app:iconSpaceReserved="false"
+        search:ignore="true">
 
         <com.drdisagree.iconify.ui.preferences.SwitchPreference
             android:key="xposed_hideqssilenttext"
@@ -102,6 +158,44 @@
             android:key="xposed_hideqsfooterbuttons"
             android:summary="@string/hide_qs_footer_buttons_desc"
             android:title="@string/hide_qs_footer_buttons_title"
+            app:iconSpaceReserved="false" />
+
+        <com.drdisagree.iconify.ui.preferences.SwitchPreference
+            android:key="xposed_qspanelhidecarrier"
+            android:summary="@string/hide_carrier_group_desc"
+            android:title="@string/hide_carrier_group_title"
+            app:iconSpaceReserved="false" />
+
+        <com.drdisagree.iconify.ui.preferences.SwitchPreference
+            android:key="xposed_hidestatusicons"
+            android:summary="@string/hide_status_icons_desc"
+            android:title="@string/hide_status_icons_title"
+            app:iconSpaceReserved="false" />
+
+    </com.drdisagree.iconify.ui.preferences.PreferenceCategory>
+
+    <com.drdisagree.iconify.ui.preferences.PreferenceCategory
+        android:key="xposedThemesOthers"
+        android:title="@string/section_title_others"
+        app:iconSpaceReserved="false"
+        search:ignore="true">
+
+        <com.drdisagree.iconify.ui.preferences.SwitchPreference
+            android:key="xposed_fixqstilecolor"
+            android:summary="@string/fix_qs_tile_color_desc"
+            android:title="@string/fix_qs_tile_color_title"
+            app:iconSpaceReserved="false" />
+
+        <com.drdisagree.iconify.ui.preferences.SwitchPreference
+            android:key="xposed_fixnotificationcolor"
+            android:summary="@string/fix_notification_color_desc"
+            android:title="@string/fix_notification_color_title"
+            app:iconSpaceReserved="false" />
+
+        <com.drdisagree.iconify.ui.preferences.SwitchPreference
+            android:key="xposed_fixnotificationfooterbuttoncolor"
+            android:summary="@string/fix_notification_footer_button_color_desc"
+            android:title="@string/fix_notification_footer_button_color_title"
             app:iconSpaceReserved="false" />
 
     </com.drdisagree.iconify.ui.preferences.PreferenceCategory>

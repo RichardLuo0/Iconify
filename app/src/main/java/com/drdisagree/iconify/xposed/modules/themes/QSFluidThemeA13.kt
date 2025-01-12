@@ -28,19 +28,17 @@ import com.drdisagree.iconify.common.Preferences.FLUID_POWERMENU_TRANSPARENCY
 import com.drdisagree.iconify.common.Preferences.FLUID_QSPANEL
 import com.drdisagree.iconify.xposed.HookRes
 import com.drdisagree.iconify.xposed.ModPack
-import com.drdisagree.iconify.xposed.modules.utils.RoundedCornerProgressDrawable
 import com.drdisagree.iconify.xposed.modules.utils.SettingsLibUtils
 import com.drdisagree.iconify.xposed.modules.utils.ViewHelper.toPx
 import com.drdisagree.iconify.xposed.modules.utils.toolkit.XposedHook.Companion.findClass
+import com.drdisagree.iconify.xposed.modules.utils.toolkit.hookConstructor
+import com.drdisagree.iconify.xposed.modules.utils.toolkit.hookMethod
+import com.drdisagree.iconify.xposed.modules.views.RoundedCornerProgressDrawable
 import com.drdisagree.iconify.xposed.utils.SystemUtils
 import com.drdisagree.iconify.xposed.utils.XPrefs.Xprefs
 import com.drdisagree.iconify.xposed.utils.XPrefs.XprefsIsInitialized
 import de.robv.android.xposed.XC_MethodHook
-import de.robv.android.xposed.XposedBridge.hookAllConstructors
-import de.robv.android.xposed.XposedBridge.hookAllMethods
 import de.robv.android.xposed.XposedBridge.log
-
-
 import de.robv.android.xposed.XposedHelpers.getIntField
 import de.robv.android.xposed.XposedHelpers.getObjectField
 import de.robv.android.xposed.XposedHelpers.setObjectField
@@ -51,7 +49,7 @@ import kotlin.math.min
 @SuppressLint("DiscouragedApi")
 class QSFluidThemeA13(context: Context) : ModPack(context) {
 
-    val colorActive = intArrayOf(
+    private val colorActive = intArrayOf(
         mContext.resources.getColor(
             mContext.resources.getIdentifier(
                 "android:color/system_accent1_400",
@@ -60,22 +58,23 @@ class QSFluidThemeA13(context: Context) : ModPack(context) {
             ), mContext.theme
         )
     )
-    val colorActiveAlpha = intArrayOf(
+    private val colorActiveAlpha = intArrayOf(
         Color.argb(
             (ACTIVE_ALPHA * 255).toInt(), Color.red(
                 colorActive[0]
             ), Color.green(colorActive[0]), Color.blue(colorActive[0])
         )
     )
-    var colorInactive = intArrayOf(
+    private var colorInactive = intArrayOf(
         SettingsLibUtils.getColorAttrDefaultColor(
             mContext,
             mContext.resources.getIdentifier("offStateColor", "attr", mContext.packageName)
         )
     )
-    val colorInactiveAlpha = intArrayOf(changeAlpha(colorInactive[0], INACTIVE_ALPHA))
+    private val colorInactiveAlpha = intArrayOf(changeAlpha(colorInactive[0], INACTIVE_ALPHA))
     private var wasDark: Boolean = SystemUtils.isDarkMode
     private var mSlider: SeekBar? = null
+
     override fun updatePrefs(vararg key: String) {
         if (!XprefsIsInitialized) return
 
@@ -95,56 +94,55 @@ class QSFluidThemeA13(context: Context) : ModPack(context) {
         val qsTileViewImplClass = findClass("$SYSTEMUI_PACKAGE.qs.tileimpl.QSTileViewImpl")
         val qsIconViewImplClass = findClass("$SYSTEMUI_PACKAGE.qs.tileimpl.QSIconViewImpl")
         val footerViewClass = findClass("$SYSTEMUI_PACKAGE.statusbar.notification.row.FooterView")
-        val centralSurfacesImplClass =
-            findClass("$SYSTEMUI_PACKAGE.statusbar.phone.CentralSurfacesImpl")
-        val notificationExpandButtonClass =
-            findClass("com.android.internal.widget.NotificationExpandButton")
+        val centralSurfacesImplClass = findClass(
+            "$SYSTEMUI_PACKAGE.statusbar.phone.CentralSurfacesImpl",
+            suppressError = true
+        )
+        val notificationExpandButtonClass = findClass(
+            "com.android.internal.widget.NotificationExpandButton",
+            suppressError = true
+        )
         val brightnessSliderViewClass =
             findClass("$SYSTEMUI_PACKAGE.settings.brightness.BrightnessSliderView")
         val brightnessControllerClass =
             findClass("$SYSTEMUI_PACKAGE.settings.brightness.BrightnessController")
         val brightnessMirrorControllerClass =
             findClass("$SYSTEMUI_PACKAGE.statusbar.policy.BrightnessMirrorController")
-        val brightnessSliderControllerClass =
-            findClass("$SYSTEMUI_PACKAGE.settings.brightness.BrightnessSliderController")
+        val brightnessSliderControllerClass = findClass(
+            "$SYSTEMUI_PACKAGE.settings.brightness.BrightnessSliderController",
+            suppressError = true
+        )
         val activatableNotificationViewClass =
             findClass("$SYSTEMUI_PACKAGE.statusbar.notification.row.ActivatableNotificationView")
 
         // Initialize resources and colors
-        hookAllMethods(qsTileViewImplClass, "init", object : XC_MethodHook() {
-            override fun beforeHookedMethod(param: MethodHookParam) {
-                initResources()
-            }
-        })
+        qsTileViewImplClass
+            .hookMethod("init")
+            .runBefore { initResources() }
 
-        if (centralSurfacesImplClass != null) {
-            hookAllConstructors(centralSurfacesImplClass, object : XC_MethodHook() {
-                override fun beforeHookedMethod(param: MethodHookParam) {
-                    initResources()
-                }
-            })
+        centralSurfacesImplClass
+            .hookConstructor()
+            .runBefore { initResources() }
 
-            hookAllMethods(centralSurfacesImplClass, "updateTheme", object : XC_MethodHook() {
-                override fun beforeHookedMethod(param: MethodHookParam) {
-                    initResources()
-                }
-            })
-        }
+        centralSurfacesImplClass
+            .hookMethod("updateTheme")
+            .runBefore { initResources() }
 
         // QS tile color
-        hookAllConstructors(qsTileViewImplClass, object : XC_MethodHook() {
-            override fun afterHookedMethod(param: MethodHookParam) {
+        qsTileViewImplClass
+            .hookConstructor()
+            .runAfter {
                 colorInactive[0] = SettingsLibUtils.getColorAttrDefaultColor(
                     mContext,
                     mContext.resources.getIdentifier("offStateColor", "attr", mContext.packageName)
                 )
                 colorInactiveAlpha[0] = changeAlpha(colorInactive[0], INACTIVE_ALPHA)
             }
-        })
 
-        hookAllMethods(qsTileViewImplClass, "getBackgroundColorForState", object : XC_MethodHook() {
-            override fun afterHookedMethod(param: MethodHookParam) {
-                if (!fluidQsThemeEnabled) return
+        qsTileViewImplClass
+            .hookMethod("getBackgroundColorForState")
+            .runAfter { param ->
+                if (!fluidQsThemeEnabled) return@runAfter
 
                 try {
                     if (param.args[0] as Int == Tile.STATE_ACTIVE) {
@@ -167,12 +165,12 @@ class QSFluidThemeA13(context: Context) : ModPack(context) {
                     log(TAG + throwable)
                 }
             }
-        })
 
         // QS icon color
-        hookAllMethods(qsIconViewImplClass, "getIconColorForState", object : XC_MethodHook() {
-            override fun beforeHookedMethod(param: MethodHookParam) {
-                if (!fluidQsThemeEnabled) return
+        qsIconViewImplClass
+            .hookMethod("getIconColorForState", "getColor")
+            .runBefore { param ->
+                if (!fluidQsThemeEnabled) return@runBefore
 
                 try {
                     if (getObjectField(param.args[1], "state") as Int == Tile.STATE_ACTIVE
@@ -182,11 +180,11 @@ class QSFluidThemeA13(context: Context) : ModPack(context) {
                 } catch (ignored: Throwable) {
                 }
             }
-        })
 
-        hookAllMethods(qsIconViewImplClass, "updateIcon", object : XC_MethodHook() {
-            override fun afterHookedMethod(param: MethodHookParam) {
-                if (!fluidQsThemeEnabled) return
+        qsIconViewImplClass
+            .hookMethod("updateIcon")
+            .runAfter { param ->
+                if (!fluidQsThemeEnabled) return@runAfter
 
                 try {
                     if (param.args[0] is ImageView &&
@@ -198,11 +196,12 @@ class QSFluidThemeA13(context: Context) : ModPack(context) {
                 } catch (ignored: Throwable) {
                 }
             }
-        })
 
-        hookAllMethods(qsIconViewImplClass, "setIcon", object : XC_MethodHook() {
-            override fun beforeHookedMethod(param: MethodHookParam) {
-                if (!fluidQsThemeEnabled) return
+        qsIconViewImplClass
+            .hookMethod("setIcon")
+            .runBefore { param ->
+                if (!fluidQsThemeEnabled) return@runBefore
+
                 try {
                     if (param.args[0] is ImageView &&
                         getIntField(param.args[1], "state") == Tile.STATE_ACTIVE
@@ -212,127 +211,125 @@ class QSFluidThemeA13(context: Context) : ModPack(context) {
                 } catch (ignored: Throwable) {
                 }
             }
-        })
 
-        try {
-            val qsContainerImplClass = findClass("$SYSTEMUI_PACKAGE.qs.QSContainerImpl")
+        val qsContainerImplClass = findClass("$SYSTEMUI_PACKAGE.qs.QSContainerImpl")
 
-            hookAllMethods(qsContainerImplClass, "updateResources", object : XC_MethodHook() {
-                override fun afterHookedMethod(param: MethodHookParam) {
-                    if (!fluidQsThemeEnabled) return
+        qsContainerImplClass
+            .hookMethod("updateResources")
+            .suppressError()
+            .runAfter { param ->
+                if (!fluidQsThemeEnabled) return@runAfter
+
+                try {
+                    val res = mContext.resources
+                    val view = (param.thisObject as ViewGroup).findViewById<ViewGroup>(
+                        res.getIdentifier(
+                            "qs_footer_actions",
+                            "id",
+                            mContext.packageName
+                        )
+                    )
+
+                    view.background.setTint(Color.TRANSPARENT)
+                    view.elevation = 0f
+                    setAlphaTintedDrawables(view, INACTIVE_ALPHA)
 
                     try {
-                        val res = mContext.resources
-                        val view = (param.thisObject as ViewGroup).findViewById<ViewGroup>(
+                        val securityFooter = (view.findViewById<View>(
                             res.getIdentifier(
-                                "qs_footer_actions",
+                                "security_footers_container",
+                                "id",
+                                mContext.packageName
+                            )
+                        ) as ViewGroup).getChildAt(0)
+
+                        securityFooter.background.setTint(colorInactive[0])
+                        securityFooter.background.alpha = (INACTIVE_ALPHA * 255).toInt()
+                    } catch (ignored: Throwable) {
+                    }
+
+                    try {
+                        val multiUserSwitch = view.findViewById<View>(
+                            res.getIdentifier(
+                                "multi_user_switch",
                                 "id",
                                 mContext.packageName
                             )
                         )
 
-                        view.background.setTint(Color.TRANSPARENT)
-                        view.elevation = 0f
-                        setAlphaTintedDrawables(view, INACTIVE_ALPHA)
-
-                        try {
-                            val securityFooter = (view.findViewById<View>(
-                                res.getIdentifier(
-                                    "security_footers_container",
-                                    "id",
-                                    mContext.packageName
-                                )
-                            ) as ViewGroup).getChildAt(0)
-
-                            securityFooter.background.setTint(colorInactive[0])
-                            securityFooter.background.alpha = (INACTIVE_ALPHA * 255).toInt()
-                        } catch (ignored: Throwable) {
-                        }
-
-                        try {
-                            val multiUserSwitch = view.findViewById<View>(
-                                res.getIdentifier(
-                                    "multi_user_switch",
-                                    "id",
-                                    mContext.packageName
-                                )
-                            )
-
-                            multiUserSwitch.background.setTint(colorInactive[0])
-                            multiUserSwitch.background.alpha = (INACTIVE_ALPHA * 255).toInt()
-                        } catch (ignored: Throwable) {
-                        }
-                        try {
-                            val pmButtonContainer = view.findViewById<ViewGroup>(
-                                res.getIdentifier(
-                                    "pm_lite",
-                                    "id",
-                                    mContext.packageName
-                                )
-                            )
-
-                            pmButtonContainer.background.alpha = (ACTIVE_ALPHA * 255).toInt()
-                            pmButtonContainer.background.setTint(colorActive[0])
-                            (pmButtonContainer.getChildAt(0) as ImageView).setColorFilter(
-                                colorActive[0], PorterDuff.Mode.SRC_IN
-                            )
-                        } catch (ignored: Throwable) {
-                            val pmButton = view.findViewById<ImageView>(
-                                res.getIdentifier(
-                                    "pm_lite",
-                                    "id",
-                                    mContext.packageName
-                                )
-                            )
-
-                            pmButton.background.alpha = (ACTIVE_ALPHA * 255).toInt()
-                            pmButton.background.setTint(colorActive[0])
-                            pmButton.imageTintList = ColorStateList.valueOf(colorActive[0])
-                        }
+                        multiUserSwitch.background.setTint(colorInactive[0])
+                        multiUserSwitch.background.alpha = (INACTIVE_ALPHA * 255).toInt()
                     } catch (ignored: Throwable) {
                     }
+                    try {
+                        val pmButtonContainer = view.findViewById<ViewGroup>(
+                            res.getIdentifier(
+                                "pm_lite",
+                                "id",
+                                mContext.packageName
+                            )
+                        )
+
+                        pmButtonContainer.background.alpha = (ACTIVE_ALPHA * 255).toInt()
+                        pmButtonContainer.background.setTint(colorActive[0])
+                        (pmButtonContainer.getChildAt(0) as ImageView).setColorFilter(
+                            colorActive[0], PorterDuff.Mode.SRC_IN
+                        )
+                    } catch (ignored: Throwable) {
+                        val pmButton = view.findViewById<ImageView>(
+                            res.getIdentifier(
+                                "pm_lite",
+                                "id",
+                                mContext.packageName
+                            )
+                        )
+
+                        pmButton.background.alpha = (ACTIVE_ALPHA * 255).toInt()
+                        pmButton.background.setTint(colorActive[0])
+                        pmButton.imageTintList = ColorStateList.valueOf(colorActive[0])
+                    }
+                } catch (ignored: Throwable) {
                 }
-            })
-        } catch (ignored: Throwable) {
-        }
+            }
 
         // Brightness slider and auto brightness color
-        hookAllMethods(brightnessSliderViewClass, "onFinishInflate", object : XC_MethodHook() {
-            override fun afterHookedMethod(param: MethodHookParam) {
-                mSlider = getObjectField(param.thisObject, "mSlider") as SeekBar
+        brightnessSliderViewClass
+            .hookMethod("onFinishInflate")
+            .runAfter { param ->
+                mSlider = getObjectField(param.thisObject, "mSlider") as? SeekBar ?: return@runAfter
+
+                if (!fluidQsThemeEnabled) return@runAfter
 
                 try {
-                    if (mSlider != null && fluidQsThemeEnabled) {
-                        mSlider!!.progressDrawable = createBrightnessDrawable(mContext)
+                    mSlider!!.progressDrawable = createBrightnessDrawable(mContext)
 
-                        val progress = mSlider!!.progressDrawable as LayerDrawable
-                        val progressSlider =
-                            progress.findDrawableByLayerId(android.R.id.progress) as DrawableWrapper
+                    val progress = mSlider!!.progressDrawable as LayerDrawable
+                    val progressSlider =
+                        progress.findDrawableByLayerId(android.R.id.progress) as DrawableWrapper
 
-                        try {
-                            val actualProgressSlider = progressSlider.drawable as LayerDrawable?
-                            val mBrightnessIcon = actualProgressSlider!!.findDrawableByLayerId(
-                                mContext.resources.getIdentifier(
-                                    "slider_icon",
-                                    "id",
-                                    mContext.packageName
-                                )
+                    try {
+                        val actualProgressSlider = progressSlider.drawable as LayerDrawable?
+                        val mBrightnessIcon = actualProgressSlider!!.findDrawableByLayerId(
+                            mContext.resources.getIdentifier(
+                                "slider_icon",
+                                "id",
+                                mContext.packageName
                             )
+                        )
 
-                            mBrightnessIcon.setTintList(ColorStateList.valueOf(Color.TRANSPARENT))
-                            mBrightnessIcon.alpha = 0
-                        } catch (ignored: Throwable) {
-                        }
+                        mBrightnessIcon.setTintList(ColorStateList.valueOf(Color.TRANSPARENT))
+                        mBrightnessIcon.alpha = 0
+                    } catch (ignored: Throwable) {
                     }
                 } catch (throwable: Throwable) {
                     log(TAG + throwable)
                 }
             }
-        })
 
-        hookAllMethods(brightnessControllerClass, "updateIcon", object : XC_MethodHook() {
-            override fun afterHookedMethod(param: MethodHookParam) {
-                if (!fluidQsThemeEnabled) return
+        brightnessControllerClass
+            .hookMethod("updateIcon")
+            .runAfter { param ->
+                if (!fluidQsThemeEnabled) return@runAfter
 
                 try {
                     (getObjectField(param.thisObject, "mIcon") as ImageView).imageTintList =
@@ -344,45 +341,43 @@ class QSFluidThemeA13(context: Context) : ModPack(context) {
                     log(TAG + throwable)
                 }
             }
-        })
 
-        if (brightnessSliderControllerClass != null) {
-            hookAllConstructors(brightnessSliderControllerClass, object : XC_MethodHook() {
-                override fun afterHookedMethod(param: MethodHookParam) {
-                    if (!fluidQsThemeEnabled) return
+        brightnessSliderControllerClass
+            .hookConstructor()
+            .runAfter { param ->
+                if (!fluidQsThemeEnabled) return@runAfter
 
+                try {
+                    (getObjectField(param.thisObject, "mIcon") as ImageView).imageTintList =
+                        ColorStateList.valueOf(colorActive[0])
+
+                    (getObjectField(
+                        param.thisObject,
+                        "mIcon"
+                    ) as ImageView).backgroundTintList =
+                        ColorStateList.valueOf(colorActiveAlpha[0])
+                } catch (throwable: Throwable) {
                     try {
-                        (getObjectField(param.thisObject, "mIcon") as ImageView).imageTintList =
+                        (getObjectField(
+                            param.thisObject,
+                            "mIconView"
+                        ) as ImageView).imageTintList =
                             ColorStateList.valueOf(colorActive[0])
 
                         (getObjectField(
                             param.thisObject,
-                            "mIcon"
+                            "mIconView"
                         ) as ImageView).backgroundTintList =
                             ColorStateList.valueOf(colorActiveAlpha[0])
-                    } catch (throwable: Throwable) {
-                        try {
-                            (getObjectField(
-                                param.thisObject,
-                                "mIconView"
-                            ) as ImageView).imageTintList =
-                                ColorStateList.valueOf(colorActive[0])
-
-                            (getObjectField(
-                                param.thisObject,
-                                "mIconView"
-                            ) as ImageView).backgroundTintList =
-                                ColorStateList.valueOf(colorActiveAlpha[0])
-                        } catch (ignored: Throwable) {
-                        }
+                    } catch (ignored: Throwable) {
                     }
                 }
-            })
-        }
+            }
 
-        hookAllMethods(brightnessMirrorControllerClass, "updateIcon", object : XC_MethodHook() {
-            override fun afterHookedMethod(param: MethodHookParam) {
-                if (!fluidQsThemeEnabled) return
+        brightnessMirrorControllerClass
+            .hookMethod("updateIcon")
+            .runAfter { param ->
+                if (!fluidQsThemeEnabled) return@runAfter
 
                 try {
                     (getObjectField(param.thisObject, "mIcon") as ImageView).imageTintList =
@@ -394,31 +389,28 @@ class QSFluidThemeA13(context: Context) : ModPack(context) {
                     log(TAG + throwable)
                 }
             }
-        })
 
-        hookAllMethods(
-            brightnessMirrorControllerClass,
-            "updateResources",
-            object : XC_MethodHook() {
-                override fun afterHookedMethod(param: MethodHookParam) {
-                    if (!fluidQsThemeEnabled) return
+        brightnessMirrorControllerClass
+            .hookMethod("onFinishInflate")
+            .runAfter { param ->
+                if (!fluidQsThemeEnabled) return@runAfter
 
-                    try {
-                        val mBrightnessMirror = getObjectField(
-                            param.thisObject,
-                            "mBrightnessMirror"
-                        ) as FrameLayout
+                try {
+                    val mBrightnessMirror = getObjectField(
+                        param.thisObject,
+                        "mBrightnessMirror"
+                    ) as FrameLayout
 
-                        mBrightnessMirror.background.alpha = (INACTIVE_ALPHA * 255).toInt()
-                    } catch (throwable: Throwable) {
-                        log(TAG + throwable)
-                    }
+                    mBrightnessMirror.background.alpha = (INACTIVE_ALPHA * 255).toInt()
+                } catch (throwable: Throwable) {
+                    log(TAG + throwable)
                 }
-            })
+            }
 
-        hookAllMethods(qsPanelClass, "updateResources", object : XC_MethodHook() {
-            override fun afterHookedMethod(param: MethodHookParam) {
-                if (!fluidQsThemeEnabled) return
+        qsPanelClass
+            .hookMethod("updateResources")
+            .runAfter { param ->
+                if (!fluidQsThemeEnabled) return@runAfter
 
                 try {
                     (getObjectField(param.thisObject, "mAutoBrightnessView") as View)
@@ -426,12 +418,12 @@ class QSFluidThemeA13(context: Context) : ModPack(context) {
                 } catch (ignored: Throwable) {
                 }
             }
-        })
 
         // QS tile primary label color
-        hookAllMethods(qsTileViewImplClass, "getLabelColorForState", object : XC_MethodHook() {
-            override fun beforeHookedMethod(param: MethodHookParam) {
-                if (!fluidQsThemeEnabled) return
+        qsTileViewImplClass
+            .hookMethod("getLabelColorForState")
+            .runBefore { param ->
+                if (!fluidQsThemeEnabled) return@runBefore
 
                 try {
                     if (param.args[0] as Int == Tile.STATE_ACTIVE) {
@@ -441,29 +433,26 @@ class QSFluidThemeA13(context: Context) : ModPack(context) {
                     log(TAG + throwable)
                 }
             }
-        })
 
         // QS tile secondary label color
-        hookAllMethods(
-            qsTileViewImplClass,
-            "getSecondaryLabelColorForState",
-            object : XC_MethodHook() {
-                override fun beforeHookedMethod(param: MethodHookParam) {
-                    if (!fluidQsThemeEnabled) return
+        qsTileViewImplClass
+            .hookMethod("getSecondaryLabelColorForState")
+            .runBefore { param ->
+                if (!fluidQsThemeEnabled) return@runBefore
 
-                    try {
-                        if (param.args[0] as Int == Tile.STATE_ACTIVE) {
-                            param.result = colorActive[0]
-                        }
-                    } catch (throwable: Throwable) {
-                        log(TAG + throwable)
+                try {
+                    if (param.args[0] as Int == Tile.STATE_ACTIVE) {
+                        param.result = colorActive[0]
                     }
+                } catch (throwable: Throwable) {
+                    log(TAG + throwable)
                 }
-            })
+            }
 
-        hookAllConstructors(qsTileViewImplClass, object : XC_MethodHook() {
-            override fun afterHookedMethod(param: MethodHookParam) {
-                if (!fluidQsThemeEnabled) return
+        qsTileViewImplClass
+            .hookConstructor()
+            .runAfter { param ->
+                if (!fluidQsThemeEnabled) return@runAfter
 
                 colorInactive[0] = changeAlpha(
                     getObjectField(
@@ -542,11 +531,12 @@ class QSFluidThemeA13(context: Context) : ModPack(context) {
                     log(TAG + throwable)
                 }
             }
-        })
 
-        hookAllMethods(qsTileViewImplClass, "updateResources", object : XC_MethodHook() {
-            override fun beforeHookedMethod(param: MethodHookParam) {
-                if (!fluidQsThemeEnabled) return
+        qsTileViewImplClass
+            .hookMethod("updateResources")
+            .suppressError()
+            .runBefore { param ->
+                if (!fluidQsThemeEnabled) return@runBefore
 
                 colorInactive[0] = changeAlpha(
                     getObjectField(
@@ -597,26 +587,23 @@ class QSFluidThemeA13(context: Context) : ModPack(context) {
                     log(TAG + throwable)
                 }
             }
-        })
 
         // Notifications
-        hookAllMethods(
-            activatableNotificationViewClass,
-            "onFinishInflate",
-            object : XC_MethodHook() {
-                override fun afterHookedMethod(param: MethodHookParam) {
-                    if (!fluidQsThemeEnabled || !fluidNotifEnabled) return
+        activatableNotificationViewClass
+            .hookMethod("onFinishInflate")
+            .runAfter { param ->
+                if (!fluidQsThemeEnabled || !fluidNotifEnabled) return@runAfter
 
-                    val mBackgroundNormal =
-                        getObjectField(param.thisObject, "mBackgroundNormal") as View?
-                    mBackgroundNormal?.alpha = INACTIVE_ALPHA
-                }
-            })
+                val mBackgroundNormal =
+                    getObjectField(param.thisObject, "mBackgroundNormal") as View?
+                mBackgroundNormal?.alpha = INACTIVE_ALPHA
+            }
 
         // Notification expand/collapse pill
-        hookAllMethods(notificationExpandButtonClass, "onFinishInflate", object : XC_MethodHook() {
-            override fun afterHookedMethod(param: MethodHookParam) {
-                if (!fluidQsThemeEnabled || !fluidNotifEnabled) return
+        notificationExpandButtonClass
+            .hookMethod("onFinishInflate")
+            .runAfter { param ->
+                if (!fluidQsThemeEnabled || !fluidNotifEnabled) return@runAfter
 
                 val mPillView = (param.thisObject as ViewGroup).findViewById<View?>(
                     mContext.resources.getIdentifier(
@@ -627,7 +614,6 @@ class QSFluidThemeA13(context: Context) : ModPack(context) {
                 )
                 mPillView?.background?.alpha = (INACTIVE_ALPHA * 255).toInt()
             }
-        })
 
         // Notification footer buttons
         val updateNotificationFooterButtons: XC_MethodHook = object : XC_MethodHook() {
@@ -650,63 +636,65 @@ class QSFluidThemeA13(context: Context) : ModPack(context) {
             }
         }
 
-        hookAllMethods(footerViewClass, "onFinishInflate", updateNotificationFooterButtons)
-        hookAllMethods(footerViewClass, "updateColors", updateNotificationFooterButtons)
+        footerViewClass
+            .hookMethod("onFinishInflate")
+            .run(updateNotificationFooterButtons)
+
+        footerViewClass
+            .hookMethod("updateColors")
+            .run(updateNotificationFooterButtons)
 
         // Power menu
-        try {
-            val globalActionsDialogLiteSinglePressActionClass =
-                findClass("$SYSTEMUI_PACKAGE.globalactions.GlobalActionsDialogLite\$SinglePressAction")
-            val globalActionsLayoutLiteClass =
-                findClass("$SYSTEMUI_PACKAGE.globalactions.GlobalActionsLayoutLite")
+        val globalActionsDialogLiteSinglePressActionClass =
+            findClass("$SYSTEMUI_PACKAGE.globalactions.GlobalActionsDialogLite\$SinglePressAction")
+        val globalActionsLayoutLiteClass =
+            findClass("$SYSTEMUI_PACKAGE.globalactions.GlobalActionsLayoutLite")
 
-            // Layout background
-            hookAllMethods(globalActionsLayoutLiteClass, "onLayout", object : XC_MethodHook() {
-                override fun beforeHookedMethod(param: MethodHookParam) {
-                    if (!fluidPowerMenuEnabled) return
+        // Layout background
+        globalActionsLayoutLiteClass
+            .hookMethod("onLayout")
+            .runBefore { param ->
+                if (!fluidPowerMenuEnabled) return@runBefore
 
-                    (param.thisObject as View).findViewById<View>(android.R.id.list)
-                        .background.alpha = (INACTIVE_ALPHA * 255).toInt()
-                }
-            })
+                (param.thisObject as View).findViewById<View>(android.R.id.list)
+                    .background.alpha = (INACTIVE_ALPHA * 255).toInt()
+            }
 
-            // Button Color
-            hookAllMethods(
-                globalActionsDialogLiteSinglePressActionClass,
-                "create",
-                object : XC_MethodHook() {
-                    override fun afterHookedMethod(param: MethodHookParam) {
-                        if (!fluidPowerMenuEnabled) return
+        // Button Color
+        globalActionsDialogLiteSinglePressActionClass
+            .hookMethod("create")
+            .runAfter { param ->
+                if (!fluidPowerMenuEnabled) return@runAfter
 
-                        val itemView = param.result as View
-                        val iconView = itemView.findViewById<ImageView>(android.R.id.icon)
-                        iconView.background.alpha = (INACTIVE_ALPHA * 255).toInt()
-                    }
-                })
-        } catch (ignored: Throwable) {
-        }
+                val itemView = param.result as View
+                val iconView = itemView.findViewById<ImageView>(android.R.id.icon)
+                iconView.background.alpha = (INACTIVE_ALPHA * 255).toInt()
+            }
 
         // Footer button A12
-        try {
-            if (Build.VERSION.SDK_INT < 33) {
-                val footerActionsViewClass = findClass("$SYSTEMUI_PACKAGE.qs.FooterActionsView")
+        if (Build.VERSION.SDK_INT < 33) {
+            val footerActionsViewClass = findClass("$SYSTEMUI_PACKAGE.qs.FooterActionsView")
 
-                val updateFooterButtons: XC_MethodHook = object : XC_MethodHook() {
-                    override fun afterHookedMethod(param: MethodHookParam) {
-                        val parent = param.thisObject as ViewGroup
-                        val childCount = parent.childCount
-                        for (i in 0 until childCount) {
-                            val childView = parent.getChildAt(i)
-                            childView.background?.setTint(colorInactive[0])
-                            childView.background?.alpha = (INACTIVE_ALPHA * 255).toInt()
-                        }
+            val updateFooterButtons: XC_MethodHook = object : XC_MethodHook() {
+                override fun afterHookedMethod(param: MethodHookParam) {
+                    val parent = param.thisObject as ViewGroup
+                    val childCount = parent.childCount
+
+                    for (i in 0 until childCount) {
+                        val childView = parent.getChildAt(i)
+                        childView.background?.setTint(colorInactive[0])
+                        childView.background?.alpha = (INACTIVE_ALPHA * 255).toInt()
                     }
                 }
-
-                hookAllMethods(footerActionsViewClass, "onFinishInflate", updateFooterButtons)
-                hookAllMethods(footerActionsViewClass, "updateResources", updateFooterButtons)
             }
-        } catch (ignored: Throwable) {
+
+            footerActionsViewClass
+                .hookMethod("onFinishInflate")
+                .run(updateFooterButtons)
+
+            footerActionsViewClass
+                .hookMethod("updateResources")
+                .run(updateFooterButtons)
         }
     }
 
@@ -839,7 +827,8 @@ class QSFluidThemeA13(context: Context) : ModPack(context) {
         return layerDrawable
     }
 
-    fun setAlphaTintedDrawables(view: View, alpha: Float) {
+    @Suppress("SameParameterValue")
+    private fun setAlphaTintedDrawables(view: View, alpha: Float) {
         setAlphaTintedDrawables(view, (alpha * 255).toInt())
     }
 

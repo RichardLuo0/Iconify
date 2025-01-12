@@ -85,6 +85,11 @@
         <attr name="isChecked" format="boolean" />
     </declare-styleable>
 
+    <declare-styleable name="MasterSwitchWidget">
+        <attr name="titleText" />
+        <attr name="isChecked" />
+    </declare-styleable>
+
     <declare-styleable name="SliderWidget">
         <attr name="titleText" />
         <attr name="summaryText" />

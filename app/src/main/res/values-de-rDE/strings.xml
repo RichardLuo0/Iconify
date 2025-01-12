@@ -548,6 +548,9 @@ transparent machen</string>
     <string name="hide_qs_tile_label_title">Verstecke QS Beschreibung</string>
     <string name="hide_qs_tile_label_desc">Nur mit vertikalen Kachen benutzen</string>
     <string name="qs_tile_label_scaling_title">Text Größe Skalierung</string>
+    <string name="section_title_notifications">Notification</string>
+    <string name="colored_qs_notification_title">Colored Notification Icon</string>
+    <string name="colored_qs_notification_desc">Show app icon as notification icon</string>
     <string name="section_title_qs_margin">QS Abstand</string>
     <string name="section_title_qs_elements">QS Elemente</string>
     <string name="hide_qs_on_lockscreen_title">Hide QS on Lockscreen</string>
@@ -891,6 +894,10 @@ transparent machen</string>
     <string name="unzoom_depth_wallpaper_desc">Zoom-Effekt bei Tiefenwallpaper entfernen</string>
     <string name="hide_data_disabled_icon_title">Verstecke \"Daten deaktiviert\" Symbol</string>
     <string name="hide_data_disabled_icon_desc">Hide data disabled indicator</string>
+    <string name="colorize_notification_view_title">Colorize Notification View</string>
+    <string name="colorize_notification_view_desc">Make notification view same color as app icon</string>
+    <string name="colorize_notification_alternative_color_generation_title">Alternative Color Generation</string>
+    <string name="colorize_notification_alternative_color_generation_desc">Use monet score and quantizer to extract color</string>
     <!-- Bottom Navigation -->
     <string name="navbar_home">Start</string>
     <string name="navbar_tweaks">Optimierungen</string>

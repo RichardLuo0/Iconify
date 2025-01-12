@@ -19,7 +19,7 @@ import android.widget.TextView
 import androidx.core.content.ContextCompat
 import com.drdisagree.iconify.BuildConfig
 import com.drdisagree.iconify.R
-import com.drdisagree.iconify.xposed.modules.utils.ArcProgressWidget.generateBitmap
+import com.drdisagree.iconify.xposed.modules.views.ArcProgressWidget.generateBitmap
 import com.drdisagree.iconify.xposed.modules.utils.ViewHelper.findViewContainsTag
 import com.drdisagree.iconify.xposed.modules.utils.ViewHelper.findViewWithTagAndChangeColor
 

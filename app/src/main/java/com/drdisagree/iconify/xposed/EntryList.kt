@@ -5,6 +5,7 @@ import com.drdisagree.iconify.common.Const.PIXEL_LAUNCHER_PACKAGE
 import com.drdisagree.iconify.common.Const.SYSTEMUI_PACKAGE
 import com.drdisagree.iconify.xposed.modules.BackgroundChip
 import com.drdisagree.iconify.xposed.modules.BatteryStyleManager
+import com.drdisagree.iconify.xposed.modules.ColorizeNotification
 import com.drdisagree.iconify.xposed.modules.ControllersProvider
 import com.drdisagree.iconify.xposed.modules.DepthWallpaper
 import com.drdisagree.iconify.xposed.modules.DepthWallpaperA14
@@ -24,11 +25,14 @@ import com.drdisagree.iconify.xposed.modules.ThemeChange
 import com.drdisagree.iconify.xposed.modules.VolumePanel
 import com.drdisagree.iconify.xposed.modules.themes.QSBlackThemeA13
 import com.drdisagree.iconify.xposed.modules.themes.QSBlackThemeA14
+import com.drdisagree.iconify.xposed.modules.themes.QSBlackThemeA15
 import com.drdisagree.iconify.xposed.modules.themes.QSFluidThemeA13
 import com.drdisagree.iconify.xposed.modules.themes.QSFluidThemeA14
+import com.drdisagree.iconify.xposed.modules.themes.QSFluidThemeA15
 import com.drdisagree.iconify.xposed.modules.themes.QSLightThemeA12
 import com.drdisagree.iconify.xposed.modules.themes.QSLightThemeA13
 import com.drdisagree.iconify.xposed.modules.themes.QSLightThemeA14
+import com.drdisagree.iconify.xposed.modules.themes.QSLightThemeA15
 import com.drdisagree.iconify.xposed.modules.utils.SettingsLibUtils
 import com.drdisagree.iconify.xposed.utils.HookCheck
 
@@ -52,7 +56,8 @@ object EntryList {
         QuickSettings::class.java,
         Statusbar::class.java,
         BatteryStyleManager::class.java,
-        VolumePanel::class.java
+        VolumePanel::class.java,
+        ColorizeNotification::class.java
     )
 
     private val systemUiAndroid12ModPacks = listOf(
@@ -80,6 +85,15 @@ object EntryList {
         OpQsHeader::class.java
     )
 
+    private val systemUiAndroid15ModPacks = listOf(
+        DepthWallpaperA14::class.java,
+        QSFluidThemeA15::class.java,
+        QSBlackThemeA15::class.java,
+        QSLightThemeA15::class.java,
+        HeaderClockA14::class.java,
+        OpQsHeader::class.java
+    )
+
     private val pixelLauncherModPacks = listOf(
         IconUpdater::class.java
     )
@@ -95,7 +109,11 @@ object EntryList {
                     modPacks.addAll(systemUICommonModPacks)
 
                     when {
-                        Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE -> { // Android 14+
+                        Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM -> { // android 15+
+                            modPacks.addAll(systemUiAndroid15ModPacks)
+                        }
+
+                        Build.VERSION.SDK_INT == Build.VERSION_CODES.UPSIDE_DOWN_CAKE -> { // Android 14
                             modPacks.addAll(systemUiAndroid14ModPacks)
                         }
 

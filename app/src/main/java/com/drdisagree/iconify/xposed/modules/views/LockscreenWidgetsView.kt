@@ -50,7 +50,6 @@ import com.drdisagree.iconify.xposed.modules.LockscreenWidgets.Companion.Launcha
 import com.drdisagree.iconify.xposed.modules.LockscreenWidgets.Companion.LaunchableLinearLayout
 import com.drdisagree.iconify.xposed.modules.ThemeChange
 import com.drdisagree.iconify.xposed.modules.utils.ActivityLauncherUtils
-import com.drdisagree.iconify.xposed.modules.utils.ExtendedFAB
 import com.drdisagree.iconify.xposed.modules.utils.ViewHelper.toPx
 import de.robv.android.xposed.XposedBridge.log
 import de.robv.android.xposed.XposedHelpers.callMethod

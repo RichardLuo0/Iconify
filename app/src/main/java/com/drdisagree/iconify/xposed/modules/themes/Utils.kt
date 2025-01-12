@@ -10,43 +10,44 @@ object Utils {
     fun getTileState(param: XC_MethodHook.MethodHookParam): Pair<Boolean, Boolean> {
         var isDisabledState: Boolean
         var isActiveState: Boolean
+        val idx = if (param.args.size > 1) 1 else 0
 
         try {
             isDisabledState = try {
                 getObjectField(
-                    param.args[1],
+                    param.args[idx],
                     "disabledByPolicy"
                 ) as Boolean ||
                         getObjectField(
-                            param.args[1],
+                            param.args[idx],
                             "state"
                         ) as Int == Tile.STATE_UNAVAILABLE
             } catch (throwable: Throwable) {
                 getObjectField(
-                    param.args[1],
+                    param.args[idx],
                     "state"
                 ) as Int == Tile.STATE_UNAVAILABLE
             }
 
             isActiveState = try {
                 getObjectField(
-                    param.args[1],
+                    param.args[idx],
                     "state"
                 ) as Int == Tile.STATE_ACTIVE
             } catch (throwable: Throwable) {
                 try {
-                    param.args[1] as Int == Tile.STATE_ACTIVE
+                    param.args[idx] as Int == Tile.STATE_ACTIVE
                 } catch (throwable1: Throwable) {
                     try {
-                        param.args[1] as Boolean
+                        param.args[idx] as Boolean
                     } catch (throwable2: Throwable) {
                         false
                     }
                 }
             }
         } catch (ignored: Throwable) {
-            isDisabledState = param.args[1] == Tile.STATE_UNAVAILABLE
-            isActiveState = param.args[1] == Tile.STATE_ACTIVE
+            isDisabledState = param.args[idx] == Tile.STATE_UNAVAILABLE
+            isActiveState = param.args[idx] == Tile.STATE_ACTIVE
         }
 
         return Pair(isDisabledState, isActiveState)

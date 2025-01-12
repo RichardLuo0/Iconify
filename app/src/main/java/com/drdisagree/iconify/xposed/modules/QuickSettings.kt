@@ -17,6 +17,7 @@ import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewGroup.MarginLayoutParams
+import android.view.ViewGroup.TEXT_ALIGNMENT_CENTER
 import android.view.ViewTreeObserver.OnDrawListener
 import android.widget.Button
 import android.widget.ImageView
@@ -39,8 +40,8 @@ import com.drdisagree.iconify.common.Preferences.QS_TEXT_FOLLOW_ACCENT
 import com.drdisagree.iconify.common.Preferences.QS_TOPMARGIN
 import com.drdisagree.iconify.common.Preferences.VERTICAL_QSTILE_SWITCH
 import com.drdisagree.iconify.xposed.ModPack
-import com.drdisagree.iconify.xposed.modules.utils.Helpers.isPixelVariant
 import com.drdisagree.iconify.xposed.modules.utils.ViewHelper.toPx
+import com.drdisagree.iconify.xposed.modules.utils.isPixelVariant
 import com.drdisagree.iconify.xposed.modules.utils.toolkit.XposedHook.Companion.findClass
 import com.drdisagree.iconify.xposed.modules.utils.toolkit.hookConstructor
 import com.drdisagree.iconify.xposed.modules.utils.toolkit.hookMethod
@@ -136,12 +137,12 @@ class QuickSettings(context: Context) : ModPack(context) {
                     (getObjectField(
                         mParam,
                         "label"
-                    ) as TextView).gravity = Gravity.CENTER_HORIZONTAL
+                    ) as TextView).textAlignment = TEXT_ALIGNMENT_CENTER
 
                     (getObjectField(
                         mParam,
                         "secondaryLabel"
-                    ) as TextView).gravity = Gravity.CENTER_HORIZONTAL
+                    ) as TextView).textAlignment = TEXT_ALIGNMENT_CENTER
 
                     (getObjectField(
                         mParam,
@@ -385,6 +386,7 @@ class QuickSettings(context: Context) : ModPack(context) {
 
         qsTileViewImplClass
             .hookMethod("updateResources")
+            .suppressError()
             .run(removeQsTileTint)
 
         qsTileViewImplClass
@@ -430,7 +432,7 @@ class QuickSettings(context: Context) : ModPack(context) {
         val qsIconViewImplClass = findClass("$SYSTEMUI_PACKAGE.qs.tileimpl.QSIconViewImpl")
 
         qsIconViewImplClass
-            .hookMethod("getIconColorForState")
+            .hookMethod("getIconColorForState", "getColor")
             .runBefore { param ->
                 if (isQsIconLabelStateActive(param, 1)) {
                     param.result = qsIconLabelColor
@@ -450,6 +452,7 @@ class QuickSettings(context: Context) : ModPack(context) {
 
         qsContainerImplClass
             .hookMethod("updateResources")
+            .suppressError()
             .runAfter { param ->
                 if (!qsTextAlwaysWhite && !qsTextFollowAccent) return@runAfter
 
@@ -513,8 +516,10 @@ class QuickSettings(context: Context) : ModPack(context) {
             findClass("$SYSTEMUI_PACKAGE.settings.brightness.BrightnessController")
         val brightnessMirrorControllerClass =
             findClass("$SYSTEMUI_PACKAGE.statusbar.policy.BrightnessMirrorController")
-        val brightnessSliderControllerClass =
-            findClass("$SYSTEMUI_PACKAGE.settings.brightness.BrightnessSliderController")
+        val brightnessSliderControllerClass = findClass(
+            "$SYSTEMUI_PACKAGE.settings.brightness.BrightnessSliderController",
+            suppressError = true
+        )
 
         brightnessControllerClass
             .hookMethod("updateIcon")
@@ -888,9 +893,11 @@ class QuickSettings(context: Context) : ModPack(context) {
             )
         )
 
-        tile.setPadding(padding, padding, padding, padding)
-        tile.gravity = Gravity.CENTER
-        tile.orientation = LinearLayout.VERTICAL
+        tile.apply {
+            setPadding(padding, padding, padding, padding)
+            gravity = Gravity.CENTER
+            orientation = LinearLayout.VERTICAL
+        }
 
         if (!isHideLabelActive) {
             try {
@@ -909,10 +916,15 @@ class QuickSettings(context: Context) : ModPack(context) {
         }
 
         if (param != null) {
-            (getObjectField(param, "label") as TextView).gravity = Gravity.CENTER_HORIZONTAL
+            (getObjectField(
+                param,
+                "label"
+            ) as TextView).textAlignment = TEXT_ALIGNMENT_CENTER
 
-            (getObjectField(param, "secondaryLabel") as TextView).gravity =
-                Gravity.CENTER_HORIZONTAL
+            (getObjectField(
+                param,
+                "secondaryLabel"
+            ) as TextView).textAlignment = TEXT_ALIGNMENT_CENTER
         }
     }
 

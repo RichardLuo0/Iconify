@@ -2,11 +2,18 @@ package com.drdisagree.iconify.ui.fragments.xposed
 
 import android.os.Bundle
 import com.drdisagree.iconify.R
+import com.drdisagree.iconify.common.Preferences.COLORED_NOTIFICATION_ALTERNATIVE_SWITCH
+import com.drdisagree.iconify.common.Preferences.COLORED_NOTIFICATION_ICON_SWITCH
+import com.drdisagree.iconify.common.Preferences.COLORED_NOTIFICATION_VIEW_SWITCH
 import com.drdisagree.iconify.common.Preferences.CUSTOM_QS_MARGIN
+import com.drdisagree.iconify.common.Preferences.FIX_NOTIFICATION_COLOR
+import com.drdisagree.iconify.common.Preferences.FIX_NOTIFICATION_FOOTER_BUTTON_COLOR
+import com.drdisagree.iconify.common.Preferences.FIX_QS_TILE_COLOR
 import com.drdisagree.iconify.common.Preferences.HIDE_QSLABEL_SWITCH
-import com.drdisagree.iconify.common.Preferences.HIDE_QS_ON_LOCKSCREEN
 import com.drdisagree.iconify.common.Preferences.HIDE_QS_SILENT_TEXT
+import com.drdisagree.iconify.common.Preferences.HIDE_STATUS_ICONS_SWITCH
 import com.drdisagree.iconify.common.Preferences.QQS_TOPMARGIN
+import com.drdisagree.iconify.common.Preferences.QSPANEL_HIDE_CARRIER
 import com.drdisagree.iconify.common.Preferences.QS_TEXT_ALWAYS_WHITE
 import com.drdisagree.iconify.common.Preferences.QS_TEXT_FOLLOW_ACCENT
 import com.drdisagree.iconify.common.Preferences.QS_TOPMARGIN
@@ -43,8 +50,15 @@ class QuickSettings : ControlledPreferenceFragmentCompat() {
             CUSTOM_QS_MARGIN,
             QQS_TOPMARGIN,
             QS_TOPMARGIN,
-            HIDE_QS_ON_LOCKSCREEN,
-            HIDE_QS_SILENT_TEXT -> {
+            COLORED_NOTIFICATION_ICON_SWITCH,
+            COLORED_NOTIFICATION_VIEW_SWITCH,
+            COLORED_NOTIFICATION_ALTERNATIVE_SWITCH,
+            HIDE_QS_SILENT_TEXT,
+            QSPANEL_HIDE_CARRIER,
+            HIDE_STATUS_ICONS_SWITCH,
+            FIX_QS_TILE_COLOR,
+            FIX_NOTIFICATION_COLOR,
+            FIX_NOTIFICATION_FOOTER_BUTTON_COLOR -> {
                 MainActivity.showOrHidePendingActionButton(
                     activityBinding = (requireActivity() as MainActivity).binding,
                     requiresSystemUiRestart = true

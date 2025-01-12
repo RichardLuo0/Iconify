@@ -4,7 +4,6 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.result.ActivityResult
@@ -27,7 +26,6 @@ import com.drdisagree.iconify.ui.activities.MainActivity
 import com.drdisagree.iconify.ui.base.ControlledPreferenceFragmentCompat
 import com.drdisagree.iconify.ui.preferences.FilePickerPreference
 import com.drdisagree.iconify.ui.preferences.PreferenceMenu
-import com.drdisagree.iconify.ui.preferences.SwitchPreference
 import com.drdisagree.iconify.utils.AppUtils
 import com.drdisagree.iconify.utils.FileUtils.getRealPath
 import com.drdisagree.iconify.utils.FileUtils.launchFilePicker
@@ -127,24 +125,6 @@ class DepthWallpaper : ControlledPreferenceFragmentCompat() {
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         super.onCreatePreferences(savedInstanceState, rootKey)
-
-        findPreference<SwitchPreference>(DEPTH_WALLPAPER_SWITCH)?.apply {
-            if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.TIRAMISU) {
-                setSummary(
-                    getString(
-                        R.string.enable_depth_wallpaper_desc,
-                        getString(R.string.use_custom_lockscreen_clock)
-                    )
-                )
-            } else {
-                setSummary(
-                    getString(
-                        R.string.enable_depth_wallpaper_desc,
-                        ""
-                    ).replace("\n", "") // hide args
-                )
-            }
-        }
 
         checkAiStatus()
 

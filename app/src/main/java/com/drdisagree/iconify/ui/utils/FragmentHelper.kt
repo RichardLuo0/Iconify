@@ -42,6 +42,7 @@ import com.drdisagree.iconify.ui.fragments.xposed.BatteryStyle
 import com.drdisagree.iconify.ui.fragments.xposed.DepthWallpaper
 import com.drdisagree.iconify.ui.fragments.xposed.HeaderClock
 import com.drdisagree.iconify.ui.fragments.xposed.HeaderImage
+import com.drdisagree.iconify.ui.fragments.xposed.Lockscreen
 import com.drdisagree.iconify.ui.fragments.xposed.LockscreenClock
 import com.drdisagree.iconify.ui.fragments.xposed.LockscreenWeather
 import com.drdisagree.iconify.ui.fragments.xposed.LockscreenWidget
@@ -98,6 +99,7 @@ fun isInGroup(fragment: Fragment, group: FragmentGroup): Boolean {
             fragment is Xposed ||
                     fragment is TransparencyBlur ||
                     fragment is QuickSettings ||
+                    fragment is Lockscreen ||
                     fragment is Themes ||
                     fragment is BatteryStyle ||
                     fragment is com.drdisagree.iconify.ui.fragments.xposed.Statusbar ||

@@ -3,11 +3,9 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:search="http://schemas.android.com/apk/com.drdisagree.iconify.ui.preferences.preferencesearch">
 
-    <com.drdisagree.iconify.ui.preferences.SwitchPreference
+    <com.drdisagree.iconify.ui.preferences.MasterSwitchPreference
         android:key="xposed_headerimage"
-        android:summary="@string/activity_desc_header_image"
-        android:title="@string/activity_title_header_image"
-        app:iconSpaceReserved="false" />
+        android:title="@string/activity_title_header_image" />
 
     <com.drdisagree.iconify.ui.preferences.FilePickerPreference
         android:dependency="xposed_headerimage"

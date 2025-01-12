@@ -197,7 +197,7 @@ class HeaderImage(context: Context) : ModPack(context) {
                 val mHeader = getObjectField(param.thisObject, "mHeader") as FrameLayout
 
                 (param.thisObject as FrameLayout).apply {
-                    removeView(mHeader)
+                    (mHeader.parent as? ViewGroup)?.removeView(mHeader)
                     addView(mHeader, 0)
                     requestLayout()
                 }

@@ -547,6 +547,9 @@
     <string name="hide_qs_tile_label_title">隐藏快速设置图块标签</string>
     <string name="hide_qs_tile_label_desc">只能与垂直图块一起使用</string>
     <string name="qs_tile_label_scaling_title">文字大小缩放</string>
+    <string name="section_title_notifications">Notification</string>
+    <string name="colored_qs_notification_title">Colored Notification Icon</string>
+    <string name="colored_qs_notification_desc">Show app icon as notification icon</string>
     <string name="section_title_qs_margin">快速设置边距</string>
     <string name="section_title_qs_elements">快速设置元素</string>
     <string name="hide_qs_on_lockscreen_title">在锁屏界面隐藏快速设置</string>
@@ -890,6 +893,10 @@
     <string name="unzoom_depth_wallpaper_desc">移除深度壁纸的缩放效果</string>
     <string name="hide_data_disabled_icon_title">隐藏数据禁用图标</string>
     <string name="hide_data_disabled_icon_desc">隐藏数据禁用指示器</string>
+    <string name="colorize_notification_view_title">Colorize Notification View</string>
+    <string name="colorize_notification_view_desc">Make notification view same color as app icon</string>
+    <string name="colorize_notification_alternative_color_generation_title">Alternative Color Generation</string>
+    <string name="colorize_notification_alternative_color_generation_desc">Use monet score and quantizer to extract color</string>
     <!-- Bottom Navigation -->
     <string name="navbar_home">主页</string>
     <string name="navbar_tweaks">调整</string>

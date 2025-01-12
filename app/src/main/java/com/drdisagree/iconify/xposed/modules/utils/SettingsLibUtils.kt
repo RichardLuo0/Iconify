@@ -3,8 +3,8 @@ package com.drdisagree.iconify.xposed.modules.utils
 import android.content.Context
 import android.content.res.ColorStateList
 import com.drdisagree.iconify.xposed.ModPack
+import com.drdisagree.iconify.xposed.modules.utils.toolkit.XposedHook.Companion.findClass
 import de.robv.android.xposed.XposedBridge.log
-import de.robv.android.xposed.XposedHelpers
 import de.robv.android.xposed.XposedHelpers.callStaticMethod
 import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam
 
@@ -13,17 +13,14 @@ class SettingsLibUtils(context: Context) : ModPack(context) {
     override fun updatePrefs(vararg key: String) {}
 
     override fun handleLoadPackage(loadPackageParam: LoadPackageParam) {
-        try {
-            UtilsClass = XposedHelpers.findClass(
-                "com.android.settingslib.Utils",
-                loadPackageParam.classLoader
-            )
-        } catch (ignored: Throwable) {
-        }
+        UtilsClass = findClass(
+            "com.android.settingslib.Utils",
+            suppressError = true
+        )
     }
 
     companion object {
-        private val TAG = SettingsLibUtils::class.java.simpleName
+        private val TAG = "Iconify - ${SettingsLibUtils::class.java.simpleName}: "
         private var UtilsClass: Class<*>? = null
 
         fun getColorAttr(resID: Int, context: Context): ColorStateList {
@@ -67,6 +64,7 @@ class SettingsLibUtils(context: Context) : ModPack(context) {
             ).defaultColor
         }
 
+        @Suppress("SameParameterValue")
         private fun getColorFromUtils(
             methodName: String,
             context: Context,

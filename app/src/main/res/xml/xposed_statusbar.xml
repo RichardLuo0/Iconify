@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:search="http://schemas.android.com/apk/com.drdisagree.iconify.ui.preferences.preferencesearch">
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <com.drdisagree.iconify.ui.preferences.SwitchPreference
         android:key="xposed_sbclocksizeswitch"
@@ -27,23 +26,4 @@
         android:title="@string/colored_statusbar_icon_title"
         app:iconSpaceReserved="false" />
 
-    <com.drdisagree.iconify.ui.preferences.PreferenceCategory
-        android:key="transparencyXposedSettings"
-        android:title="@string/lock_screen"
-        app:iconSpaceReserved="false"
-        search:ignore="true">
-
-        <com.drdisagree.iconify.ui.preferences.SwitchPreference
-            android:key="xposed_hidelockscreencarrier"
-            android:summary="@string/hide_ls_carrier_desc"
-            android:title="@string/hide_ls_carrier_title"
-            app:iconSpaceReserved="false" />
-
-        <com.drdisagree.iconify.ui.preferences.SwitchPreference
-            android:key="xposed_hidelockscreenstatusbar"
-            android:summary="@string/hide_ls_statusbar_desc"
-            android:title="@string/hide_ls_statusbar_title"
-            app:iconSpaceReserved="false" />
-
-    </com.drdisagree.iconify.ui.preferences.PreferenceCategory>
 </PreferenceScreen>

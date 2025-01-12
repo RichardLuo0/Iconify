@@ -70,16 +70,16 @@ import com.drdisagree.iconify.utils.color.monet.quantize.QuantizerCelebi
 import com.drdisagree.iconify.utils.color.monet.score.Score
 import com.drdisagree.iconify.xposed.ModPack
 import com.drdisagree.iconify.xposed.modules.utils.ActivityLauncherUtils
-import com.drdisagree.iconify.xposed.modules.utils.Helpers.isMethodAvailable
-import com.drdisagree.iconify.xposed.modules.utils.Helpers.isQsTileOverlayEnabled
 import com.drdisagree.iconify.xposed.modules.utils.SettingsLibUtils.Companion.getColorAttrDefaultColor
 import com.drdisagree.iconify.xposed.modules.utils.TouchAnimator
 import com.drdisagree.iconify.xposed.modules.utils.VibrationUtils
 import com.drdisagree.iconify.xposed.modules.utils.ViewHelper.applyBlur
 import com.drdisagree.iconify.xposed.modules.utils.ViewHelper.toPx
+import com.drdisagree.iconify.xposed.modules.utils.isQsTileOverlayEnabled
 import com.drdisagree.iconify.xposed.modules.utils.toolkit.XposedHook.Companion.findClass
 import com.drdisagree.iconify.xposed.modules.utils.toolkit.hookConstructor
 import com.drdisagree.iconify.xposed.modules.utils.toolkit.hookMethod
+import com.drdisagree.iconify.xposed.modules.utils.toolkit.isMethodAvailable
 import com.drdisagree.iconify.xposed.modules.views.MediaPlayerPagerAdapter
 import com.drdisagree.iconify.xposed.modules.views.OpQsHeaderView
 import com.drdisagree.iconify.xposed.modules.views.OpQsMediaPlayerView
@@ -322,13 +322,11 @@ class OpQsHeader(context: Context) : ModPack(context) {
                         "onUiModeChanged",
                         "onThemeChanged"
                     )
-                    .run(object : XC_MethodHook() {
-                        override fun afterHookedMethod(param: MethodHookParam) {
-                            if (!showOpQsHeaderView || qsTileViewImplInstance == null) return
-
+                    .runAfter {
+                        if (showOpQsHeaderView && qsTileViewImplInstance != null) {
                             updateOpHeaderView()
                         }
-                    })
+                    }
             }
 
         quickStatusBarHeaderClass

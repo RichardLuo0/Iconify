@@ -1,4 +1,4 @@
-package com.drdisagree.iconify.xposed.modules.utils
+package com.drdisagree.iconify.xposed.modules.views
 
 import android.content.Context
 import android.content.ContextWrapper

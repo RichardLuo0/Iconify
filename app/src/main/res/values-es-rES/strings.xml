@@ -547,6 +547,9 @@
     <string name="hide_qs_tile_label_title">Ocultar etiqueta en botones de Ajustes Rápidos</string>
     <string name="hide_qs_tile_label_desc">Usar solo con botones verticales</string>
     <string name="qs_tile_label_scaling_title">Escala del tamaño del texto</string>
+    <string name="section_title_notifications">Notification</string>
+    <string name="colored_qs_notification_title">Colored Notification Icon</string>
+    <string name="colored_qs_notification_desc">Show app icon as notification icon</string>
     <string name="section_title_qs_margin">Margen de AR</string>
     <string name="section_title_qs_elements">Elementos de AR</string>
     <string name="hide_qs_on_lockscreen_title">Ocultar QS en pantalla de bloqueo</string>
@@ -890,6 +893,10 @@
     <string name="unzoom_depth_wallpaper_desc">Elimina el efecto de zoom del fondo de pantalla con profundidad</string>
     <string name="hide_data_disabled_icon_title">Ocultar Icono de Datos Desactivados</string>
     <string name="hide_data_disabled_icon_desc">Ocultar el indicador de datos desactivados</string>
+    <string name="colorize_notification_view_title">Colorize Notification View</string>
+    <string name="colorize_notification_view_desc">Make notification view same color as app icon</string>
+    <string name="colorize_notification_alternative_color_generation_title">Alternative Color Generation</string>
+    <string name="colorize_notification_alternative_color_generation_desc">Use monet score and quantizer to extract color</string>
     <!-- Bottom Navigation -->
     <string name="navbar_home">Inicio</string>
     <string name="navbar_tweaks">Retoques</string>

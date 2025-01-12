@@ -15,6 +15,7 @@ import de.robv.android.xposed.XposedBridge.log
 import de.robv.android.xposed.XposedHelpers.callMethod
 import de.robv.android.xposed.XposedHelpers.getObjectField
 
+@SuppressLint("DiscouragedApi")
 object StatusBarClock {
 
     private val TAG = "Iconify - ${StatusBarClock::class.java.simpleName}: "
