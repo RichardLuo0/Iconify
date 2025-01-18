@@ -328,6 +328,7 @@ class QSFluidThemeA13(context: Context) : ModPack(context) {
 
         brightnessControllerClass
             .hookMethod("updateIcon")
+            .suppressError()
             .runAfter { param ->
                 if (!fluidQsThemeEnabled) return@runAfter
 
@@ -376,6 +377,7 @@ class QSFluidThemeA13(context: Context) : ModPack(context) {
 
         brightnessMirrorControllerClass
             .hookMethod("updateIcon")
+            .suppressError()
             .runAfter { param ->
                 if (!fluidQsThemeEnabled) return@runAfter
 

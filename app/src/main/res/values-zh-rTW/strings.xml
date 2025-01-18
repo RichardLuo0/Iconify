@@ -419,6 +419,8 @@
     <string name="activity_desc_themes">以主題個性化</string>
     <string name="activity_title_quick_settings">快速設定</string>
     <string name="activity_desc_quick_settings">與快速設定面板有關的調整</string>
+    <string name="activity_title_lockscreen">Lockscreen</string>
+    <string name="activity_desc_lockscreen">Customize lockscreen appearance</string>
     <string name="activity_title_battery_style">電池樣式</string>
     <string name="activity_desc_battery_style">自訂電池圖示查看</string>
     <string name="activity_title_op_qs_header">Oneplus QS Header</string>

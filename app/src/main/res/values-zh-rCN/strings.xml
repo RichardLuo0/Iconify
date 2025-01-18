@@ -419,6 +419,8 @@
     <string name="activity_desc_themes">以主题个性化</string>
     <string name="activity_title_quick_settings">快速设置</string>
     <string name="activity_desc_quick_settings">与快速设置面板有关的调整</string>
+    <string name="activity_title_lockscreen">Lockscreen</string>
+    <string name="activity_desc_lockscreen">Customize lockscreen appearance</string>
     <string name="activity_title_battery_style">电池样式</string>
     <string name="activity_desc_battery_style">自定义电池图标查看</string>
     <string name="activity_title_op_qs_header">一加快速设置面板</string>

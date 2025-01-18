@@ -65,6 +65,7 @@ class QuickSettings(context: Context) : ModPack(context) {
     private var fixNotificationFooterButtonsColor = true
     private var qsTextAlwaysWhite = false
     private var qsTextFollowAccent = false
+    private var qsTextAccentColor = Color.BLUE
     private var hideQsOnLockscreen = false
     private var hideSilentText = false
     private var hideFooterButtons = false
@@ -111,6 +112,7 @@ class QuickSettings(context: Context) : ModPack(context) {
     }
 
     override fun handleLoadPackage(loadPackageParam: LoadPackageParam) {
+        initQsAccentColor()
         setVerticalTiles()
         setQsMargin()
         fixQsTileAndLabelColorA14()
@@ -391,6 +393,10 @@ class QuickSettings(context: Context) : ModPack(context) {
 
         qsTileViewImplClass
             .hookConstructor()
+            .runAfter { initQsAccentColor() }
+
+        qsTileViewImplClass
+            .hookConstructor()
             .runAfter { param ->
                 if (!qsTextAlwaysWhite && !qsTextFollowAccent) return@runAfter
 
@@ -434,7 +440,9 @@ class QuickSettings(context: Context) : ModPack(context) {
         qsIconViewImplClass
             .hookMethod("getIconColorForState", "getColor")
             .runBefore { param ->
-                if (isQsIconLabelStateActive(param, 1)) {
+                val stateIndex = if (param.args.size > 1) 1 else 0
+
+                if (isQsIconLabelStateActive(param, stateIndex)) {
                     param.result = qsIconLabelColor
                 }
             }
@@ -442,7 +450,9 @@ class QuickSettings(context: Context) : ModPack(context) {
         qsIconViewImplClass
             .hookMethod("updateIcon")
             .runAfter { param ->
-                if (isQsIconLabelStateActive(param, 1)) {
+                val stateIndex = if (param.args.size > 1) 1 else 0
+
+                if (isQsIconLabelStateActive(param, stateIndex)) {
                     val mIcon = param.args[0] as ImageView
                     mIcon.imageTintList = ColorStateList.valueOf(qsIconLabelColor)
                 }
@@ -522,7 +532,12 @@ class QuickSettings(context: Context) : ModPack(context) {
         )
 
         brightnessControllerClass
+            .hookConstructor()
+            .runAfter { initQsAccentColor() }
+
+        brightnessControllerClass
             .hookMethod("updateIcon")
+            .suppressError()
             .runAfter { param ->
                 if (!qsTextAlwaysWhite && !qsTextFollowAccent) return@runAfter
 
@@ -539,6 +554,8 @@ class QuickSettings(context: Context) : ModPack(context) {
             .hookConstructor()
             .runAfter { param ->
                 if (!qsTextAlwaysWhite && !qsTextFollowAccent) return@runAfter
+
+                initQsAccentColor()
 
                 @ColorInt val color: Int = qsIconLabelColor
 
@@ -559,6 +576,7 @@ class QuickSettings(context: Context) : ModPack(context) {
 
         brightnessMirrorControllerClass
             .hookMethod("updateIcon")
+            .suppressError()
             .runAfter { param ->
                 if (!qsTextAlwaysWhite && !qsTextFollowAccent) return@runAfter
 
@@ -819,27 +837,26 @@ class QuickSettings(context: Context) : ModPack(context) {
     @get:ColorInt
     private val qsIconLabelColor: Int
         get() {
-            try {
-                if (qsTextAlwaysWhite) {
-                    return Color.WHITE
-                } else if (qsTextFollowAccent) {
-                    return mContext.resources.getColor(
-                        mContext.resources.getIdentifier(
-                            if (isPixelVariant) {
-                                "android:color/holo_green_light"
-                            } else {
-                                "android:color/holo_blue_light"
-                            },
-                            "color",
-                            mContext.packageName
-                        ), mContext.theme
-                    )
-                }
-            } catch (throwable: Throwable) {
-                log(TAG + throwable)
+            return when {
+                qsTextAlwaysWhite -> Color.WHITE
+                qsTextFollowAccent -> qsTextAccentColor
+                else -> Color.WHITE
             }
-            return Color.WHITE
         }
+
+    private fun initQsAccentColor() {
+        qsTextAccentColor = mContext.resources.getColor(
+            mContext.resources.getIdentifier(
+                if (isPixelVariant) {
+                    "android:color/holo_green_light"
+                } else {
+                    "android:color/holo_blue_light"
+                },
+                "color",
+                mContext.packageName
+            ), mContext.theme
+        )
+    }
 
     private fun triggerQsElementVisibility() {
         if (mFooterButtonsContainer != null) {

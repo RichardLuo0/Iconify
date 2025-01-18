@@ -38,6 +38,23 @@
         search:ignore="true">
 
         <com.drdisagree.iconify.ui.preferences.SwitchPreference
+            android:key="xposed_lockscreenwallpaperblur"
+            android:summary="@string/ls_wallpaper_blur_desc"
+            android:title="@string/ls_wallpaper_blur_title"
+            app:iconSpaceReserved="false" />
+
+        <com.drdisagree.iconify.ui.preferences.SliderPreference
+            android:dependency="xposed_lockscreenwallpaperblur"
+            android:key="xposed_lockscreenwallpaperblurradius"
+            android:title="@string/ls_wallpaper_blur_radius_title"
+            app:defaultValue="25"
+            app:iconSpaceReserved="false"
+            app:maxVal="25"
+            app:minVal="0"
+            app:tickInterval="1"
+            app:valueFormat="px" />
+
+        <com.drdisagree.iconify.ui.preferences.SwitchPreference
             android:key="xposed_hidelockscreenlockicon"
             android:summary="@string/hide_ls_lock_icon_desc"
             android:title="@string/hide_ls_lock_icon_title"

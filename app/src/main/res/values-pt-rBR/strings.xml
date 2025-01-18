@@ -419,6 +419,8 @@
     <string name="activity_desc_themes">Personalize com temas</string>
     <string name="activity_title_quick_settings">Configurações rápidas</string>
     <string name="activity_desc_quick_settings">Ajustes relacionados ao painel QS</string>
+    <string name="activity_title_lockscreen">Tela de bloqueio</string>
+    <string name="activity_desc_lockscreen">Personalize a aparência da tela de bloqueio</string>
     <string name="activity_title_battery_style">Estilo da bateria</string>
     <string name="activity_desc_battery_style">Personalize a visualização do ícone da bateria</string>
     <string name="activity_title_op_qs_header">Cabeçalho OnePlus QS</string>

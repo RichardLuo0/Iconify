@@ -372,7 +372,7 @@ object ViewHelper {
     }
 
     @Suppress("deprecation")
-    fun Bitmap.applyBlur(context: Context?, radius: Float): Bitmap {
+    fun Bitmap.applyBlur(context: Context, radius: Float): Bitmap {
         if (radius == 0f) {
             return this
         }
@@ -398,7 +398,7 @@ object ViewHelper {
             Element.U8_4(renderScript)
         ).apply {
             setInput(blurInput)
-            setRadius(radius) // radius must be 0 < r <= 25
+            setRadius(radius.coerceIn(0.0001f, 25f))
             forEach(blurOutput)
         }
 

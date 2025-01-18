@@ -27,6 +27,7 @@ class IconUpdater(context: Context) : ModPack(context) {
 
         baseDraggingActivityClass
             .hookMethod("onResume")
+            .suppressError()
             .runAfter {
                 try {
                     if (launcherModel != null) {

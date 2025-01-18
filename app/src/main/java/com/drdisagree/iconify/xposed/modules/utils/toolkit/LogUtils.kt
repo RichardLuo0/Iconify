@@ -83,6 +83,7 @@ fun dumpChildViews(context: Context, view: View) {
 private fun logViewInfo(context: Context, view: View, indentationLevel: Int) {
     val indentation = repeatString("\t", indentationLevel)
     val viewName = view.javaClass.simpleName
+    val superclassName = view.javaClass.superclass?.simpleName ?: "None"
     val backgroundDrawable = view.background
     val childCount = if (view is ViewGroup) view.childCount else 0
     var resourceIdName = "none"
@@ -91,12 +92,12 @@ private fun logViewInfo(context: Context, view: View, indentationLevel: Int) {
         resourceIdName = context.resources.getResourceName(viewId)
     } catch (ignored: Throwable) {
     }
-    var logMessage = "$indentation$viewName - ID: $resourceIdName"
+    var logMessage = "$indentation$viewName (Extends: $superclassName) - ID: $resourceIdName"
     if (childCount > 0) {
         logMessage += " - ChildCount: $childCount"
     }
     if (backgroundDrawable != null) {
-        logMessage += " - Background: " + backgroundDrawable.javaClass.simpleName + ""
+        logMessage += " - Background: ${backgroundDrawable.javaClass.simpleName}"
     }
     log(logMessage)
 }

@@ -1,12 +1,14 @@
 package com.drdisagree.iconify.xposed.modules.utils
 
 import android.content.Context
+import android.os.Build
 import android.text.Editable
 import android.text.TextWatcher
 import android.text.format.DateFormat
 import android.widget.TextClock
 import android.widget.TextView
 import de.robv.android.xposed.XposedBridge
+import de.robv.android.xposed.XposedBridge.log
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -151,5 +153,31 @@ object TimeUtils {
             Locale.getDefault()
         ).format(Calendar.getInstance().time)
         minuteView.text = convertNumberToText(minute)
+    }
+
+    fun isSecurityPatchBefore(targetDate: Calendar): Boolean {
+        val securityPatch = Build.VERSION.SECURITY_PATCH
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+
+        return try {
+            val securityPatchDate = dateFormat.parse(securityPatch)
+            (securityPatchDate != null && (securityPatchDate < targetDate.time))
+        } catch (e: Exception) {
+            log(TAG + "Error parsing security patch date\n$e")
+            false
+        }
+    }
+
+    fun isSecurityPatchAfter(targetDate: Calendar): Boolean {
+        val securityPatch = Build.VERSION.SECURITY_PATCH
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+
+        return try {
+            val securityPatchDate = dateFormat.parse(securityPatch)
+            (securityPatchDate != null && (securityPatchDate > targetDate.time))
+        } catch (e: Exception) {
+            log(TAG + "Error parsing security patch date\n$e")
+            false
+        }
     }
 }

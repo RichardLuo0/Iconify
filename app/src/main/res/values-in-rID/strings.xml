@@ -419,6 +419,8 @@
     <string name="activity_desc_themes">Personalize with themes</string>
     <string name="activity_title_quick_settings">Pengaturan Cepat</string>
     <string name="activity_desc_quick_settings">Tweak untuk QS panel</string>
+    <string name="activity_title_lockscreen">Lockscreen</string>
+    <string name="activity_desc_lockscreen">Customize lockscreen appearance</string>
     <string name="activity_title_battery_style">Battery Style</string>
     <string name="activity_desc_battery_style">Ubah tampilan ikon baterai</string>
     <string name="activity_title_op_qs_header">Oneplus QS Header</string>

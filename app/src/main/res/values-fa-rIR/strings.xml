@@ -419,6 +419,8 @@
     <string name="activity_desc_themes">سفارشی کردن پوسته‌ها</string>
     <string name="activity_title_quick_settings">تنظیمات سریع</string>
     <string name="activity_desc_quick_settings">ترفندهای مربوط به نوار ابزار</string>
+    <string name="activity_title_lockscreen">صفحه قفل</string>
+    <string name="activity_desc_lockscreen">سفارشی‌سازی ظاهر صفحه قفل</string>
     <string name="activity_title_battery_style">سبک باتری</string>
     <string name="activity_desc_battery_style">سفارشی کردن نماد باتری</string>
     <string name="activity_title_op_qs_header">سربرگ تنظیم سریع وان پلاس</string>
@@ -471,10 +473,10 @@
     <string name="custom_widget_2">ویجت کوچک ۲</string>
     <string name="custom_widget_3">ویجت کوچک ۳</string>
     <string name="custom_widget_4">ویجت کوچک ۴</string>
-    <string name="widgets_custom_color">Custom Colors</string>
-    <string name="widgets_custom_color_title">Customize Widget Colors</string>
-    <string name="big_widget_active">Large Widget Active Color</string>
-    <string name="big_widget_inactive">Large Widget Inactive Color</string>
+    <string name="widgets_custom_color">رنگ های سفارشی</string>
+    <string name="widgets_custom_color_title">سفارشی‌سازی زنگهای ابزارک</string>
+    <string name="big_widget_active">رنگ ابزارک فعال بزرگ</string>
+    <string name="big_widget_inactive">رنگ ابزارک غیرفعال بزرگ</string>
     <string name="big_widget_icon_active">Large Widget Icon Active Color</string>
     <string name="big_widget_icon_inactive">Large Widget Icon Inactive Color</string>
     <string name="mini_widget_active">Mini Widget Active Color</string>

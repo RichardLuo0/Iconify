@@ -419,6 +419,8 @@
     <string name="activity_desc_themes">Témákkal is személyre szabhatja</string>
     <string name="activity_title_quick_settings">Gyorsbeállítások</string>
     <string name="activity_desc_quick_settings">A Gyorsbeállítások-panelhez kapcsolódó trükkök</string>
+    <string name="activity_title_lockscreen">Záróképernyő</string>
+    <string name="activity_desc_lockscreen">Testre szabhatja a záróképernyő megjelenését</string>
     <string name="activity_title_battery_style">Akkustílus</string>
     <string name="activity_desc_battery_style">Szabja személyre az Akku-ikon megjelenését</string>
     <string name="activity_title_op_qs_header">One+ Gyorsbeállítások</string>
@@ -547,9 +549,9 @@
     <string name="hide_qs_tile_label_title">Csempefelirat elrejtése</string>
     <string name="hide_qs_tile_label_desc">Csak függőleges csempék esetében</string>
     <string name="qs_tile_label_scaling_title">Szövegméretezés</string>
-    <string name="section_title_notifications">Notification</string>
-    <string name="colored_qs_notification_title">Colored Notification Icon</string>
-    <string name="colored_qs_notification_desc">Show app icon as notification icon</string>
+    <string name="section_title_notifications">Értesítések</string>
+    <string name="colored_qs_notification_title">Színezett értesítésikon</string>
+    <string name="colored_qs_notification_desc">Az alkalmazásikon megjelenítése értesítési ikonként</string>
     <string name="section_title_qs_margin">Csempemargók</string>
     <string name="section_title_qs_elements">Gyorsbeállítások elemei</string>
     <string name="hide_qs_on_lockscreen_title">Nincs gyorsbeállítás a záróképernyőn</string>
@@ -893,10 +895,10 @@
     <string name="unzoom_depth_wallpaper_desc">Eltávolítja a nagyítási hatást a mélységi háttérképről</string>
     <string name="hide_data_disabled_icon_title">Letiltásjelző-ikon elrejtése</string>
     <string name="hide_data_disabled_icon_desc">A \'Letiltott adatok\' ikon elrejtése</string>
-    <string name="colorize_notification_view_title">Colorize Notification View</string>
-    <string name="colorize_notification_view_desc">Make notification view same color as app icon</string>
-    <string name="colorize_notification_alternative_color_generation_title">Alternative Color Generation</string>
-    <string name="colorize_notification_alternative_color_generation_desc">Use monet score and quantizer to extract color</string>
+    <string name="colorize_notification_view_title">Színezett értesítési nézet</string>
+    <string name="colorize_notification_view_desc">Az értesítési nézet ugyanolyan színű, mint az alkalmazás ikonja</string>
+    <string name="colorize_notification_alternative_color_generation_title">Alternatív színgeneráció</string>
+    <string name="colorize_notification_alternative_color_generation_desc">Monet-pontszám és kvantáló használata a színek kinyeréséhez</string>
     <!-- Bottom Navigation -->
     <string name="navbar_home">Kezdőlap</string>
     <string name="navbar_tweaks">Trükkök</string>

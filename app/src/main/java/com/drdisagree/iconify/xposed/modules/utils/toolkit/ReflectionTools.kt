@@ -14,8 +14,12 @@ fun isMethodAvailable(
     if (target is Class<*>) return if (parameterTypes.isEmpty()) {
         target.declaredMethods.any { it.name == methodName }
     } else {
-        target.getMethod(methodName, *parameterTypes)
-        true
+        try {
+            target.getMethod(methodName, *parameterTypes)
+            true
+        } catch (ignored: NoSuchMethodException) {
+            false
+        }
     }
 
     return try {

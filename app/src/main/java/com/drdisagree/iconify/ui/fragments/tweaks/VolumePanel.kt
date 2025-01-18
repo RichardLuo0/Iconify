@@ -1,6 +1,7 @@
 package com.drdisagree.iconify.ui.fragments.tweaks
 
 import android.annotation.SuppressLint
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -32,6 +33,7 @@ import com.drdisagree.iconify.utils.overlay.manager.resource.ResourceEntry
 import com.drdisagree.iconify.utils.overlay.manager.resource.ResourceManager.buildOverlayWithResource
 import com.drdisagree.iconify.utils.overlay.manager.resource.ResourceManager.removeResourceFromOverlay
 import com.google.android.material.button.MaterialButton
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import java.util.concurrent.atomic.AtomicBoolean
 
 class VolumePanel : BaseFragment() {
@@ -232,6 +234,33 @@ class VolumePanel : BaseFragment() {
                     appContextLocale.resources.getString(R.string.toast_only_magisk_supported),
                     Toast.LENGTH_SHORT
                 ).show()
+
+                return@setOnClickListener
+            }
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                MaterialAlertDialogBuilder(requireContext())
+                    .setTitle(R.string.warning)
+                    .setMessage(R.string.volume_module_unstable_desc)
+                    .setCancelable(false)
+                    .setPositiveButton(R.string.btn_continue) { _, _ ->
+                        if (!hasStoragePermission()) {
+                            requestStoragePermission(requireContext())
+                        } else {
+                            if (finalCheckedId == -1) {
+                                Toast.makeText(
+                                    appContext,
+                                    appContextLocale.resources.getString(R.string.toast_select_style),
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            } else {
+                                installVolumeModule(finalCheckedId)
+                            }
+                        }
+                    }
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .create()
+                    .show()
 
                 return@setOnClickListener
             }

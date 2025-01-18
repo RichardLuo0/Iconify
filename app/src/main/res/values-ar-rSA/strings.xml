@@ -419,6 +419,8 @@
     <string name="activity_desc_themes">تخصيص بإستخدام السمات</string>
     <string name="activity_title_quick_settings">QS</string>
     <string name="activity_desc_quick_settings">القرص المتعلق بلوحة QS</string>
+    <string name="activity_title_lockscreen">Lockscreen</string>
+    <string name="activity_desc_lockscreen">Customize lockscreen appearance</string>
     <string name="activity_title_battery_style">نمط البطارية</string>
     <string name="activity_desc_battery_style">تخصيص عرض أيقونة البطارية</string>
     <string name="activity_title_op_qs_header">Oneplus QS Header</string>

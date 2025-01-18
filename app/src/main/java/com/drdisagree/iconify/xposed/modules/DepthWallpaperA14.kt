@@ -204,33 +204,26 @@ class DepthWallpaperA14(context: Context) : ModPack(context) {
                                 createLayers()
                             }
 
-                            reAddView(
-                                rootView,
-                                mWallpaperForeground,
-                                0
+                            val largeClockView = rootView.findViewById<View>(
+                                mContext.resources.getIdentifier(
+                                    "lockscreen_clock_view_large",
+                                    "id",
+                                    mContext.packageName
+                                )
                             )
-                            reAddView(
-                                rootView,
-                                rootView.findViewById(
-                                    mContext.resources.getIdentifier(
-                                        "lockscreen_clock_view_large",
-                                        "id",
-                                        mContext.packageName
-                                    )
-                                ),
-                                0
+                            val smallClockView = rootView.findViewById<View>(
+                                mContext.resources.getIdentifier(
+                                    "lockscreen_clock_view",
+                                    "id",
+                                    mContext.packageName
+                                )
                             )
-                            reAddView(
-                                rootView,
-                                rootView.findViewById(
-                                    mContext.resources.getIdentifier(
-                                        "lockscreen_clock_view",
-                                        "id",
-                                        mContext.packageName
-                                    )
-                                ),
-                                0
-                            )
+
+                            rootView.apply {
+                                reAddView(mWallpaperForeground, 0)
+                                reAddView(largeClockView, 0)
+                                reAddView(smallClockView, 0)
+                            }
                         }, 1000)
                     }
 
@@ -293,8 +286,8 @@ class DepthWallpaperA14(context: Context) : ModPack(context) {
                     createLayers()
                 }
 
-                reAddView(rootView, mWallpaperBackground, 0)
-                reAddView(targetView, mWallpaperForeground, 1)
+                rootView.reAddView(mWallpaperBackground, 0)
+                targetView.reAddView(mWallpaperForeground, 1)
             }
 
         centralSurfacesImplClass
@@ -720,10 +713,10 @@ class DepthWallpaperA14(context: Context) : ModPack(context) {
         }
     }
 
-    private fun reAddView(parentView: ViewGroup, childView: View?, index: Int) {
+    private fun ViewGroup.reAddView(childView: View?, index: Int) {
         childView?.let { view ->
             (view.parent as? ViewGroup)?.removeView(childView)
-            parentView.addView(view, index)
+            addView(view, index)
         }
     }
 

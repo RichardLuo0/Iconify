@@ -419,6 +419,8 @@
     <string name="activity_desc_themes">Personalizar con temas</string>
     <string name="activity_title_quick_settings">Ajustes Rápidos</string>
     <string name="activity_desc_quick_settings">Retoques relacionados con el panel de ajustes rápidos</string>
+    <string name="activity_title_lockscreen">Pantalla de bloqueo</string>
+    <string name="activity_desc_lockscreen">Personalizar apariencia de pantalla de bloqueo</string>
     <string name="activity_title_battery_style">Estilo de batería</string>
     <string name="activity_desc_battery_style">Personaliza el icono de batería</string>
     <string name="activity_title_op_qs_header">Enzabezado de AR de OnePlus</string>
@@ -547,9 +549,9 @@
     <string name="hide_qs_tile_label_title">Ocultar etiqueta en botones de Ajustes Rápidos</string>
     <string name="hide_qs_tile_label_desc">Usar solo con botones verticales</string>
     <string name="qs_tile_label_scaling_title">Escala del tamaño del texto</string>
-    <string name="section_title_notifications">Notification</string>
-    <string name="colored_qs_notification_title">Colored Notification Icon</string>
-    <string name="colored_qs_notification_desc">Show app icon as notification icon</string>
+    <string name="section_title_notifications">Notificación</string>
+    <string name="colored_qs_notification_title">Icono de notificación de color</string>
+    <string name="colored_qs_notification_desc">Mostrar icono de aplicación como icono de notificación</string>
     <string name="section_title_qs_margin">Margen de AR</string>
     <string name="section_title_qs_elements">Elementos de AR</string>
     <string name="hide_qs_on_lockscreen_title">Ocultar QS en pantalla de bloqueo</string>
@@ -893,10 +895,10 @@
     <string name="unzoom_depth_wallpaper_desc">Elimina el efecto de zoom del fondo de pantalla con profundidad</string>
     <string name="hide_data_disabled_icon_title">Ocultar Icono de Datos Desactivados</string>
     <string name="hide_data_disabled_icon_desc">Ocultar el indicador de datos desactivados</string>
-    <string name="colorize_notification_view_title">Colorize Notification View</string>
-    <string name="colorize_notification_view_desc">Make notification view same color as app icon</string>
-    <string name="colorize_notification_alternative_color_generation_title">Alternative Color Generation</string>
-    <string name="colorize_notification_alternative_color_generation_desc">Use monet score and quantizer to extract color</string>
+    <string name="colorize_notification_view_title">Colorizar vista de notificación</string>
+    <string name="colorize_notification_view_desc">Hacer que la vista de notificación sea del mismo color que el icono de la aplicación</string>
+    <string name="colorize_notification_alternative_color_generation_title">Generación de color alternativo</string>
+    <string name="colorize_notification_alternative_color_generation_desc">Usar puntaje y cuantizador de Monet para extraer color</string>
     <!-- Bottom Navigation -->
     <string name="navbar_home">Inicio</string>
     <string name="navbar_tweaks">Retoques</string>

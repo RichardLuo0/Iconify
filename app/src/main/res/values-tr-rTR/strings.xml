@@ -419,6 +419,8 @@
     <string name="activity_desc_themes">Temalar ile özelleştir</string>
     <string name="activity_title_quick_settings">Hızlı Ayarlar (QS)</string>
     <string name="activity_desc_quick_settings">QS paneli ile ilgili ince ayarlar</string>
+    <string name="activity_title_lockscreen">Lockscreen</string>
+    <string name="activity_desc_lockscreen">Customize lockscreen appearance</string>
     <string name="activity_title_battery_style">Pil Stili</string>
     <string name="activity_desc_battery_style">Pil simgesi görünümünü özelleştir</string>
     <string name="activity_title_op_qs_header">Oneplus QS Header</string>

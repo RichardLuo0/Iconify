@@ -419,6 +419,8 @@
     <string name="activity_desc_themes">Personalizacja za pomocą motywów</string>
     <string name="activity_title_quick_settings">Szybkie ustawienia</string>
     <string name="activity_desc_quick_settings">Modyfikacje związane z szybkimi ustawieniami</string>
+    <string name="activity_title_lockscreen">Ekran blokady</string>
+    <string name="activity_desc_lockscreen">Dostosuj wygląd ekranu blokady</string>
     <string name="activity_title_battery_style">Ikona baterii</string>
     <string name="activity_desc_battery_style">Dostosuj wygląd ikony baterii</string>
     <string name="activity_title_op_qs_header">OnePlus QS Header</string>
@@ -547,9 +549,9 @@
     <string name="hide_qs_tile_label_title">Ukryj etykiety kafelków</string>
     <string name="hide_qs_tile_label_desc">Używaj tylko z pionowymi kafelkami</string>
     <string name="qs_tile_label_scaling_title">Skalowanie rozmiaru tekstu</string>
-    <string name="section_title_notifications">Notification</string>
-    <string name="colored_qs_notification_title">Colored Notification Icon</string>
-    <string name="colored_qs_notification_desc">Show app icon as notification icon</string>
+    <string name="section_title_notifications">Powiadomienie</string>
+    <string name="colored_qs_notification_title">Koloruj ikonę powiadomień</string>
+    <string name="colored_qs_notification_desc">Pokaż ikonę aplikacji jako ikonę powiadomień</string>
     <string name="section_title_qs_margin">Marginesy szybkich ustawień</string>
     <string name="section_title_qs_elements">Elementy szybkich ustawień</string>
     <string name="hide_qs_on_lockscreen_title">Ukryj Szybkie ustawienia na ekranie blokady</string>
@@ -895,8 +897,8 @@
     <string name="hide_data_disabled_icon_desc">Ukryj ikonę wyłączonych danych mobilnych</string>
     <string name="colorize_notification_view_title">Koloruj widok powiadomień</string>
     <string name="colorize_notification_view_desc">Wyświetlaj powiadomienia w tym samym kolorze co ikona aplikacji</string>
-    <string name="colorize_notification_alternative_color_generation_title">Alternative Color Generation</string>
-    <string name="colorize_notification_alternative_color_generation_desc">Use monet score and quantizer to extract color</string>
+    <string name="colorize_notification_alternative_color_generation_title">Alternatywne generowanie kolorów</string>
+    <string name="colorize_notification_alternative_color_generation_desc">Użyj wyniku monet i kwantyzatora do wyodrębnienia koloru</string>
     <!-- Bottom Navigation -->
     <string name="navbar_home">Strona główna</string>
     <string name="navbar_tweaks">Modyfikacje</string>

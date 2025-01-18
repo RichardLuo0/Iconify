@@ -8,12 +8,12 @@ package com.drdisagree.iconify.ui.preferences;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.TypedArray;
-import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.JsonReader;
 import android.util.JsonWriter;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -21,6 +21,7 @@ import androidx.core.content.ContextCompat;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceViewHolder;
 
+import com.drdisagree.iconify.R;
 import com.drdisagree.iconify.utils.HapticUtils;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.slider.LabelFormatter;
@@ -36,8 +37,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Scanner;
-
-import com.drdisagree.iconify.R;
 
 public class SliderPreference extends Preference {
 
@@ -55,6 +54,7 @@ public class SliderPreference extends Preference {
     private String valueFormat;
     private final float outputScale;
     private final boolean isDecimalFormat;
+    private final boolean showDefault;
     private String decimalFormat = "#.#";
 
     boolean updateConstantly, showValueLabel;
@@ -86,6 +86,7 @@ public class SliderPreference extends Preference {
             decimalFormat = "#.#"; // Default decimal format
         }
         outputScale = a.getFloat(R.styleable.SliderPreference_outputScale, 1f);
+        showDefault = a.getBoolean(R.styleable.SliderPreference_showDefault, false);
         String defaultValStr = a.getString(androidx.preference.R.styleable.Preference_defaultValue);
 
         if (valueFormat == null) valueFormat = "";
@@ -170,6 +171,43 @@ public class SliderPreference extends Preference {
         }
     }
 
+    LabelFormatter labelFormatter = new LabelFormatter() {
+        @NonNull
+        @Override
+        public String getFormattedValue(float value) {
+            String formattedValue;
+            Float sliderValue = slider.getValues().get(0);
+
+            if (valueFormat != null && (valueFormat.isBlank() || valueFormat.isEmpty())) {
+                formattedValue = !isDecimalFormat
+                        ? Integer.toString((int) (sliderValue / outputScale))
+                        : new DecimalFormat(decimalFormat).format(sliderValue / outputScale);
+            } else {
+                formattedValue = !isDecimalFormat
+                        ? Integer.toString((int) (sliderValue / 1f))
+                        : new DecimalFormat(decimalFormat).format(sliderValue / outputScale);
+            }
+
+            String result;
+            if (showDefault && !defaultValue.isEmpty() && Objects.equals(defaultValue.get(0), sliderValue)) {
+                result = getContext().getString(
+                        R.string.opt_selected3,
+                        formattedValue,
+                        valueFormat,
+                        getContext().getString(R.string.opt_default)
+                );
+            } else {
+                result = getContext().getString(
+                        R.string.opt_selected2,
+                        formattedValue,
+                        valueFormat
+                );
+            }
+
+            return result;
+        }
+    };
+
     RangeSlider.OnChangeListener changeListener = (slider, value, fromUser) -> {
         if (!getKey().equals(slider.getTag())) return;
 
@@ -188,31 +226,15 @@ public class SliderPreference extends Preference {
         public void onStopTrackingTouch(@NonNull RangeSlider slider) {
             if (!getKey().equals(slider.getTag())) return;
 
+            TextView summary = ((ViewGroup) slider.getParent().getParent()).findViewById(android.R.id.summary);
+            summary.setText(labelFormatter.getFormattedValue(slider.getValues().get(0)));
+            summary.setVisibility(showValueLabel ? View.VISIBLE : View.GONE);
+
             handleResetButton();
 
             if (!updateConstantly) {
                 savePrefs();
             }
-        }
-    };
-
-    LabelFormatter labelFormatter = new LabelFormatter() {
-        @NonNull
-        @Override
-        public String getFormattedValue(float value) {
-            String result;
-            if (valueFormat != null && (valueFormat.isBlank() || valueFormat.isEmpty())) {
-                result = !isDecimalFormat
-                        ? Integer.toString((int) (slider.getValues().get(0) / outputScale))
-                        : new DecimalFormat(decimalFormat).format(slider.getValues().get(0) / outputScale);
-            } else {
-                result = !isDecimalFormat
-                        ? Integer.toString((int) (slider.getValues().get(0) / 1f))
-                        : new DecimalFormat(decimalFormat).format(slider.getValues().get(0) / outputScale);
-            }
-            result += valueFormat;
-
-            return result;
         }
     };
 
@@ -223,6 +245,9 @@ public class SliderPreference extends Preference {
         if (isEnabled()) {
             TextView title = holder.itemView.findViewById(android.R.id.title);
             title.setTextColor(ContextCompat.getColor(getContext(), R.color.textColorPrimary));
+
+            TextView summary = holder.itemView.findViewById(android.R.id.summary);
+            summary.setTextColor(ContextCompat.getColor(getContext(), R.color.textColorSecondary));
         }
 
         slider = holder.itemView.findViewById(R.id.slider);
@@ -234,13 +259,15 @@ public class SliderPreference extends Preference {
         slider.setLabelFormatter(labelFormatter);
 
         mResetButton = holder.itemView.findViewById(R.id.reset_button);
-        if (showResetButton) {
+        if (showResetButton && !defaultValue.isEmpty()) {
             mResetButton.setVisibility(View.VISIBLE);
+            mResetButton.setEnabled(isEnabled() && !Objects.equals(defaultValue.get(0), slider.getValues().get(0)));
             mResetButton.setOnClickListener(v -> {
                 handleResetButton();
                 HapticUtils.weakVibrate(v);
 
                 slider.setValues(defaultValue);
+                mResetButton.setEnabled(false);
                 savePrefs();
             });
         } else {
@@ -254,6 +281,10 @@ public class SliderPreference extends Preference {
         slider.setStepSize(tickInterval);
 
         syncState();
+
+        TextView summary = holder.itemView.findViewById(android.R.id.summary);
+        summary.setText(labelFormatter.getFormattedValue(slider.getValues().get(0)));
+        summary.setVisibility(showValueLabel ? View.VISIBLE : View.GONE);
 
         handleResetButton();
     }

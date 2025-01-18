@@ -101,9 +101,8 @@ object Const {
             exit 0
             """.trimIndent()
 
-    val POST_FS_DATA =
-        if (RootUtils.isKSUInstalled && RootUtils.fileExists("/data/adb/ksu/bin/ksu_susfs")) {
-            """
+    val POST_FS_DATA = if (RootUtils.isKSUInstalled) {
+        """
             #!/usr/bin/env sh
             MODDIR="${'$'}{0%%/*}"
             modid="Iconify"
@@ -125,10 +124,10 @@ object Const {
             	${'$'}{SUSFS_BIN} add_sus_mount /${'$'}i
             done
             """.trimIndent()
-        } else {
-            """
+    } else {
+        """
             #!/usr/bin/env sh
             MODDIR="${'$'}{0%%/*}"
             """.trimIndent()
-        }
+    }
 }

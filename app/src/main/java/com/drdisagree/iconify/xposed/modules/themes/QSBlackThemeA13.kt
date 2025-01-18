@@ -211,6 +211,7 @@ class QSBlackThemeA13(context: Context) : ModPack(context) {
         // Auto Brightness Icon Color
         brightnessControllerClass
             .hookMethod("updateIcon")
+            .suppressError()
             .runAfter { param ->
                 if (!blackQSHeaderEnabled) return@runAfter
 
@@ -245,6 +246,7 @@ class QSBlackThemeA13(context: Context) : ModPack(context) {
 
         brightnessMirrorControllerClass
             .hookMethod("updateIcon")
+            .suppressError()
             .runAfter { param ->
                 if (!blackQSHeaderEnabled) return@runAfter
 

@@ -43,10 +43,10 @@
     <string name="activity_title_home_page">Iconify</string>
     <string name="activity_title_icon_pack">アイコンパック</string>
     <string name="activity_desc_icon_pack">システム アイコンパックを変更</string>
-    <string name="activity_title_cellular_icons">Cellular Icons</string>
-    <string name="activity_desc_cellular_icons">Change system cellular icons</string>
-    <string name="activity_title_wifi_icons">WiFi Icons</string>
-    <string name="activity_desc_wifi_icons">Change system WiFi icons</string>
+    <string name="activity_title_cellular_icons">セルラーアイコン</string>
+    <string name="activity_desc_cellular_icons">システムのセルラーアイコンを変更する</string>
+    <string name="activity_title_wifi_icons">WiFi アイコン</string>
+    <string name="activity_desc_wifi_icons">システムの WiFi アイコンを変更する</string>
     <string name="activity_title_brightness_bar">明るさ調節バー</string>
     <string name="activity_desc_brightness_bar">進捗スライダーをカスタマイズ</string>
     <string name="activity_title_qs_shape">クイック設定パネルタイル</string>
@@ -64,7 +64,7 @@
     <string name="iconify_updated_title">Iconify がアップデートされました！</string>
     <string name="iconify_updated_desc">最新の追加機能やオプションを使用するために再起動してください。</string>
     <!-- Home Card View -->
-    <string name="home_card_title">自分好みにデザインしよう</string>
+    <string name="home_card_title">自分好みにデザイン</string>
     <string name="home_card_subtitle">想像力を解き放ち、自分の思い通りに</string>
     <string name="home_card_hide">隠す</string>
     <!-- Tweaks -->
@@ -125,8 +125,8 @@
     <string name="settings_restart_systemui_after_boot_desc">ぼかしの強さなどのいくつかのオプションはシステム UI を再起動するまで効きません</string>
     <string name="settings_show_home_page_card_title">ホームページにカードを表示</string>
     <string name="settings_show_home_page_card_desc">ホームページに素晴らしいカードを表示します。</string>
-    <string name="settings_vibrate_ui_card_title">Haptic Feedback</string>
-    <string name="settings_vibrate_ui_page_card_desc">Enhance touch feedback with interactive haptics.</string>
+    <string name="settings_vibrate_ui_card_title">触覚フィードバック</string>
+    <string name="settings_vibrate_ui_page_card_desc">インタラクティブ ハプティクスでタッチのフィードバックを強化する</string>
     <string name="settings_clear_app_cache_title">アプリのキャッシュをクリア</string>
     <string name="settings_clear_app_cache_desc">カスタムフォント、画像、GIF の作成に必要なキャッシュをクリアします。</string>
     <string name="activity_title_experimental">実験的</string>
@@ -136,8 +136,8 @@
     <string name="settings_section_title_about">情報</string>
     <string name="settings_github_repository_title">GitHub リポジトリ</string>
     <string name="settings_telegram_group_title">Telegram グループ</string>
-    <string name="settings_translate_title">Translate Iconify</string>
-    <string name="settings_translate_desc">Help translate Iconify to your language.</string>
+    <string name="settings_translate_title">Iconify を翻訳</string>
+    <string name="settings_translate_desc">Iconify を日本語に翻訳するのを手伝ってください。</string>
     <string name="settings_credits_title">クレジット</string>
     <string name="settings_credits_desc">このアプリを実現できた彼らに感謝します。</string>
     <!-- Icon Pack -->
@@ -381,7 +381,7 @@
     <string name="btn_create_module">モジュールを作成</string>
     <string name="toast_module_created">モジュールの作成に成功しました</string>
     <string name="read_carefully">よく読んでください！</string>
-    <string name="volume_module_installation_guide">This option will create a magisk module inside Download folder in your Internal Storage. Flash the module named IconifyCompanion.zip in Magisk. Always uninstall previous Iconify Companion module (if installed) and reboot before flashing new one.\n\n<b>Note:</b>\n• Uninstall the module before updating rom.\n• Recreate the module if you change or update rom.\n• Do not flash a module which wasn\'t created based on your rom.</string>
+    <string name="volume_module_installation_guide">このオプションは内部ストレージのダウンロードフォルダに Magisk モジュールを作成します。Magisk で IconifyCompanion.zip という名前のモジュールをフラッシュしてください。新しいモジュールをインストール前に、毎回以前の Iconify Companion モジュール (もしインストールされていたら) をアンインストールして再起動して下さい。\n\n<b>注意:</b>\n• ROM をアップデートする前にモジュールをアンインストールしてください。\n• ROM を変更またはアップデートしたらモジュールを再度作成してください。\n• お使いの ROM 用に作成されてないモジュールをフラッシュしないでください。</string>
     <!-- Media Player -->
     <string name="cont_desc_media_player">メディアプレーヤー プレビュー</string>
     <string name="media_player_preview_music_title">音楽のタイトル</string>
@@ -419,18 +419,20 @@
     <string name="activity_desc_themes">テーマでパーソナライズします</string>
     <string name="activity_title_quick_settings">クイック設定</string>
     <string name="activity_desc_quick_settings">クイック設定に関する調整</string>
+    <string name="activity_title_lockscreen">Lockscreen</string>
+    <string name="activity_desc_lockscreen">Customize lockscreen appearance</string>
     <string name="activity_title_battery_style">バッテリースタイル</string>
     <string name="activity_desc_battery_style">バッテリーアイコンの表示をカスタマイズします</string>
-    <string name="activity_title_op_qs_header">Oneplus QS Header</string>
-    <string name="activity_desc_op_qs_header">OOS style quick settings header</string>
+    <string name="activity_title_op_qs_header">OnePlus クイック設定ヘッダー</string>
+    <string name="activity_desc_op_qs_header">OOS スタイルのクイック設定ヘッダー</string>
     <string name="activity_title_header_image">ヘッダー画像</string>
     <string name="activity_desc_header_image">クイック設定パネルにカスタム画像を追加します</string>
     <string name="activity_title_header_clock">ヘッダー時計</string>
     <string name="activity_desc_header_clock">クイック設定パネルにカスタム時計を追加します</string>
     <string name="activity_title_lockscreen_clock">ロック画面時計</string>
     <string name="activity_desc_lockscreen_clock">ロック画面にカスタム時計を追加します</string>
-    <string name="activity_title_lockscreen_weather">Lockscreen Weather</string>
-    <string name="activity_desc_lockscreen_weather">Add weather on lockscreen</string>
+    <string name="activity_title_lockscreen_weather">ロック画面の天気</string>
+    <string name="activity_desc_lockscreen_weather">ロック画面に天気を追加する</string>
     <string name="activity_title_lockscreen_widget">Lockscreen Widgets</string>
     <string name="activity_desc_lockscreen_widget">Add widgets on lockscreen</string>
     <string name="activity_title_depth_wallpaper">深度のある背景</string>
@@ -442,15 +444,15 @@
     <string name="activity_desc_xposed_others">その他の Xposed での調整</string>
     <string name="activity_title_xposed_weather_settings">Weather Settings</string>
     <!-- Oneplus QS Header -->
-    <string name="oneplus_qs_header_title">Oneplus QS Header</string>
-    <string name="oneplus_qs_header_desc">Enable OOS style media player and tiles in QS</string>
-    <string name="oneplus_qs_header_vibrate_title">Haptic Feedback</string>
-    <string name="oneplus_qs_header_vibrate_desc">Add haptic feedback on tiles</string>
-    <string name="oneplus_qs_header_hide_stock_media_player_title">Hide Stock Media Player</string>
-    <string name="oneplus_qs_header_hide_stock_media_player_desc">Remove stock media player from QS panel</string>
-    <string name="oneplus_qs_header_blur_level">Blur Level</string>
+    <string name="oneplus_qs_header_title">OnePlus クイック設定ヘッダー</string>
+    <string name="oneplus_qs_header_desc">クイック設定で OOS スタイルのメディアプレーヤーとタイルを有効にする</string>
+    <string name="oneplus_qs_header_vibrate_title">触覚フィードバック</string>
+    <string name="oneplus_qs_header_vibrate_desc">タイルに触覚フィードバックを追加</string>
+    <string name="oneplus_qs_header_hide_stock_media_player_title">標準のメディアプレーヤーを隠す</string>
+    <string name="oneplus_qs_header_hide_stock_media_player_desc">クイック設定パネルから標準のメディアプレーヤーを削除する</string>
+    <string name="oneplus_qs_header_blur_level">ぼかしのレベル</string>
     <string name="oneplus_qs_header_fade_level">Fade Level</string>
-    <string name="oneplus_qs_header_top_margin">Top Margin</string>
+    <string name="oneplus_qs_header_top_margin">上部マージン</string>
     <string name="oneplus_qs_header_expansion_y">Expansion Amount</string>
     <!-- Lockscreen Widgets -->
     <string name="lockscreen_widgets_title">Lockscreen Widgets</string>
@@ -589,8 +591,8 @@
     <string name="powersave_fill_color_desc">バッテリーセーバーの色を変更します</string>
     <string name="powersave_indicator_color_title">バッテリーセーバーのインジケーターの色</string>
     <string name="powersave_indicator_color_desc">バッテリーセーバーのインジケーターの色を変更します</string>
-    <string name="custom_margins_title">Custom Margins</string>
-    <string name="custom_margins_desc">Set custom margins for battery icon</string>
+    <string name="custom_margins_title">マージンのカスタマイズ</string>
+    <string name="custom_margins_desc">バッテリーアイコンにカスタムマージンを設定します</string>
     <string name="battery_margin_left_title">バッテリー左マージン</string>
     <string name="battery_margin_right_title">バッテリー右マージン</string>
     <string name="battery_margin_top_title">バッテリー上部マージン</string>
@@ -674,8 +676,8 @@
     <string name="header_clock_color_picker_desc">ヘッダー時計の色を設定します</string>
     <string name="header_clock_expansion_y_title">Expansion Amount</string>
     <string name="header_clock_font_text_scaling_title">テキストスケーリング</string>
-    <string name="header_clock_side_margin_title">Side Margin</string>
-    <string name="header_clock_top_margin_title">Top Margin</string>
+    <string name="header_clock_side_margin_title">横マージン</string>
+    <string name="header_clock_top_margin_title">上部マージン</string>
     <string name="header_clock_white_text_title">ホワイト テキスト</string>
     <string name="header_clock_white_text_desc">テキスト色を白に強制します</string>
     <string name="header_clock_center_clock_title">中央に時計</string>
@@ -1071,7 +1073,7 @@
     <string name="text_color_inverse">Text Color Inverse</string>
     <!-- Weather -->
     <!-- Omni Jaws Strings -->
-    <string name="units_title">Unit</string>
+    <string name="units_title">単位</string>
     <string name="weather_progress_title">Verifying location</string>
     <string name="weather_select_location">Select location</string>
     <string name="weather_custom_location_dialog_title">Enter location</string>
@@ -1085,8 +1087,8 @@
     <string name="auto_update_summary">Check for new versions once in a while</string>
     <string name="update_over_wifi_title">Check updates over WiFi only</string>
     <string name="update_over_wifi_summary">Check for updates in background only when connected to wifi</string>
-    <string name="unit_metric">Metric (\u00b0C)</string>
-    <string name="unit_imperial">Imperial (\u00b0F)</string>
+    <string name="unit_metric">摂氏 (\u00b0C)</string>
+    <string name="unit_imperial">華氏 (\u00b0F)</string>
     <string name="update">Update</string>
     <string name="enable_title">Enable</string>
     <string name="update_interval_title">Update interval</string>
@@ -1157,7 +1159,7 @@
     <string name="weather_custom_color_switch_summary">Custom color for all text in weather view</string>
     <string name="custom_location_title">Custom location</string>
     <string name="custom_location_summary">Set custom location for weather</string>
-    <string name="weather_custom_margins">Custom Margins</string>
+    <string name="weather_custom_margins">マージンのカスタマイズ</string>
     <string name="weather_custom_margins_summary">Set custom margins for weather</string>
     <string name="weather_margin_top">Top margin</string>
     <string name="weather_centered">Center Layout</string>

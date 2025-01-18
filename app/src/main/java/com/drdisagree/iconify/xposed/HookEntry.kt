@@ -13,15 +13,13 @@ import com.drdisagree.iconify.BuildConfig
 import com.drdisagree.iconify.IRootProviderProxy
 import com.drdisagree.iconify.R
 import com.drdisagree.iconify.common.Const.FRAMEWORK_PACKAGE
+import com.drdisagree.iconify.xposed.modules.utils.toolkit.XposedHook.Companion.findClass
+import com.drdisagree.iconify.xposed.modules.utils.toolkit.hookMethod
 import com.drdisagree.iconify.xposed.utils.BootLoopProtector
 import com.drdisagree.iconify.xposed.utils.SystemUtils
 import com.drdisagree.iconify.xposed.utils.XPrefs
 import com.drdisagree.iconify.xposed.utils.XPrefs.Xprefs
-import de.robv.android.xposed.XC_MethodHook
-import de.robv.android.xposed.XposedBridge.hookAllMethods
 import de.robv.android.xposed.XposedBridge.log
-import de.robv.android.xposed.XposedHelpers.findAndHookMethod
-import de.robv.android.xposed.XposedHelpers.findClass
 import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -50,13 +48,12 @@ class HookEntry : ServiceConnection {
 
         when (loadPackageParam.packageName) {
             FRAMEWORK_PACKAGE -> {
-                val phoneWindowManagerClass = findClass(
-                    "com.android.server.policy.PhoneWindowManager",
-                    loadPackageParam.classLoader
-                )
+                val phoneWindowManagerClass =
+                    findClass("com.android.server.policy.PhoneWindowManager")
 
-                hookAllMethods(phoneWindowManagerClass, "init", object : XC_MethodHook() {
-                    override fun beforeHookedMethod(param: MethodHookParam) {
+                phoneWindowManagerClass
+                    .hookMethod("init")
+                    .runBefore { param ->
                         try {
                             if (!::mContext.isInitialized) {
                                 mContext = param.args[0] as Context
@@ -74,38 +71,35 @@ class HookEntry : ServiceConnection {
                             log(TAG + throwable)
                         }
                     }
-                })
             }
 
             else -> {
                 if (!isChildProcess) {
-                    findAndHookMethod(
-                        Instrumentation::class.java,
-                        "newApplication",
-                        ClassLoader::class.java,
-                        String::class.java,
-                        Context::class.java,
-                        object : XC_MethodHook() {
-                            override fun afterHookedMethod(param: MethodHookParam) {
-                                try {
-                                    if (!::mContext.isInitialized) {
-                                        mContext = param.args[2] as Context
+                    Instrumentation::class.java
+                        .hookMethod("newApplication")
+                        .parameters(
+                            ClassLoader::class.java,
+                            String::class.java,
+                            Context::class.java
+                        )
+                        .runAfter { param ->
+                            try {
+                                if (!::mContext.isInitialized) {
+                                    mContext = param.args[2] as Context
 
-                                        HookRes.modRes = mContext.createPackageContext(
-                                            BuildConfig.APPLICATION_ID,
-                                            Context.CONTEXT_IGNORE_SECURITY
-                                        ).resources
+                                    HookRes.modRes = mContext.createPackageContext(
+                                        BuildConfig.APPLICATION_ID,
+                                        Context.CONTEXT_IGNORE_SECURITY
+                                    ).resources
 
-                                        XPrefs.init(mContext)
+                                    XPrefs.init(mContext)
 
-                                        waitForXprefsLoad(loadPackageParam)
-                                    }
-                                } catch (throwable: Throwable) {
-                                    log(TAG + throwable)
+                                    waitForXprefsLoad(loadPackageParam)
                                 }
+                            } catch (throwable: Throwable) {
+                                log(TAG + throwable)
                             }
                         }
-                    )
                 }
             }
         }

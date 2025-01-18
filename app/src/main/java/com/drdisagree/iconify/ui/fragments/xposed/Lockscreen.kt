@@ -5,6 +5,8 @@ import com.drdisagree.iconify.common.Preferences.HIDE_LOCKSCREEN_CARRIER
 import com.drdisagree.iconify.common.Preferences.HIDE_LOCKSCREEN_LOCK_ICON
 import com.drdisagree.iconify.common.Preferences.HIDE_LOCKSCREEN_STATUSBAR
 import com.drdisagree.iconify.common.Preferences.HIDE_QS_ON_LOCKSCREEN
+import com.drdisagree.iconify.common.Preferences.LOCKSCREEN_WALLPAPER_BLUR
+import com.drdisagree.iconify.common.Preferences.LOCKSCREEN_WALLPAPER_BLUR_RADIUS
 import com.drdisagree.iconify.ui.activities.MainActivity
 import com.drdisagree.iconify.ui.base.ControlledPreferenceFragmentCompat
 
@@ -29,7 +31,9 @@ class Lockscreen : ControlledPreferenceFragmentCompat() {
             HIDE_LOCKSCREEN_LOCK_ICON,
             HIDE_QS_ON_LOCKSCREEN,
             HIDE_LOCKSCREEN_CARRIER,
-            HIDE_LOCKSCREEN_STATUSBAR -> {
+            HIDE_LOCKSCREEN_STATUSBAR,
+            LOCKSCREEN_WALLPAPER_BLUR,
+            LOCKSCREEN_WALLPAPER_BLUR_RADIUS -> {
                 MainActivity.showOrHidePendingActionButton(
                     activityBinding = (requireActivity() as MainActivity).binding,
                     requiresSystemUiRestart = true

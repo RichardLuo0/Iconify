@@ -419,6 +419,8 @@
     <string name="activity_desc_themes">Персоналізувати з темами</string>
     <string name="activity_title_quick_settings">Швидкі налаштування</string>
     <string name="activity_desc_quick_settings">Твіки панелі швидких налаштувань</string>
+    <string name="activity_title_lockscreen">Lockscreen</string>
+    <string name="activity_desc_lockscreen">Customize lockscreen appearance</string>
     <string name="activity_title_battery_style">Стиль батареї</string>
     <string name="activity_desc_battery_style">Налаштування вигляду значка батареї</string>
     <string name="activity_title_op_qs_header">Швидкі налаштуванння в стилі Oneplus</string>

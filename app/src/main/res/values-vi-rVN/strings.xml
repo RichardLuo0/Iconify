@@ -419,6 +419,8 @@
     <string name="activity_desc_themes">Personalize with themes</string>
     <string name="activity_title_quick_settings">Cài đặt nhanh</string>
     <string name="activity_desc_quick_settings">Các tinh chỉnh liên quan đến bảng QS</string>
+    <string name="activity_title_lockscreen">Lockscreen</string>
+    <string name="activity_desc_lockscreen">Customize lockscreen appearance</string>
     <string name="activity_title_battery_style">Kiểu pin</string>
     <string name="activity_desc_battery_style">Tùy chỉnh chế độ xem biểu tượng pin</string>
     <string name="activity_title_op_qs_header">Oneplus QS Header</string>

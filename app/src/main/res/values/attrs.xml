@@ -28,6 +28,7 @@
         <attr name="decimalFormat" format="string" />
         <attr name="valueFormat" format="string" />
         <attr name="outputScale" format="float" />
+        <attr name="showDefault" format="boolean" />
     </declare-styleable>
 
     <declare-styleable name="footerPreferenceStyle">

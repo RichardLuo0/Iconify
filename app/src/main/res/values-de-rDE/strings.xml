@@ -419,6 +419,8 @@
     <string name="activity_desc_themes">Personaliesiere mit Designs</string>
     <string name="activity_title_quick_settings">Schnelleinstellungen</string>
     <string name="activity_desc_quick_settings">Optimierungen für das QS-Panel</string>
+    <string name="activity_title_lockscreen">Lockscreen</string>
+    <string name="activity_desc_lockscreen">Customize lockscreen appearance</string>
     <string name="activity_title_battery_style">Batteriestil</string>
     <string name="activity_desc_battery_style">Passe das Batteriesymbol an</string>
     <string name="activity_title_op_qs_header">Oneplus QS Header</string>

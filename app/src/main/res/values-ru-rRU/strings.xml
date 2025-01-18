@@ -419,6 +419,8 @@
     <string name="activity_desc_themes">Персонализируйте с темами</string>
     <string name="activity_title_quick_settings">Быстрые настройки</string>
     <string name="activity_desc_quick_settings">Твики панели быстрых настроек</string>
+    <string name="activity_title_lockscreen">Экран блокировки</string>
+    <string name="activity_desc_lockscreen">Настройте внешний вид экрана блокировки</string>
     <string name="activity_title_battery_style">Стиль батареи</string>
     <string name="activity_desc_battery_style">Изменить внешний вид иконки батареи</string>
     <string name="activity_title_op_qs_header">QS в стиле Oneplus</string>
@@ -547,9 +549,9 @@
     <string name="hide_qs_tile_label_title">Скрыть подписи плиток быстрых настроек</string>
     <string name="hide_qs_tile_label_desc">Используйте только с вертикальными плитками</string>
     <string name="qs_tile_label_scaling_title">Масштабирование размера текста</string>
-    <string name="section_title_notifications">Notification</string>
-    <string name="colored_qs_notification_title">Colored Notification Icon</string>
-    <string name="colored_qs_notification_desc">Show app icon as notification icon</string>
+    <string name="section_title_notifications">Уведомление</string>
+    <string name="colored_qs_notification_title">Цветной значок уведомления</string>
+    <string name="colored_qs_notification_desc">Показывать значок приложения как значок уведомления</string>
     <string name="section_title_qs_margin">Отступ быстрых настроек</string>
     <string name="section_title_qs_elements">Элементы быстрых настроек</string>
     <string name="hide_qs_on_lockscreen_title">Скрыть QS на экране блокировки</string>
@@ -893,10 +895,10 @@
     <string name="unzoom_depth_wallpaper_desc">Убрать эффект увеличения у глубинных обоев</string>
     <string name="hide_data_disabled_icon_title">Скрыть отключеную иконку данных</string>
     <string name="hide_data_disabled_icon_desc">Скрыть отключеный индикатор данных</string>
-    <string name="colorize_notification_view_title">Colorize Notification View</string>
-    <string name="colorize_notification_view_desc">Make notification view same color as app icon</string>
-    <string name="colorize_notification_alternative_color_generation_title">Alternative Color Generation</string>
-    <string name="colorize_notification_alternative_color_generation_desc">Use monet score and quantizer to extract color</string>
+    <string name="colorize_notification_view_title">Раскрасить вид уведомления</string>
+    <string name="colorize_notification_view_desc">Сделать вид уведомления того же цвета, что и значок приложения</string>
+    <string name="colorize_notification_alternative_color_generation_title">Альтернативная генерация цвета</string>
+    <string name="colorize_notification_alternative_color_generation_desc">Использовать Monet и квантизатор для извлечения цвета</string>
     <!-- Bottom Navigation -->
     <string name="navbar_home">Стили</string>
     <string name="navbar_tweaks">Твики</string>
