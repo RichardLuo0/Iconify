@@ -382,6 +382,7 @@
     <string name="toast_module_created">Sikeresen elkészült a modul</string>
     <string name="read_carefully">Olvassa figyelmesen!</string>
     <string name="volume_module_installation_guide">Ez az opció létrehoz egy Magisk-modult a belső tárhely Letöltés mappájában. Flesselje az IconifyCompanion.zip nevű csomagot a Magisk-ban. Mindig távolítsa el a korábbi IconifyCompanion modult (ha telepítve van), és indítsa újra, mielőtt az újat flesselné.\n\n<b>Figyelem:</b>\n• ROM-frissítés előtt uninstallálja a modult.\n• ROM-frissítés után készítse el újra a modult és flesselje.\n• Ne felesseljen olyan modult, ami nem az Ön rendszeréhez készült!</string>
+    <string name="volume_module_unstable_desc">Currently volume module is unstable on Android 14 and above. Try at your own risk.</string>
     <!-- Media Player -->
     <string name="cont_desc_media_player">Médialejátszó előnézet</string>
     <string name="media_player_preview_music_title">Zeneszám-cím</string>
@@ -814,6 +815,9 @@
     <string name="hide_ls_lock_icon_desc">A zárikon elrejtése a záróképernyőn</string>
     <string name="fixed_status_icons_title">Rögzített Állapotikonok</string>
     <string name="fixed_status_icons_desc">Az állapotikonok rögzített pozícióba kerülnek\nJónéhány ROM-on buggolást okoz</string>
+    <string name="ls_wallpaper_blur_title">Wallpaper Blur</string>
+    <string name="ls_wallpaper_blur_desc">Apply blur effect on lockscreen</string>
+    <string name="ls_wallpaper_blur_radius_title">Wallpaper Blur Intensity</string>
     <!-- Changelog -->
     <string name="activity_title_changelog">Változáslista</string>
     <string name="no_internet_connection">Nem sikerült csatlakozni a szerverhez!\nProbléma lehet az internetkapcsolattal, vagy a szerver jelenleg nem működik. Kérjük, próbálja újra később.</string>

@@ -28,7 +28,7 @@ import com.drdisagree.iconify.ui.utils.ViewBindingHelpers.setDrawable
 import com.drdisagree.iconify.utils.SystemUtils
 import com.drdisagree.iconify.utils.overlay.manager.QsShapeManager
 import com.drdisagree.iconify.utils.overlay.manager.QsShapePixelManager
-import com.drdisagree.iconify.xposed.modules.utils.ViewHelper.toPx
+import com.drdisagree.iconify.xposed.modules.extras.utils.ViewHelper.toPx
 
 class QsShapeAdapter(
     var context: Context,

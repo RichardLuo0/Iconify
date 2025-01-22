@@ -11,7 +11,6 @@ object BackupRestore {
         Shell.cmd("rm -rf " + Resources.BACKUP_DIR, "mkdir -p " + Resources.BACKUP_DIR).exec()
 
         backupFile(Resources.MODULE_DIR + "/system.prop")
-        backupFile(Resources.OVERLAY_DIR + "/IconifyComponentME.apk")
         backupFile(Resources.OVERLAY_DIR + "/IconifyComponentCR1.apk")
         backupFile(Resources.OVERLAY_DIR + "/IconifyComponentCR2.apk")
         backupFile(Resources.OVERLAY_DIR + "/IconifyComponentSIS.apk")
@@ -27,7 +26,6 @@ object BackupRestore {
 
     fun restoreFiles() {
         restoreFile("system.prop", Resources.TEMP_MODULE_DIR)
-        restoreFile("IconifyComponentME.apk", Resources.TEMP_MODULE_OVERLAY_DIR)
         restoreFile("IconifyComponentCR1.apk", Resources.TEMP_MODULE_OVERLAY_DIR)
         restoreFile("IconifyComponentCR2.apk", Resources.TEMP_MODULE_OVERLAY_DIR)
         restoreFile("IconifyComponentSIS.apk", Resources.TEMP_MODULE_OVERLAY_DIR)

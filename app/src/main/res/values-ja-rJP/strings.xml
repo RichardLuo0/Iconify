@@ -382,6 +382,7 @@
     <string name="toast_module_created">モジュールの作成に成功しました</string>
     <string name="read_carefully">よく読んでください！</string>
     <string name="volume_module_installation_guide">このオプションは内部ストレージのダウンロードフォルダに Magisk モジュールを作成します。Magisk で IconifyCompanion.zip という名前のモジュールをフラッシュしてください。新しいモジュールをインストール前に、毎回以前の Iconify Companion モジュール (もしインストールされていたら) をアンインストールして再起動して下さい。\n\n<b>注意:</b>\n• ROM をアップデートする前にモジュールをアンインストールしてください。\n• ROM を変更またはアップデートしたらモジュールを再度作成してください。\n• お使いの ROM 用に作成されてないモジュールをフラッシュしないでください。</string>
+    <string name="volume_module_unstable_desc">Currently volume module is unstable on Android 14 and above. Try at your own risk.</string>
     <!-- Media Player -->
     <string name="cont_desc_media_player">メディアプレーヤー プレビュー</string>
     <string name="media_player_preview_music_title">音楽のタイトル</string>
@@ -814,6 +815,9 @@
     <string name="hide_ls_lock_icon_desc">ロック画面でロックアイコンの表示を非表示にします</string>
     <string name="fixed_status_icons_title">ステータス アイコンを固定</string>
     <string name="fixed_status_icons_desc">ステータスアイコンを固定された位置に設定します\n一部の ROM でバグを起こす可能性があります</string>
+    <string name="ls_wallpaper_blur_title">Wallpaper Blur</string>
+    <string name="ls_wallpaper_blur_desc">Apply blur effect on lockscreen</string>
+    <string name="ls_wallpaper_blur_radius_title">Wallpaper Blur Intensity</string>
     <!-- Changelog -->
     <string name="activity_title_changelog">変更履歴</string>
     <string name="no_internet_connection">サーバーに接続できませんでした！\nインターネット接続に問題があるか、一時的にサーバーダウンしている可能性があります。あとでもう一度やり直してください。</string>

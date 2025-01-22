@@ -382,6 +382,7 @@
     <string name="toast_module_created">Mô-đun được tạo thành công</string>
     <string name="read_carefully">Đọc cẩn thận!</string>
     <string name="volume_module_installation_guide">This option will create a magisk module inside Download folder in your Internal Storage. Flash the module named IconifyCompanion.zip in Magisk. Always uninstall previous Iconify Companion module (if installed) and reboot before flashing new one.\n\n<b>Note:</b>\n• Uninstall the module before updating rom.\n• Recreate the module if you change or update rom.\n• Do not flash a module which wasn\'t created based on your rom.</string>
+    <string name="volume_module_unstable_desc">Currently volume module is unstable on Android 14 and above. Try at your own risk.</string>
     <!-- Media Player -->
     <string name="cont_desc_media_player">Xem trước trình phát đa phương tiện</string>
     <string name="media_player_preview_music_title">Tiêu đề âm nhạc</string>
@@ -814,6 +815,9 @@
     <string name="hide_ls_lock_icon_desc">Hide lock icon view on lockscreen</string>
     <string name="fixed_status_icons_title">Sửa biểu tượng trạng thái</string>
     <string name="fixed_status_icons_desc">Set status icons in fixed position\nMight be buggy on some rom</string>
+    <string name="ls_wallpaper_blur_title">Wallpaper Blur</string>
+    <string name="ls_wallpaper_blur_desc">Apply blur effect on lockscreen</string>
+    <string name="ls_wallpaper_blur_radius_title">Wallpaper Blur Intensity</string>
     <!-- Changelog -->
     <string name="activity_title_changelog">Nhật ký thay đổi</string>
     <string name="no_internet_connection">Không thể kết nối với máy chủ!\nCó thể có sự cố với kết nối internet của bạn hoặc máy chủ có thể ngừng hoạt động vào lúc này. Vui lòng thử lại sau.</string>

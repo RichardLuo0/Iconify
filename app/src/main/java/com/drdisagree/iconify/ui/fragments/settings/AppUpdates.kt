@@ -274,8 +274,11 @@ class AppUpdates : BaseFragment() {
 
                         binding.showChangelog.visibility = View.VISIBLE
                     } else {
-                        binding.updateTitle.text =
+                        binding.updateTitle.text = if (BuildConfig.DEBUG) {
+                            resources.getString(R.string.auto_update_disabled)
+                        } else {
                             resources.getString(R.string.already_up_to_date)
+                        }
                     }
 
                     binding.currentVersion.text =

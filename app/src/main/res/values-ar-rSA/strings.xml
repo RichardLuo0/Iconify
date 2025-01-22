@@ -382,6 +382,7 @@
     <string name="toast_module_created">تم إنشاء Module بنجاح</string>
     <string name="read_carefully">اقرأ بعناية!</string>
     <string name="volume_module_installation_guide">سيؤدي هذا الخيار إلى إنشاء إضافة Magisk داخل مجلد التنزيل في وحدة التخزين الداخلية. قم بتثبيت الإضافة المسماه بـIconifyCompanion.zip في Magisk. قم دائمًا بإلغاء تثبيت الإضافة السابقة لـIconify Companion (إذا كانت مثبتة) وأعد التشغيل قبل وتثبيت إضافة جديدة.\n\n<b> ملاحظة: </b>\n• قم بإلغاء تثبيت الإضافة قبل تحديث الروم.\n• أعد إنشاء الإضافة إذا قمت بتغيير أو تحديث الروم.\n• لا تقم بتثبيت الإضافة لم يتم إنشاؤها بناءً على الروم الخاص بك.</string>
+    <string name="volume_module_unstable_desc">Currently volume module is unstable on Android 14 and above. Try at your own risk.</string>
     <!-- Media Player -->
     <string name="cont_desc_media_player">معاينة مشغل الوسائط</string>
     <string name="media_player_preview_music_title">عنوان الموسيقى</string>
@@ -814,6 +815,9 @@
     <string name="hide_ls_lock_icon_desc">إخفاء عرض رمز القفل العلوي على شاشة القفل</string>
     <string name="fixed_status_icons_title">أيقونات الحالة ثابتة</string>
     <string name="fixed_status_icons_desc">قم بتعيين أيقونات الحالة في موضع ثابت\n قد يكون هناك خطأ في بعض الرومات</string>
+    <string name="ls_wallpaper_blur_title">Wallpaper Blur</string>
+    <string name="ls_wallpaper_blur_desc">Apply blur effect on lockscreen</string>
+    <string name="ls_wallpaper_blur_radius_title">Wallpaper Blur Intensity</string>
     <!-- Changelog -->
     <string name="activity_title_changelog">التغيير</string>
     <string name="no_internet_connection">تعذر الاتصال بالخادم!\n قد تكون هناك مشكلة في الاتصال بالإنترنت أو ربما يكون الخادم معطلاً في الوقت الحالي. الرجاء معاودة المحاولة في وقت لاحق.</string>

@@ -20,6 +20,9 @@ object Const {
         SETTINGS_PACKAGE
     )
 
+    // 3rd party packages
+    const val COLORBLENDR_PACKAGE = "com.drdisagree.colorblendr"
+
     // Github repo
     const val GITHUB_REPO = "https://github.com/Mahmud0808/Iconify"
 
@@ -36,6 +39,9 @@ object Const {
     // Parse changelogs
     const val CHANGELOG_URL = "https://api.github.com/repos/Mahmud0808/Iconify/releases/tags/v"
 
+    // ColorBlender URL
+    const val COLORBLENDR_URL = "https://github.com/Mahmud0808/ColorBlendr"
+
     // Fragment variables
     const val TRANSITION_DELAY = 120
     const val FRAGMENT_BACK_BUTTON_DELAY = 50
@@ -50,6 +56,10 @@ object Const {
     // Shell commands
     const val RESET_LOCKSCREEN_CLOCK_COMMAND =
         "settings put secure lock_screen_custom_clock_face default"
+    const val ENABLE_DYNAMIC_CLOCK_COMMAND =
+        "settings put secure lockscreen_use_double_line_clock 1"
+    const val DISABLE_DYNAMIC_CLOCK_COMMAND =
+        "settings put secure lockscreen_use_double_line_clock 0"
 
     // AI Plugin
     const val AI_PLUGIN_PACKAGE = "it.dhd.oxygencustomizer.aiplugin"
@@ -59,6 +69,7 @@ object Const {
     const val ACTION_HOOK_CHECK_REQUEST = "${BuildConfig.APPLICATION_ID}.ACTION_HOOK_CHECK_REQUEST"
     const val ACTION_HOOK_CHECK_RESULT = "${BuildConfig.APPLICATION_ID}.ACTION_HOOK_CHECK_RESULT"
     const val ACTION_BOOT_COMPLETED = "${BuildConfig.APPLICATION_ID}.ACTION_BOOT_COMPLETED"
+    const val ACTION_LS_CLOCK_INFLATED = "${BuildConfig.APPLICATION_ID}.ACTION_LS_CLOCK_INFLATED"
     const val ACTION_WEATHER_INFLATED = "${BuildConfig.APPLICATION_ID}.ACTION_WEATHER_INFLATED"
     const val ACTION_EXTRACT_SUBJECT: String = "$AI_PLUGIN_PACKAGE.ACTION_EXTRACT_SUBJECT"
     const val ACTION_EXTRACT_SUCCESS: String = "$AI_PLUGIN_PACKAGE.ACTION_EXTRACT_SUCCESS"

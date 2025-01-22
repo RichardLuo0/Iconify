@@ -382,6 +382,7 @@
     <string name="toast_module_created">Модуль успішно створено</string>
     <string name="read_carefully">Уважно прочитайте!</string>
     <string name="volume_module_installation_guide">Цей параметр створить модуль Magisk у теці «Завантаження».Прошийте модуль з назвою IconifyCompanion.zip у Magisk. Завжди видаляйте попередній модуль Iconify Companion (якщо він встановлений) і перезавантажуйтеся перед прошивкою нового.\n\n<b>Примітка:</b>\n• Видаліть модуль перед оновленням прошивки.\n• Перезавантажте модуль, якщо ви змінили або оновили прошивку.\n• Не прошивайте модуль, який не був створений для вашої прошивки.</string>
+    <string name="volume_module_unstable_desc">Currently volume module is unstable on Android 14 and above. Try at your own risk.</string>
     <!-- Media Player -->
     <string name="cont_desc_media_player">Передперегляд медіаплеєра</string>
     <string name="media_player_preview_music_title">Назва пісні</string>
@@ -814,6 +815,9 @@
     <string name="hide_ls_lock_icon_desc">Приховує значок блокування на екрані блокування</string>
     <string name="fixed_status_icons_title">Фіксовані значки рядка стану</string>
     <string name="fixed_status_icons_desc">Встановлює значки рядка стану у фіксоване положення\nМоже бути баг на деяких прошивках</string>
+    <string name="ls_wallpaper_blur_title">Wallpaper Blur</string>
+    <string name="ls_wallpaper_blur_desc">Apply blur effect on lockscreen</string>
+    <string name="ls_wallpaper_blur_radius_title">Wallpaper Blur Intensity</string>
     <!-- Changelog -->
     <string name="activity_title_changelog">Журнал змін</string>
     <string name="no_internet_connection">Не вдалося з\'єднатися із сервером!\nМожливо проблема з вашим інтернет-з\'єднанням або сервер зараз не працює. Будь ласка, спробуйте пізніше.</string>

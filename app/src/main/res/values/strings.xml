@@ -488,6 +488,7 @@
     <string name="oneplus_qs_header_fade_level">Fade Level</string>
     <string name="oneplus_qs_header_top_margin">Top Margin</string>
     <string name="oneplus_qs_header_expansion_y">Expansion Amount</string>
+    <string name="oneplus_qs_header_gap">Expanded Gap</string>
 
     <!-- Lockscreen Widgets -->
     <string name="lockscreen_widgets_title">Lockscreen Widgets</string>
@@ -852,6 +853,8 @@
     <string name="hide_ls_carrier_desc">Hide carrier name on lockscreen</string>
     <string name="hide_ls_statusbar_title">Hide LS Statusbar</string>
     <string name="hide_ls_statusbar_desc">Hide statusbar on lockscreen</string>
+    <string name="sb_swap_wifi_cellular_title">Swap Wifi and Cellular</string>
+    <string name="sb_swap_wifi_cellular_desc">Swap wifi and cellular icons</string>
 
     <!-- Xposed Others -->
     <string name="qs_header">QS Header</string>
@@ -881,6 +884,7 @@
     <string name="view_changelog">View Changelog</string>
     <string name="hide_changelog">Hide Changelog</string>
     <string name="already_up_to_date">You are already up to date.</string>
+    <string name="auto_update_disabled">Auto update is disabled for debug build.</string>
     <string name="current_version">Current Version:</string>
     <string name="latest_version">Latest Version:</string>
     <string name="update_checking_failed">Failed to check for update!</string>

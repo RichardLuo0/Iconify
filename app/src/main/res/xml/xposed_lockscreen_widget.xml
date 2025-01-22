@@ -256,6 +256,18 @@
 
         <com.drdisagree.iconify.ui.preferences.SliderPreference
             android:dependency="lockscreen_widgets_enabled"
+            android:key="lockscreen_widgets_top_margin"
+            android:title="@string/lockscreen_clock_top_margin_title"
+            app:defaultValue="0"
+            app:iconSpaceReserved="false"
+            app:maxVal="400"
+            app:minVal="-100"
+            app:showResetButton="true"
+            app:tickInterval="1"
+            app:valueFormat="dp" />
+
+        <com.drdisagree.iconify.ui.preferences.SliderPreference
+            android:dependency="lockscreen_widgets_enabled"
             android:key="lockscreen_widgets_bottom_margin"
             android:title="@string/lockscreen_clock_bottom_margin_title"
             app:defaultValue="0"

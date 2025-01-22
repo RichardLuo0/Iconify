@@ -141,12 +141,14 @@ object Preferences {
     const val LOCKSCREEN_WIDGETS_SMALL_ICON_ACTIVE: String = "lockscreen_widgets_small_icon_active"
     const val LOCKSCREEN_WIDGETS_SMALL_ICON_INACTIVE: String =
         "lockscreen_widgets_small_icon_inactive"
+    const val LOCKSCREEN_WIDGETS_TOP_MARGIN: String = "lockscreen_widgets_top_margin"
     const val LOCKSCREEN_WIDGETS_BOTTOM_MARGIN: String = "lockscreen_widgets_bottom_margin"
     const val LOCKSCREEN_WIDGETS_SCALE: String = "lockscreen_widgets_scale"
     const val FIXED_STATUS_ICONS_SWITCH = "xposed_fixedstatusicons"
     const val FIXED_STATUS_ICONS_SIDEMARGIN = "xposed_fixedstatusiconssidemargin"
     const val FIXED_STATUS_ICONS_TOPMARGIN = "xposed_fixedstatusiconstopmargin"
     const val HIDE_LOCKSCREEN_STATUSBAR = "xposed_hidelockscreenstatusbar"
+    const val STATUSBAR_SWAP_WIFI_CELLULAR = "xposed_statusbarswapwificellular"
     const val SB_CLOCK_SIZE_SWITCH = "xposed_sbclocksizeswitch"
     const val SB_CLOCK_SIZE = "xposed_sbclocksize"
     const val COLORED_STATUSBAR_ICON = "xposed_coloredstatusbaricon"
@@ -226,8 +228,13 @@ object Preferences {
 
     // Xposed view tags
     const val ICONIFY_HEADER_CLOCK_TAG = "iconify_header_clock"
+    const val ICONIFY_LOCKSCREEN_CONTAINER_TAG = "iconify_lockscreen_container"
     const val ICONIFY_LOCKSCREEN_CLOCK_TAG = "iconify_lockscreen_clock"
+    const val ICONIFY_LOCKSCREEN_WEATHER_TAG = "iconify_lockscreen_weather"
+    const val ICONIFY_LOCKSCREEN_WIDGET_TAG = "iconify_lockscreen_widget"
     const val ICONIFY_DEPTH_WALLPAPER_TAG = "iconify_depth_wallpaper"
+    const val ICONIFY_DEPTH_WALLPAPER_FOREGROUND_TAG = "iconify_depth_wallpaper_foreground"
+    const val ICONIFY_DEPTH_WALLPAPER_BACKGROUND_TAG = "iconify_depth_wallpaper_background"
     const val ICONIFY_CHARGING_ICON_TAG = "iconify_charging_icon"
     const val ICONIFY_QS_HEADER_CONTAINER_TAG = "iconify_qs_header_container"
     const val ICONIFY_QS_HEADER_CONTAINER_SHADE_TAG = "iconify_qs_header_container_shade"

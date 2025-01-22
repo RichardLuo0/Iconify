@@ -11,8 +11,7 @@ import com.drdisagree.iconify.IExtractSubjectCallback
 import com.drdisagree.iconify.IRootProviderProxy
 import com.drdisagree.iconify.R
 import com.drdisagree.iconify.utils.FileUtils
-import com.drdisagree.iconify.xposed.modules.utils.BitmapSubjectSegmenter
-import com.drdisagree.iconify.xposed.modules.utils.BitmapSubjectSegmenter.SegmentResultListener
+import com.drdisagree.iconify.xposed.modules.extras.utils.BitmapSubjectSegmenter
 import com.google.android.gms.common.moduleinstall.ModuleAvailabilityResponse
 import com.topjohnwu.superuser.Shell
 import java.io.File
@@ -98,7 +97,7 @@ class RootProviderProxy : Service() {
 
                 bitmapSubjectSegmenter.segmentSubject(
                     input,
-                    object : SegmentResultListener {
+                    object : BitmapSubjectSegmenter.SegmentResultListener {
                         override fun onStart() {
                             callback.onStart(getString(R.string.depth_wallpaper_subject_extraction_started))
                         }

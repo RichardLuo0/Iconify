@@ -30,7 +30,7 @@ import com.drdisagree.iconify.utils.AppUtils
 import com.drdisagree.iconify.utils.FileUtils.getRealPath
 import com.drdisagree.iconify.utils.FileUtils.launchFilePicker
 import com.drdisagree.iconify.utils.FileUtils.moveToIconifyHiddenDir
-import com.drdisagree.iconify.xposed.modules.utils.BitmapSubjectSegmenter
+import com.drdisagree.iconify.xposed.modules.extras.utils.BitmapSubjectSegmenter
 import com.google.android.gms.common.moduleinstall.ModuleAvailabilityResponse
 
 class DepthWallpaper : ControlledPreferenceFragmentCompat() {

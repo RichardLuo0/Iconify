@@ -2,9 +2,7 @@ package com.drdisagree.iconify.ui.fragments.settings
 
 import android.content.ComponentName
 import android.content.DialogInterface
-import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -12,7 +10,9 @@ import android.widget.Toast
 import com.drdisagree.iconify.Iconify.Companion.appContext
 import com.drdisagree.iconify.Iconify.Companion.appContextLocale
 import com.drdisagree.iconify.R
-import com.drdisagree.iconify.common.Const
+import com.drdisagree.iconify.common.Const.GITHUB_REPO
+import com.drdisagree.iconify.common.Const.ICONIFY_CROWDIN
+import com.drdisagree.iconify.common.Const.TELEGRAM_GROUP
 import com.drdisagree.iconify.common.Preferences.APP_ICON
 import com.drdisagree.iconify.common.Preferences.APP_LANGUAGE
 import com.drdisagree.iconify.common.Preferences.APP_THEME
@@ -24,6 +24,7 @@ import com.drdisagree.iconify.config.RPrefs
 import com.drdisagree.iconify.ui.base.ControlledPreferenceFragmentCompat
 import com.drdisagree.iconify.ui.dialogs.LoadingDialog
 import com.drdisagree.iconify.ui.preferences.PreferenceMenu
+import com.drdisagree.iconify.utils.AppUtils.openUrl
 import com.drdisagree.iconify.utils.AppUtils.restartApplication
 import com.drdisagree.iconify.utils.CacheUtils.clearCache
 import com.drdisagree.iconify.utils.SystemUtils.disableBlur
@@ -135,28 +136,25 @@ class Settings : ControlledPreferenceFragmentCompat() {
         }
 
         findPreference<PreferenceMenu>("iconifyGitHub")?.setOnPreferenceClickListener {
-            startActivity(
-                Intent(Intent.ACTION_VIEW).apply {
-                    data = Uri.parse(Const.GITHUB_REPO)
-                }
+            openUrl(
+                requireActivity(),
+                GITHUB_REPO
             )
             true
         }
 
         findPreference<PreferenceMenu>("iconifyTelegram")?.setOnPreferenceClickListener {
-            startActivity(
-                Intent(Intent.ACTION_VIEW).apply {
-                    data = Uri.parse(Const.TELEGRAM_GROUP)
-                }
+            openUrl(
+                requireActivity(),
+                TELEGRAM_GROUP
             )
             true
         }
 
         findPreference<PreferenceMenu>("iconifyTranslate")?.setOnPreferenceClickListener {
-            startActivity(
-                Intent(Intent.ACTION_VIEW).apply {
-                    data = Uri.parse(Const.ICONIFY_CROWDIN)
-                }
+            openUrl(
+                requireActivity(),
+                ICONIFY_CROWDIN
             )
             true
         }

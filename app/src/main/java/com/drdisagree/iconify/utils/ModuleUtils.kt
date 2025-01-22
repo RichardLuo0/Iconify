@@ -11,6 +11,7 @@ import com.drdisagree.iconify.common.Const.SYSTEMUI_PACKAGE
 import com.drdisagree.iconify.common.Dynamic.skippedInstallation
 import com.drdisagree.iconify.common.Preferences.COLOR_ACCENT_PRIMARY
 import com.drdisagree.iconify.common.Preferences.COLOR_ACCENT_SECONDARY
+import com.drdisagree.iconify.common.Preferences.FIRST_INSTALL
 import com.drdisagree.iconify.common.Preferences.RESTART_SYSUI_AFTER_BOOT
 import com.drdisagree.iconify.common.References.ICONIFY_COLOR_ACCENT_PRIMARY
 import com.drdisagree.iconify.common.References.ICONIFY_COLOR_ACCENT_SECONDARY
@@ -145,8 +146,11 @@ object ModuleUtils {
         val postExec = StringBuilder()
         var primaryColorEnabled = false
         var secondaryColorEnabled = false
-        val prefs = appContext.getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE)
-        val map = prefs.all
+        val firstInstall = getBoolean(FIRST_INSTALL, true)
+        val map = appContext.getSharedPreferences(
+            BuildConfig.APPLICATION_ID,
+            Context.MODE_PRIVATE
+        ).all
 
         for ((key, value) in map) {
             if (value is Boolean && value && key.startsWith("fabricated")) {
@@ -172,27 +176,27 @@ object ModuleUtils {
             }
         }
 
-        if (!primaryColorEnabled && shouldUseDefaultColors() && !skippedInstallation) {
-            postExec.append("cmd overlay fabricate --target android --name IconifyComponentcolorAccentPrimary android:color/holo_blue_light 0x1c $ICONIFY_COLOR_ACCENT_PRIMARY\n")
-            postExec.append("cmd overlay enable --user current com.android.shell:IconifyComponentcolorAccentPrimary\n")
-            postExec.append("cmd overlay fabricate --target android --name IconifyComponentcolorAccentPrimaryLight android:color/holo_green_light 0x1c $ICONIFY_COLOR_ACCENT_PRIMARY\n")
-            postExec.append("cmd overlay enable --user current com.android.shell:IconifyComponentcolorAccentPrimaryLight\n")
-        }
-
-        if (!secondaryColorEnabled && shouldUseDefaultColors() && !skippedInstallation) {
-            postExec.append("cmd overlay fabricate --target android --name IconifyComponentcolorAccentSecondary android:color/holo_blue_dark 0x1c $ICONIFY_COLOR_ACCENT_SECONDARY\n")
-            postExec.append("cmd overlay enable --user current com.android.shell:IconifyComponentcolorAccentSecondary\n")
-            postExec.append("cmd overlay fabricate --target android --name IconifyComponentcolorAccentSecondaryLight android:color/holo_green_dark 0x1c $ICONIFY_COLOR_ACCENT_SECONDARY\n")
-            postExec.append("cmd overlay enable --user current com.android.shell:IconifyComponentcolorAccentSecondaryLight\n")
+        if (!firstInstall && shouldUseDefaultColors() && !skippedInstallation) {
+            if (!primaryColorEnabled) {
+                postExec.append("cmd overlay fabricate --target android --name IconifyComponentcolorAccentPrimary android:color/holo_blue_light 0x1c $ICONIFY_COLOR_ACCENT_PRIMARY\n")
+                postExec.append("cmd overlay enable --user current com.android.shell:IconifyComponentcolorAccentPrimary\n")
+                postExec.append("cmd overlay fabricate --target android --name IconifyComponentcolorAccentPrimaryLight android:color/holo_green_light 0x1c $ICONIFY_COLOR_ACCENT_PRIMARY\n")
+                postExec.append("cmd overlay enable --user current com.android.shell:IconifyComponentcolorAccentPrimaryLight\n")
+            }
+            if (!secondaryColorEnabled) {
+                postExec.append("cmd overlay fabricate --target android --name IconifyComponentcolorAccentSecondary android:color/holo_blue_dark 0x1c $ICONIFY_COLOR_ACCENT_SECONDARY\n")
+                postExec.append("cmd overlay enable --user current com.android.shell:IconifyComponentcolorAccentSecondary\n")
+                postExec.append("cmd overlay fabricate --target android --name IconifyComponentcolorAccentSecondaryLight android:color/holo_green_dark 0x1c $ICONIFY_COLOR_ACCENT_SECONDARY\n")
+                postExec.append("cmd overlay enable --user current com.android.shell:IconifyComponentcolorAccentSecondaryLight\n")
+            }
         }
 
         Shell.cmd("printf '$postExec' > $TEMP_MODULE_DIR/post-exec.sh").exec()
     }
 
     private fun shouldUseDefaultColors(): Boolean {
-        return OverlayUtils.isOverlayDisabled("IconifyComponentAMAC.overlay") && OverlayUtils.isOverlayDisabled(
-            "IconifyComponentAMGC.overlay"
-        ) && OverlayUtils.isOverlayDisabled("IconifyComponentME.overlay")
+        return OverlayUtils.isOverlayDisabled("IconifyComponentAMAC.overlay") &&
+                OverlayUtils.isOverlayDisabled("IconifyComponentAMGC.overlay")
     }
 
     fun moduleExists(): Boolean {

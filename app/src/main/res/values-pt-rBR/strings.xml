@@ -382,6 +382,7 @@
     <string name="toast_module_created">Módulo criado com sucesso</string>
     <string name="read_carefully">Leia cuidadosamente!</string>
     <string name="volume_module_installation_guide">Esta opção criará um módulo magisk dentro da pasta Download em seu armazenamento interno. Flash o módulo chamado IconifyCompanion.zip no Magisk. Sempre desinstale o módulo Iconify Companion anterior (se instalado) e reinicie antes de flashar o novo.\n\n<b>Observação:</b>\n• Desinstale o módulo antes de atualizar a ROM.\n• Recrie o módulo se você alterar ou atualize a rom.\n• Não faça o flash de um módulo que não tenha sido criado com base na sua ROM.</string>
+    <string name="volume_module_unstable_desc">Currently volume module is unstable on Android 14 and above. Try at your own risk.</string>
     <!-- Media Player -->
     <string name="cont_desc_media_player">Visualização do reprodutor de mídia</string>
     <string name="media_player_preview_music_title">Título da música</string>
@@ -814,6 +815,9 @@
     <string name="hide_ls_lock_icon_desc">Oculte a visualização do ícone de cadeado na tela de bloqueio</string>
     <string name="fixed_status_icons_title">Ícones de status fixos</string>
     <string name="fixed_status_icons_desc">Defina ícones de status em posição fixa.\nPode haver bugs em algumas ROMs.</string>
+    <string name="ls_wallpaper_blur_title">Wallpaper Blur</string>
+    <string name="ls_wallpaper_blur_desc">Apply blur effect on lockscreen</string>
+    <string name="ls_wallpaper_blur_radius_title">Wallpaper Blur Intensity</string>
     <!-- Changelog -->
     <string name="activity_title_changelog">Registro de alterações</string>
     <string name="no_internet_connection">Não foi possível conectar ao servidor!\nPode haver um problema com sua conexão com a internet ou o servidor pode estar inativo neste momento. Por favor, tente novamente mais tarde.</string>

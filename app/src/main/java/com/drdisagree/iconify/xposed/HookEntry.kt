@@ -13,13 +13,13 @@ import com.drdisagree.iconify.BuildConfig
 import com.drdisagree.iconify.IRootProviderProxy
 import com.drdisagree.iconify.R
 import com.drdisagree.iconify.common.Const.FRAMEWORK_PACKAGE
-import com.drdisagree.iconify.xposed.modules.utils.toolkit.XposedHook.Companion.findClass
-import com.drdisagree.iconify.xposed.modules.utils.toolkit.hookMethod
+import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.XposedHook.Companion.findClass
+import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.hookMethod
+import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.log
 import com.drdisagree.iconify.xposed.utils.BootLoopProtector
 import com.drdisagree.iconify.xposed.utils.SystemUtils
 import com.drdisagree.iconify.xposed.utils.XPrefs
 import com.drdisagree.iconify.xposed.utils.XPrefs.Xprefs
-import de.robv.android.xposed.XposedBridge.log
 import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -68,7 +68,7 @@ class HookEntry : ServiceConnection {
                                 CompletableFuture.runAsync { waitForXprefsLoad(loadPackageParam) }
                             }
                         } catch (throwable: Throwable) {
-                            log(TAG + throwable)
+                            log(this@HookEntry, throwable)
                         }
                     }
             }
@@ -97,7 +97,7 @@ class HookEntry : ServiceConnection {
                                     waitForXprefsLoad(loadPackageParam)
                                 }
                             } catch (throwable: Throwable) {
-                                log(TAG + throwable)
+                                log(this@HookEntry, throwable)
                             }
                         }
                 }
@@ -132,18 +132,18 @@ class HookEntry : ServiceConnection {
                 try {
                     instance.updatePrefs()
                 } catch (throwable: Throwable) {
-                    log(TAG + "Failed to update prefs in ${mod.name}")
-                    log(TAG + throwable)
+                    log(this@HookEntry, "Failed to update prefs in ${mod.name}")
+                    log(this@HookEntry, throwable)
                 }
 
                 instance.handleLoadPackage(loadPackageParam)
                 runningMods.add(instance)
             } catch (invocationTargetException: InvocationTargetException) {
-                log(TAG + "Start Error Dump - Occurred in ${mod.name}")
-                log(TAG + invocationTargetException.cause)
+                log(this@HookEntry, "Start Error Dump - Occurred in ${mod.name}")
+                log(this@HookEntry, invocationTargetException.cause)
             } catch (throwable: Throwable) {
-                log(TAG + "Start Error Dump - Occurred in ${mod.name}")
-                log(TAG + throwable)
+                log(this@HookEntry, "Start Error Dump - Occurred in ${mod.name}")
+                log(this@HookEntry, throwable)
             }
         }
     }
@@ -203,7 +203,7 @@ class HookEntry : ServiceConnection {
                 Context.BIND_AUTO_CREATE or Context.BIND_ADJUST_WITH_ACTIVITY
             )
         } catch (throwable: Throwable) {
-            log(TAG + throwable)
+            log(this@HookEntry, throwable)
         }
     }
 
@@ -231,8 +231,6 @@ class HookEntry : ServiceConnection {
     }
 
     companion object {
-        private val TAG = "Iconify - ${HookEntry::class.java.simpleName}: "
-
         @SuppressLint("StaticFieldLeak")
         var instance: HookEntry? = null
         val runningMods = ArrayList<ModPack>()

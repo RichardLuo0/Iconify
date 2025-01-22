@@ -7,6 +7,7 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.splashscreen.SplashScreen
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import com.drdisagree.iconify.Iconify.Companion.appContext
 import com.drdisagree.iconify.common.Preferences.XPOSED_ONLY_MODE
 import com.drdisagree.iconify.config.RPrefs
 import com.drdisagree.iconify.ui.activities.MainActivity
@@ -15,7 +16,7 @@ import com.drdisagree.iconify.utils.ModuleUtils
 import com.drdisagree.iconify.utils.RootUtils
 import com.drdisagree.iconify.utils.SystemUtils
 import com.drdisagree.iconify.utils.overlay.OverlayUtils
-import com.drdisagree.iconify.xposed.modules.utils.BitmapSubjectSegmenter
+import com.drdisagree.iconify.xposed.modules.extras.utils.BitmapSubjectSegmenter
 import com.google.android.material.color.DynamicColors
 import com.topjohnwu.superuser.Shell
 
@@ -45,13 +46,13 @@ class SplashActivity : AppCompatActivity() {
 
             val intent: Intent =
                 if (SKIP_TO_HOMEPAGE_FOR_TESTING ||
-                    isRooted &&
-                    isModuleProperlyInstalled &&
-                    isVersionCodeCorrect
+                    (isRooted &&
+                            isModuleProperlyInstalled &&
+                            isVersionCodeCorrect)
                 ) {
                     keepShowing = false
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-                        BitmapSubjectSegmenter(this@SplashActivity)
+                        BitmapSubjectSegmenter(appContext)
                     }
                     Intent(this@SplashActivity, MainActivity::class.java)
                 } else {

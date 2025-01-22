@@ -16,7 +16,6 @@ import com.airbnb.lottie.LottieCompositionFactory
 import com.drdisagree.iconify.R
 import com.drdisagree.iconify.common.Dynamic
 import com.drdisagree.iconify.common.Preferences
-import com.drdisagree.iconify.common.Preferences.MONET_ENGINE_SWITCH
 import com.drdisagree.iconify.common.Preferences.ON_HOME_PAGE
 import com.drdisagree.iconify.common.Resources.searchConfiguration
 import com.drdisagree.iconify.common.Resources.searchableFragments
@@ -101,11 +100,6 @@ class MainActivity : BaseActivity(),
                     RPrefs.putBoolean("fabricated$overlay", true)
                 }
             }
-
-            RPrefs.putBoolean(
-                MONET_ENGINE_SWITCH,
-                enabledOverlays.contains("IconifyComponentME.overlay")
-            )
         }
     }
 

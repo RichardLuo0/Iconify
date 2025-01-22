@@ -26,4 +26,10 @@
         android:title="@string/colored_statusbar_icon_title"
         app:iconSpaceReserved="false" />
 
+    <com.drdisagree.iconify.ui.preferences.SwitchPreference
+        android:key="xposed_statusbarswapwificellular"
+        android:summary="@string/sb_swap_wifi_cellular_desc"
+        android:title="@string/sb_swap_wifi_cellular_title"
+        app:iconSpaceReserved="false" />
+
 </PreferenceScreen>

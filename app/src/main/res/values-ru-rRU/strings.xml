@@ -227,7 +227,7 @@
     <string name="icon_mask_style_stretched">Растянутый</string>
     <string name="icon_mask_style_tapered_rectangle">Скошенный прямоугольник</string>
     <string name="icon_mask_style_vessel">Ваза</string>
-    <string name="icon_mask_style_rice_rohie_meow">Rohie Meow</string>
+    <string name="icon_mask_style_rice_rohie_meow">Кошка</string>
     <string name="icon_mask_style_force_round">Только круг</string>
     <!-- Color Engine -->
     <string name="activity_title_basic_colors">Выбор цвета</string>
@@ -382,6 +382,7 @@
     <string name="toast_module_created">Модуль успешно создан</string>
     <string name="read_carefully">Прочитайте внимательно!</string>
     <string name="volume_module_installation_guide">Эта опция создаст Magisk модуль в папке \"Загрузки\". Установите этот модуль (IconifyCompanion.zip) в Magisk. Всегда удаляйте прошлую версию IconifyCompanion и выполняйте перезагрузку перед установкой новой версии. \n\n&lt;b&gt;Заметки:\n• Удалите модуль перед обновлением прошивки.\n• Пересоздайте модуль после обновления или смены прошивки.\n• Не устанавливайте модуль, созданный не для вашей прошивки.</string>
+    <string name="volume_module_unstable_desc">Currently volume module is unstable on Android 14 and above. Try at your own risk.</string>
     <!-- Media Player -->
     <string name="cont_desc_media_player">Превью медиаплеера</string>
     <string name="media_player_preview_music_title">Название трека</string>
@@ -814,6 +815,9 @@
     <string name="hide_ls_lock_icon_desc">Скрыть иконку блокировки на экране блокировки</string>
     <string name="fixed_status_icons_title">Фиксированные иконки строки состояния</string>
     <string name="fixed_status_icons_desc">Установить значки состояния в фиксированном положении\nВ некоторых прошивках могут быть ошибки</string>
+    <string name="ls_wallpaper_blur_title">Wallpaper Blur</string>
+    <string name="ls_wallpaper_blur_desc">Apply blur effect on lockscreen</string>
+    <string name="ls_wallpaper_blur_radius_title">Wallpaper Blur Intensity</string>
     <!-- Changelog -->
     <string name="activity_title_changelog">Журнал изменеий</string>
     <string name="no_internet_connection">Не удалось подключится к серверу!\nЭто может быть вызвано проблемами с интернетом или доступностью серверов. Пожалуйста, попытайтесь снова позже.</string>

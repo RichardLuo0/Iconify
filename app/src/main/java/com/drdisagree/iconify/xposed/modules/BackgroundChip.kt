@@ -70,21 +70,25 @@ import com.drdisagree.iconify.common.Preferences.HEADER_CLOCK_SWITCH
 import com.drdisagree.iconify.common.Preferences.HIDE_STATUS_ICONS_SWITCH
 import com.drdisagree.iconify.xposed.HookRes.Companion.resParams
 import com.drdisagree.iconify.xposed.ModPack
-import com.drdisagree.iconify.xposed.modules.utils.StatusBarClock
-import com.drdisagree.iconify.xposed.modules.utils.StatusBarClock.setClockGravity
-import com.drdisagree.iconify.xposed.modules.utils.ViewHelper.toPx
-import com.drdisagree.iconify.xposed.modules.utils.toolkit.XposedHook.Companion.findClass
-import com.drdisagree.iconify.xposed.modules.utils.toolkit.hookLayout
-import com.drdisagree.iconify.xposed.modules.utils.toolkit.hookMethod
-import com.drdisagree.iconify.xposed.modules.views.ChipDrawable
-import com.drdisagree.iconify.xposed.modules.views.ChipDrawable.GradientDirection.Companion.toIndex
+import com.drdisagree.iconify.xposed.modules.extras.utils.MyConstraintSet.Companion.applyTo
+import com.drdisagree.iconify.xposed.modules.extras.utils.MyConstraintSet.Companion.clone
+import com.drdisagree.iconify.xposed.modules.extras.utils.MyConstraintSet.Companion.connect
+import com.drdisagree.iconify.xposed.modules.extras.utils.MyConstraintSet.Companion.constraintSetInstance
+import com.drdisagree.iconify.xposed.modules.extras.utils.StatusBarClock
+import com.drdisagree.iconify.xposed.modules.extras.utils.StatusBarClock.setClockGravity
+import com.drdisagree.iconify.xposed.modules.extras.utils.ViewHelper.toPx
+import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.XposedHook.Companion.findClass
+import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.callMethod
+import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.getField
+import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.getStaticField
+import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.hookLayout
+import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.hookMethod
+import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.log
+import com.drdisagree.iconify.xposed.modules.extras.views.ChipDrawable
+import com.drdisagree.iconify.xposed.modules.extras.views.ChipDrawable.GradientDirection.Companion.toIndex
 import com.drdisagree.iconify.xposed.utils.XPrefs.Xprefs
 import com.drdisagree.iconify.xposed.utils.XPrefs.XprefsIsInitialized
-import de.robv.android.xposed.XposedBridge.log
-import de.robv.android.xposed.XposedHelpers.callMethod
 import de.robv.android.xposed.XposedHelpers.callStaticMethod
-import de.robv.android.xposed.XposedHelpers.getObjectField
-import de.robv.android.xposed.XposedHelpers.getStaticObjectField
 import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam
 
 @SuppressLint("DiscouragedApi")
@@ -274,8 +278,7 @@ class BackgroundChip(context: Context) : ModPack(context) {
                 mCenterClockView = StatusBarClock.getCenterClockView(mContext, param)
                 mRightClockView = StatusBarClock.getRightClockView(mContext, param)
 
-                (getObjectField(
-                    param.thisObject,
+                (param.thisObject.getField(
                     "mStatusBar"
                 ) as ViewGroup).addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
                     updateStatusBarClock(false)
@@ -285,10 +288,7 @@ class BackgroundChip(context: Context) : ModPack(context) {
 
                 if (mShowSBClockBg) {
                     try {
-                        val mStatusBar = getObjectField(
-                            param.thisObject,
-                            "mStatusBar"
-                        ) as FrameLayout
+                        val mStatusBar = param.thisObject.getField("mStatusBar") as FrameLayout
 
                         val statusBarStartSideContent =
                             mStatusBar.findViewById<FrameLayout>(
@@ -323,7 +323,7 @@ class BackgroundChip(context: Context) : ModPack(context) {
                             Gravity.START or Gravity.CENTER
                         statusBarStartSideExceptHeadsUp.requestLayout()
                     } catch (throwable: Throwable) {
-                        log(TAG + throwable)
+                        log(this@BackgroundChip, throwable)
                     }
                 }
             }
@@ -405,50 +405,43 @@ class BackgroundChip(context: Context) : ModPack(context) {
             }
         } else if (header != null && constraintLayoutId != -1) {
             try {
-                val constraintSetClass =
-                    findClass("androidx.constraintlayout.widget.ConstraintSet")!!
-                val mConstraintSet = constraintSetClass.getDeclaredConstructor().newInstance()
+                constraintSetInstance?.apply {
+                    clone(header!!)
+                    connect(
+                        constraintLayoutId,
+                        ConstraintSet.TOP,
+                        ConstraintSet.PARENT_ID,
+                        ConstraintSet.TOP,
+                        0
+                    )
+                    connect(
+                        constraintLayoutId,
+                        ConstraintSet.END,
+                        ConstraintSet.PARENT_ID,
+                        ConstraintSet.END,
+                        0
+                    )
+                    applyTo(header!!)
+                }
 
-                callMethod(mConstraintSet, "clone", header)
+                mQsStatusIconsContainer
+                    .callMethod("getLayoutParams")
+                    .callMethod(
+                        "setMargins",
+                        0,
+                        mContext.toPx(topMarginStatusIcons),
+                        0,
+                        0
+                    )
 
-                callMethod(
-                    mConstraintSet,
-                    "connect",
-                    constraintLayoutId,
-                    ConstraintSet.TOP,
-                    ConstraintSet.PARENT_ID,
-                    ConstraintSet.TOP,
-                    0
-                )
-
-                callMethod(
-                    mConstraintSet,
-                    "connect",
-                    constraintLayoutId,
-                    ConstraintSet.END,
-                    ConstraintSet.PARENT_ID,
-                    ConstraintSet.END,
-                    0
-                )
-
-                callMethod(mConstraintSet, "applyTo", header)
-
-                callMethod(
-                    callMethod(mQsStatusIconsContainer, "getLayoutParams"),
-                    "setMargins",
-                    0,
-                    mContext.toPx(topMarginStatusIcons),
-                    0,
-                    0
-                )
-
-                callMethod(
-                    callMethod(mQsStatusIconsContainer, "getLayoutParams"),
+                mQsStatusIconsContainer
+                    .callMethod("getLayoutParams")
+                    .callMethod(
                     "setMarginEnd",
                     mContext.toPx(sideMarginStatusIcons)
                 )
             } catch (throwable: Throwable) {
-                log(TAG + throwable)
+                log(this@BackgroundChip, throwable)
             }
         }
 
@@ -525,24 +518,13 @@ class BackgroundChip(context: Context) : ModPack(context) {
             0 -> {
                 (clockView as TextView).paint.setXfermode(null)
                 try {
-                    callMethod(
-                        callStaticMethod(dependencyClass, "get", darkIconDispatcherClass),
-                        "addDarkReceiver",
-                        clockView
-                    )
+                    callStaticMethod(dependencyClass, "get", darkIconDispatcherClass)
+                        .callMethod("addDarkReceiver", clockView)
                 } catch (ignored: Throwable) {
-                    callMethod(
-                        callMethod(
-                            getStaticObjectField(
-                                dependencyClass,
-                                "sDependency"
-                            ),
-                            "getDependencyInner",
-                            darkIconDispatcherClass
-                        ),
-                        "addDarkReceiver",
-                        clockView
-                    )
+                    dependencyClass
+                        .getStaticField("sDependency")
+                        .callMethod("getDependencyInner", darkIconDispatcherClass)
+                        .callMethod("addDarkReceiver", clockView)
                 }
             }
 
@@ -553,24 +535,13 @@ class BackgroundChip(context: Context) : ModPack(context) {
             2 -> {
                 (clockView as TextView).paint.setXfermode(null)
                 try {
-                    callMethod(
-                        callStaticMethod(dependencyClass, "get", darkIconDispatcherClass),
-                        "removeDarkReceiver",
-                        clockView
-                    )
+                    callStaticMethod(dependencyClass, "get", darkIconDispatcherClass)
+                        .callMethod("removeDarkReceiver", clockView)
                 } catch (ignored: Throwable) {
-                    callMethod(
-                        callMethod(
-                            getStaticObjectField(
-                                dependencyClass,
-                                "sDependency"
-                            ),
-                            "getDependencyInner",
-                            darkIconDispatcherClass
-                        ),
-                        "removeDarkReceiver",
-                        clockView
-                    )
+                    dependencyClass
+                        .getStaticField("sDependency")
+                        .callMethod("getDependencyInner", darkIconDispatcherClass)
+                        .callMethod("removeDarkReceiver", clockView)
                 }
                 clockView.setTextColor(statusBarClockColorCode)
             }
@@ -622,7 +593,7 @@ class BackgroundChip(context: Context) : ModPack(context) {
 
                     setStatusIconsBackgroundChip(statusIconContainer)
                 } catch (throwable: Throwable) {
-                    log(TAG + throwable)
+                    log(this@BackgroundChip, throwable)
                 }
             }
 
@@ -655,7 +626,7 @@ class BackgroundChip(context: Context) : ModPack(context) {
                         setStatusIconsBackgroundChip(statusIconContainer)
                     }
                 } catch (throwable: Throwable) {
-                    log(TAG + throwable)
+                    log(this@BackgroundChip, throwable)
                 }
             }
     }
@@ -679,14 +650,9 @@ class BackgroundChip(context: Context) : ModPack(context) {
                     if (!mShowQSStatusIconsBg && !fixedStatusIcons || hideStatusIcons) return@runAfter
 
                     val mQuickStatusBarHeader = param.thisObject as FrameLayout
-                    val mIconContainer = getObjectField(
-                        param.thisObject,
-                        "mIconContainer"
-                    ) as LinearLayout
-                    val mBatteryRemainingIcon = getObjectField(
-                        param.thisObject,
-                        "mBatteryRemainingIcon"
-                    ) as LinearLayout
+                    val mIconContainer = param.thisObject.getField("mIconContainer") as LinearLayout
+                    val mBatteryRemainingIcon =
+                        param.thisObject.getField("mBatteryRemainingIcon") as LinearLayout
                     var layoutParams = LinearLayout.LayoutParams(
                         ViewGroup.LayoutParams.WRAP_CONTENT,
                         ViewGroup.LayoutParams.WRAP_CONTENT
@@ -761,14 +727,8 @@ class BackgroundChip(context: Context) : ModPack(context) {
                 .runAfter { param ->
                     if (!mShowQSStatusIconsBg && !fixedStatusIcons || hideStatusIcons) return@runAfter
 
-                    val iconContainer = getObjectField(
-                        param.thisObject,
-                        "iconContainer"
-                    ) as LinearLayout
-                    val batteryIcon = getObjectField(
-                        param.thisObject,
-                        "batteryIcon"
-                    ) as LinearLayout
+                    val iconContainer = param.thisObject.getField("iconContainer") as LinearLayout
+                    val batteryIcon = param.thisObject.getField("batteryIcon") as LinearLayout
                     header = iconContainer.parent as ViewGroup
                     val constraintLayoutParams = ConstraintLayout.LayoutParams(
                         ConstraintLayout.LayoutParams.WRAP_CONTENT,
@@ -831,9 +791,5 @@ class BackgroundChip(context: Context) : ModPack(context) {
                     updateStatusIcons()
                 }
         }
-    }
-
-    companion object {
-        private val TAG = "Iconify - ${BackgroundChip::class.java.simpleName}: "
     }
 }

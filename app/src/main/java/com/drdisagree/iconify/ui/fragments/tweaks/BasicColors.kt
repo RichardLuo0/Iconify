@@ -304,8 +304,7 @@ class BasicColors : BaseFragment() {
 
         private fun shouldUseDefaultColors(): Boolean {
             return isOverlayDisabled("IconifyComponentAMAC.overlay") &&
-                    isOverlayDisabled("IconifyComponentAMGC.overlay") &&
-                    isOverlayDisabled("IconifyComponentME.overlay")
+                    isOverlayDisabled("IconifyComponentAMGC.overlay")
         }
     }
 }

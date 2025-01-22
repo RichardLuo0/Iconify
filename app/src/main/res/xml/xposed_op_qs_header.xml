@@ -56,4 +56,16 @@
         app:tickInterval="1"
         app:valueFormat="dp" />
 
+    <com.drdisagree.iconify.ui.preferences.SliderPreference
+        android:dependency="xposed_opqsheader"
+        android:key="xposed_opqsheadergapexpanded"
+        android:title="@string/oneplus_qs_header_gap"
+        app:defaultValue="0"
+        app:iconSpaceReserved="false"
+        app:maxVal="40"
+        app:minVal="-40"
+        app:showResetButton="true"
+        app:tickInterval="1"
+        app:valueFormat="dp" />
+
 </PreferenceScreen>

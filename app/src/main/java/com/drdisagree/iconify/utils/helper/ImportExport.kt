@@ -40,12 +40,10 @@ import com.drdisagree.iconify.ui.dialogs.LoadingDialog
 import com.drdisagree.iconify.utils.SystemUtils
 import com.drdisagree.iconify.utils.SystemUtils.hasStoragePermission
 import com.drdisagree.iconify.utils.SystemUtils.requestStoragePermission
-import com.drdisagree.iconify.utils.color.ColorUtils.colorNames
 import com.drdisagree.iconify.utils.overlay.FabricatedUtils
 import com.drdisagree.iconify.utils.overlay.compiler.DynamicCompiler
 import com.drdisagree.iconify.utils.overlay.compiler.OnDemandCompiler
 import com.drdisagree.iconify.utils.overlay.compiler.SwitchCompiler
-import com.drdisagree.iconify.utils.overlay.manager.MonetEngineManager
 import com.drdisagree.iconify.utils.overlay.manager.RoundnessManager
 import com.drdisagree.iconify.utils.overlay.manager.SettingsIconResourceManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -420,39 +418,6 @@ object ImportExport {
                                         Log.e(
                                             "ImportSettings",
                                             "Error building UI roundness",
-                                            exception
-                                        )
-                                    }
-                                }
-
-                                key.contains("IconifyComponentME") && !monetEngine -> { // Monet Engine
-                                    monetEngine = true
-                                    try {
-                                        val colors = colorNames
-                                        val palette: MutableList<List<List<Any>>> = ArrayList()
-                                        val statNames = arrayOf("_day", "_night")
-
-                                        for (stat in statNames) {
-                                            val temp: MutableList<List<Any>> = ArrayList()
-                                            for (types in colors) {
-                                                val tmp: MutableList<Any> = ArrayList()
-                                                for (color in types) {
-                                                    tmp.add(
-                                                        Objects.requireNonNull(
-                                                            map[color + stat]
-                                                        ).toString().toInt()
-                                                    )
-                                                }
-                                                temp.add(tmp)
-                                            }
-                                            palette.add(temp)
-                                        }
-
-                                        MonetEngineManager.buildOverlay(palette, false)
-                                    } catch (exception: Exception) {
-                                        Log.e(
-                                            "ImportSettings",
-                                            "Error building Monet Engine",
                                             exception
                                         )
                                     }

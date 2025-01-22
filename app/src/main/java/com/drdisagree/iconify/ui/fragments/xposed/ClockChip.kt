@@ -44,9 +44,9 @@ import com.drdisagree.iconify.config.RPrefs.getInt
 import com.drdisagree.iconify.databinding.FragmentXposedClockChipBinding
 import com.drdisagree.iconify.ui.base.BaseFragment
 import com.drdisagree.iconify.ui.utils.ViewHelper.setHeader
-import com.drdisagree.iconify.xposed.modules.utils.ViewHelper.toPx
-import com.drdisagree.iconify.xposed.modules.views.ChipDrawable
-import com.drdisagree.iconify.xposed.modules.views.ChipDrawable.GradientDirection.Companion.toIndex
+import com.drdisagree.iconify.xposed.modules.extras.utils.ViewHelper.toPx
+import com.drdisagree.iconify.xposed.modules.extras.views.ChipDrawable
+import com.drdisagree.iconify.xposed.modules.extras.views.ChipDrawable.GradientDirection.Companion.toIndex
 import com.google.android.material.slider.Slider
 import eightbitlab.com.blurview.RenderEffectBlur
 

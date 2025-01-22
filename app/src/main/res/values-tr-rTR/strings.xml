@@ -382,6 +382,7 @@
     <string name="toast_module_created">Modül başarıyla oluşturuldu</string>
     <string name="read_carefully">Dikkatlice okuyun!</string>
     <string name="volume_module_installation_guide">Bu seçenek Dahili Depolamanızdaki İndirme klasörünün içinde bir magisk modülü oluşturacaktır. Magisk\'te IconifyCompanion.zip isimli modülü flashlayın. Her zaman önceki Iconify Companion modülünü kaldırın (varsa) ve yenisini yüklemeden önce yeniden başlatın.\n\n<b>Not:</b>\n• Rom\'u güncellemeden önce modülü kaldırın.\n• Değişiklik yaparsanız modülü yeniden oluşturun veya rom\'u güncelleyin.\n• Romunuza dayalı olarak oluşturulmamış bir modülü flashlamayın.</string>
+    <string name="volume_module_unstable_desc">Currently volume module is unstable on Android 14 and above. Try at your own risk.</string>
     <!-- Media Player -->
     <string name="cont_desc_media_player">Medya Oynatıcısı Önizlemesi</string>
     <string name="media_player_preview_music_title">Müzik Başlığı</string>
@@ -814,6 +815,9 @@
     <string name="hide_ls_lock_icon_desc">Kilit ekranında kilit simgesi görünümünü gizle</string>
     <string name="fixed_status_icons_title">Sabit Durum Simgeleri</string>
     <string name="fixed_status_icons_desc">Durum simgelerini sabit konuma ayarlayın\nBazı romlarda hatalı olabilir</string>
+    <string name="ls_wallpaper_blur_title">Wallpaper Blur</string>
+    <string name="ls_wallpaper_blur_desc">Apply blur effect on lockscreen</string>
+    <string name="ls_wallpaper_blur_radius_title">Wallpaper Blur Intensity</string>
     <!-- Changelog -->
     <string name="activity_title_changelog">Değişiklik Günlüğü</string>
     <string name="no_internet_connection">Sunucuya bağlanılamıyor!\nİnternet bağlantınızla ilgili bir sorun olabilir veya sunucu şu anda kapalı olabilir. Lütfen daha sonra tekrar deneyin.</string>

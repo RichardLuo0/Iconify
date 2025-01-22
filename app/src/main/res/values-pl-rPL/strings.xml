@@ -382,6 +382,7 @@
     <string name="toast_module_created">Moduł utworzony pomyślnie</string>
     <string name="read_carefully">Przeczytaj uważnie!</string>
     <string name="volume_module_installation_guide">Ta opcja utworzy moduł Magisk w folderze Pobrane w pamięci wewnętrznej. Zainstaluj moduł o nazwie <b>IconifyCompanion.zip</b> w aplikacji Magisk. Pamiętaj, aby przed instalacją nowej wersji modułu zawsze odinstalować poprzednią, a następnie uruchomić ponownie urządzenie.\n\n<b>Uwaga:</b>\n• Odinstaluj moduł przed aktualizacją Rom-u\n• Utwórz ponownie moduł, jeśli zmienisz lub zaktualizujesz Rom\n• Nie instaluj modułu, który nie został utworzony na podstawie aktualnie zainstalowanego Rom-u.</string>
+    <string name="volume_module_unstable_desc">Obecnie moduł głośności jest niestabilny na Androidzie 14 i nowszych. Używaj na własne ryzyko.</string>
     <!-- Media Player -->
     <string name="cont_desc_media_player">Podgląd odtwarzacza multimedialnego</string>
     <string name="media_player_preview_music_title">Tytuł utworu</string>
@@ -814,6 +815,9 @@
     <string name="hide_ls_lock_icon_desc">Ukryj widok ikony blokady na ekranie blokady</string>
     <string name="fixed_status_icons_title">Stała pozycja ikon stanu</string>
     <string name="fixed_status_icons_desc">Ustaw ikony stanu w stałej pozycji\nMoże powodować błędy w niektórych ROM-ach</string>
+    <string name="ls_wallpaper_blur_title">Rozmycie tapety</string>
+    <string name="ls_wallpaper_blur_desc">Zastosuj efekt rozmycia na ekranie blokady</string>
+    <string name="ls_wallpaper_blur_radius_title">Intensywność rozmycia tapety</string>
     <!-- Changelog -->
     <string name="activity_title_changelog">Lista zmian</string>
     <string name="no_internet_connection">Nie można połączyć się z serwerem!\nWystąpił problem z połączeniem internetowym lub serwer jest w tej chwili wyłączony. Spróbuj ponownie później.</string>

@@ -4,7 +4,6 @@ import android.os.Bundle
 import com.drdisagree.iconify.R
 import com.drdisagree.iconify.common.Preferences.AGGRESSIVE_QSPANEL_BLUR_SWITCH
 import com.drdisagree.iconify.common.Preferences.BLUR_RADIUS_VALUE
-import com.drdisagree.iconify.common.Preferences.LOCKSCREEN_SHADE_SWITCH
 import com.drdisagree.iconify.common.Preferences.NOTIF_TRANSPARENCY_SWITCH
 import com.drdisagree.iconify.common.Preferences.QSPANEL_BLUR_SWITCH
 import com.drdisagree.iconify.common.Preferences.QS_TRANSPARENCY_SWITCH
@@ -43,10 +42,6 @@ class TransparencyBlur : ControlledPreferenceFragmentCompat() {
                     putBoolean(NOTIF_TRANSPARENCY_SWITCH, false)
                     transparentNotificationPreference?.isChecked = false
                 }
-                MainActivity.showOrHidePendingActionButton(
-                    activityBinding = (requireActivity() as MainActivity).binding,
-                    requiresSystemUiRestart = true
-                )
             }
 
             NOTIF_TRANSPARENCY_SWITCH -> {
@@ -54,17 +49,6 @@ class TransparencyBlur : ControlledPreferenceFragmentCompat() {
                     putBoolean(QS_TRANSPARENCY_SWITCH, false)
                     transparentQsPreference?.isChecked = false
                 }
-                MainActivity.showOrHidePendingActionButton(
-                    activityBinding = (requireActivity() as MainActivity).binding,
-                    requiresSystemUiRestart = true
-                )
-            }
-
-            LOCKSCREEN_SHADE_SWITCH -> {
-                MainActivity.showOrHidePendingActionButton(
-                    activityBinding = (requireActivity() as MainActivity).binding,
-                    requiresSystemUiRestart = true
-                )
             }
 
             QSPANEL_BLUR_SWITCH -> {

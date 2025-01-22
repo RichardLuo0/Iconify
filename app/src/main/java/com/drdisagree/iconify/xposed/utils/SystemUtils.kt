@@ -74,6 +74,5 @@ class SystemUtils(var mContext: Context) {
             Process.killProcess(Process.myPid())
         }
 
-        private val TAG = "Iconify - ${this::class.java.simpleName}: "
-    }
+        }
 }

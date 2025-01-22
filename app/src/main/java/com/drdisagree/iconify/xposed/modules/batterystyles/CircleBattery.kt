@@ -22,7 +22,7 @@ import androidx.core.graphics.PathParser
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import com.drdisagree.iconify.common.Preferences
 import com.drdisagree.iconify.config.RPrefs.getBoolean
-import com.drdisagree.iconify.xposed.modules.utils.AlphaRefreshedPaint
+import com.drdisagree.iconify.xposed.modules.extras.utils.AlphaRefreshedPaint
 import com.drdisagree.iconify.xposed.utils.XPrefs.Xprefs
 
 @Suppress("UNUSED_PARAMETER")

@@ -1,6 +1,6 @@
 package com.drdisagree.iconify.xposed
 
-import com.drdisagree.iconify.xposed.modules.utils.toolkit.XposedHook
+import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.XposedHook
 import de.robv.android.xposed.IXposedHookInitPackageResources
 import de.robv.android.xposed.IXposedHookLoadPackage
 import de.robv.android.xposed.IXposedHookZygoteInit
