@@ -17,11 +17,11 @@ import androidx.preference.Preference
 import androidx.preference.PreferenceViewHolder
 import com.drdisagree.iconify.Iconify.Companion.appContextLocale
 import com.drdisagree.iconify.R
-import com.drdisagree.iconify.common.Const.ACTION_HOOK_CHECK_REQUEST
-import com.drdisagree.iconify.common.Const.ACTION_HOOK_CHECK_RESULT
-import com.drdisagree.iconify.common.Preferences
-import com.drdisagree.iconify.common.Preferences.XPOSED_HOOK_CHECK
-import com.drdisagree.iconify.config.RPrefs
+import com.drdisagree.iconify.data.common.Const.ACTION_HOOK_CHECK_REQUEST
+import com.drdisagree.iconify.data.common.Const.ACTION_HOOK_CHECK_RESULT
+import com.drdisagree.iconify.data.common.Preferences
+import com.drdisagree.iconify.data.common.Preferences.XPOSED_HOOK_CHECK
+import com.drdisagree.iconify.data.config.RPrefs
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 
 class HookCheckPreference(context: Context, attrs: AttributeSet?) : Preference(context, attrs) {

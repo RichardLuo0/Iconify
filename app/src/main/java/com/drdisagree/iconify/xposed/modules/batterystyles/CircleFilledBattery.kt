@@ -13,8 +13,8 @@ import android.graphics.Shader
 import androidx.annotation.ColorInt
 import androidx.core.graphics.ColorUtils
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
-import com.drdisagree.iconify.common.Preferences
-import com.drdisagree.iconify.config.RPrefs
+import com.drdisagree.iconify.data.common.Preferences
+import com.drdisagree.iconify.data.config.RPrefs
 import com.drdisagree.iconify.xposed.utils.XPrefs.Xprefs
 import kotlin.math.max
 

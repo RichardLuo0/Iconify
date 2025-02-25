@@ -1,5 +1,6 @@
 package com.drdisagree.iconify.ui.fragments.tweaks
 
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -9,24 +10,26 @@ import android.view.ViewGroup
 import android.widget.CompoundButton
 import androidx.annotation.IntRange
 import com.drdisagree.iconify.R
-import com.drdisagree.iconify.common.Const.FRAMEWORK_PACKAGE
-import com.drdisagree.iconify.common.Const.SWITCH_ANIMATION_DELAY
-import com.drdisagree.iconify.common.Const.SYSTEMUI_PACKAGE
-import com.drdisagree.iconify.common.Preferences.NAVBAR_FULL_SCREEN
-import com.drdisagree.iconify.common.Preferences.NAVBAR_GCAM_LAG_FIX
-import com.drdisagree.iconify.common.Preferences.NAVBAR_HIDE_PILL
-import com.drdisagree.iconify.common.Preferences.NAVBAR_IMMERSIVE_V1
-import com.drdisagree.iconify.common.Preferences.NAVBAR_IMMERSIVE_V2
-import com.drdisagree.iconify.common.Preferences.NAVBAR_IMMERSIVE_V3
-import com.drdisagree.iconify.common.Preferences.NAVBAR_LOW_SENS
-import com.drdisagree.iconify.common.Preferences.PILL_SHAPE_SWITCH
-import com.drdisagree.iconify.common.References.FABRICATED_PILL_BOTTOM_SPACE
-import com.drdisagree.iconify.common.References.FABRICATED_PILL_THICKNESS
-import com.drdisagree.iconify.common.References.FABRICATED_PILL_WIDTH
-import com.drdisagree.iconify.config.RPrefs.getBoolean
-import com.drdisagree.iconify.config.RPrefs.getInt
-import com.drdisagree.iconify.config.RPrefs.putBoolean
-import com.drdisagree.iconify.config.RPrefs.putInt
+import com.drdisagree.iconify.data.common.Const.FRAMEWORK_PACKAGE
+import com.drdisagree.iconify.data.common.Const.LAUNCHER3_PACKAGE
+import com.drdisagree.iconify.data.common.Const.PIXEL_LAUNCHER_PACKAGE
+import com.drdisagree.iconify.data.common.Const.SWITCH_ANIMATION_DELAY
+import com.drdisagree.iconify.data.common.Const.SYSTEMUI_PACKAGE
+import com.drdisagree.iconify.data.common.Preferences.NAVBAR_FULL_SCREEN
+import com.drdisagree.iconify.data.common.Preferences.NAVBAR_GCAM_LAG_FIX
+import com.drdisagree.iconify.data.common.Preferences.NAVBAR_HIDE_PILL
+import com.drdisagree.iconify.data.common.Preferences.NAVBAR_IMMERSIVE_V1
+import com.drdisagree.iconify.data.common.Preferences.NAVBAR_IMMERSIVE_V2
+import com.drdisagree.iconify.data.common.Preferences.NAVBAR_IMMERSIVE_V3
+import com.drdisagree.iconify.data.common.Preferences.NAVBAR_LOW_SENS
+import com.drdisagree.iconify.data.common.Preferences.PILL_SHAPE_SWITCH
+import com.drdisagree.iconify.data.common.References.FABRICATED_PILL_BOTTOM_SPACE
+import com.drdisagree.iconify.data.common.References.FABRICATED_PILL_THICKNESS
+import com.drdisagree.iconify.data.common.References.FABRICATED_PILL_WIDTH
+import com.drdisagree.iconify.data.config.RPrefs.getBoolean
+import com.drdisagree.iconify.data.config.RPrefs.getInt
+import com.drdisagree.iconify.data.config.RPrefs.putBoolean
+import com.drdisagree.iconify.data.config.RPrefs.putInt
 import com.drdisagree.iconify.databinding.FragmentNavigationBarBinding
 import com.drdisagree.iconify.ui.base.BaseFragment
 import com.drdisagree.iconify.ui.utils.ViewHelper.setHeader
@@ -35,17 +38,24 @@ import com.drdisagree.iconify.utils.SystemUtils.hasStoragePermission
 import com.drdisagree.iconify.utils.SystemUtils.requestStoragePermission
 import com.drdisagree.iconify.utils.SystemUtils.restartSystemUI
 import com.drdisagree.iconify.utils.overlay.OverlayUtils
+import com.drdisagree.iconify.utils.overlay.OverlayUtils.disableOverlay
 import com.drdisagree.iconify.utils.overlay.OverlayUtils.enableOverlay
 import com.drdisagree.iconify.utils.overlay.manager.resource.ResourceEntry
 import com.drdisagree.iconify.utils.overlay.manager.resource.ResourceManager.buildOverlayWithResource
 import com.drdisagree.iconify.utils.overlay.manager.resource.ResourceManager.removeResourceFromOverlay
 import com.google.android.material.slider.Slider
 import com.topjohnwu.superuser.Shell
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.concurrent.atomic.AtomicBoolean
 
 class NavigationBar : BaseFragment() {
 
     private lateinit var binding: FragmentNavigationBarBinding
+    private var isAtleastA14 = Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -76,8 +86,8 @@ class NavigationBar : BaseFragment() {
         binding.nbHideKbButtons.isSwitchChecked =
             getBoolean("IconifyComponentNBHideKBButton.overlay")
 
-        binding.nbDisableLeftGesture.isSwitchChecked = initializeLeftGestureSwitch()
-        binding.nbDisableRightGesture.isSwitchChecked = initializeRightGestureSwitch()
+        binding.nbDisableLeftGesture.isSwitchChecked = isLeftGestureDisabled
+        binding.nbDisableRightGesture.isSwitchChecked = isRightGestureDisabled
 
         binding.nbHidePill.setEnabled(!binding.nbFullscreen.isSwitchChecked)
         binding.nbMonetPill.setEnabled(!binding.nbHidePill.isSwitchChecked && !binding.nbFullscreen.isSwitchChecked)
@@ -107,10 +117,10 @@ class NavigationBar : BaseFragment() {
                     binding.pillShape.pillShapeContainer.visibility = View.VISIBLE
                 }
 
-                Handler(Looper.getMainLooper()).postDelayed(
-                    { handleFullScreen(isSwitchChecked) },
-                    SWITCH_ANIMATION_DELAY
-                )
+                CoroutineScope(Dispatchers.IO).launch {
+                    delay(SWITCH_ANIMATION_DELAY)
+                    handleFullScreen(isSwitchChecked)
+                }
             }
         }
         binding.nbFullscreen.setBeforeSwitchChangeListener {
@@ -135,10 +145,10 @@ class NavigationBar : BaseFragment() {
 
                 disableOthers(NAVBAR_IMMERSIVE_V1)
 
-                Handler(Looper.getMainLooper()).postDelayed(
-                    { handleImmersive(isSwitchChecked, 1) },
-                    SWITCH_ANIMATION_DELAY
-                )
+                CoroutineScope(Dispatchers.IO).launch {
+                    delay(SWITCH_ANIMATION_DELAY)
+                    handleImmersive(isSwitchChecked, 1)
+                }
             }
         }
         binding.nbImmersive.setBeforeSwitchChangeListener {
@@ -162,10 +172,10 @@ class NavigationBar : BaseFragment() {
 
                 disableOthers(NAVBAR_IMMERSIVE_V2)
 
-                Handler(Looper.getMainLooper()).postDelayed(
-                    { handleImmersive(isSwitchChecked, 2) },
-                    SWITCH_ANIMATION_DELAY
-                )
+                CoroutineScope(Dispatchers.IO).launch {
+                    delay(SWITCH_ANIMATION_DELAY)
+                    handleImmersive(isSwitchChecked, 2)
+                }
             }
         }
         binding.nbImmersiveV2.setBeforeSwitchChangeListener {
@@ -189,10 +199,10 @@ class NavigationBar : BaseFragment() {
 
                 disableOthers(NAVBAR_IMMERSIVE_V3)
 
-                Handler(Looper.getMainLooper()).postDelayed(
-                    { handleImmersive(isSwitchChecked, 3) },
-                    SWITCH_ANIMATION_DELAY
-                )
+                CoroutineScope(Dispatchers.IO).launch {
+                    delay(SWITCH_ANIMATION_DELAY)
+                    handleImmersive(isSwitchChecked, 3)
+                }
             }
         }
         binding.nbImmersiveV3.setBeforeSwitchChangeListener {
@@ -220,7 +230,8 @@ class NavigationBar : BaseFragment() {
                 val immersive2 = getBoolean(NAVBAR_IMMERSIVE_V2)
                 val immersive3 = getBoolean(NAVBAR_IMMERSIVE_V3)
 
-                Handler(Looper.getMainLooper()).postDelayed({
+                CoroutineScope(Dispatchers.IO).launch {
+                    delay(SWITCH_ANIMATION_DELAY)
                     if (fullscreen) {
                         handleFullScreen(true)
                     } else if (immersive1) {
@@ -230,7 +241,7 @@ class NavigationBar : BaseFragment() {
                     } else if (immersive3) {
                         handleImmersive(true, 3)
                     }
-                }, SWITCH_ANIMATION_DELAY)
+                }
             }
         }
         binding.nbGcamLagFix.setBeforeSwitchChangeListener {
@@ -253,10 +264,10 @@ class NavigationBar : BaseFragment() {
                     return@setSwitchChangeListener
                 }
 
-                Handler(Looper.getMainLooper()).postDelayed(
-                    { handleLowSensitivity(isSwitchChecked) },
-                    SWITCH_ANIMATION_DELAY
-                )
+                CoroutineScope(Dispatchers.IO).launch {
+                    delay(SWITCH_ANIMATION_DELAY)
+                    handleLowSensitivity(isSwitchChecked)
+                }
             }
         }
         binding.nbLowerSens.setBeforeSwitchChangeListener {
@@ -279,14 +290,14 @@ class NavigationBar : BaseFragment() {
                     return@setSwitchChangeListener
                 }
 
-                Handler(Looper.getMainLooper()).postDelayed({
+                CoroutineScope(Dispatchers.IO).launch {
+                    delay(SWITCH_ANIMATION_DELAY)
+
                     handleHidePill(isSwitchChecked)
 
-                    Handler(Looper.getMainLooper()).postDelayed(
-                        { SystemUtils.handleSystemUIRestart() },
-                        2000
-                    )
-                }, SWITCH_ANIMATION_DELAY)
+                    delay(2000)
+                    SystemUtils.handleSystemUIRestart()
+                }
             }
         }
         binding.nbHidePill.setBeforeSwitchChangeListener {
@@ -312,15 +323,30 @@ class NavigationBar : BaseFragment() {
 
         // Hide Keyboard Buttons
         binding.nbHideKbButtons.setSwitchChangeListener { _: CompoundButton?, isSwitchChecked: Boolean ->
-            Handler(Looper.getMainLooper()).postDelayed(
-                {
-                    if (isSwitchChecked) {
-                        enableOverlay("IconifyComponentNBHideKBButton.overlay")
-                    } else {
-                        OverlayUtils.disableOverlay("IconifyComponentNBHideKBButton.overlay")
+            CoroutineScope(Dispatchers.IO).launch {
+                delay(SWITCH_ANIMATION_DELAY)
+
+                val resource = listOf(
+                    ResourceEntry(
+                        FRAMEWORK_PACKAGE,
+                        "bool",
+                        "config_imeDrawsImeNavBar",
+                        "false"
+                    )
+                )
+
+                if (isSwitchChecked) {
+                    if (isAtleastA14) {
+                        buildOverlayWithResource(*resource.toTypedArray())
                     }
-                }, SWITCH_ANIMATION_DELAY
-            )
+                    enableOverlay("IconifyComponentNBHideKBButton.overlay")
+                } else {
+                    if (isAtleastA14) {
+                        removeResourceFromOverlay(*resource.toTypedArray())
+                    }
+                    disableOverlay("IconifyComponentNBHideKBButton.overlay")
+                }
+            }
         }
 
         // Disable left gesture
@@ -402,6 +428,45 @@ class NavigationBar : BaseFragment() {
         })
 
         // Apply button
+        val pillShapeResources = mutableListOf(
+            ResourceEntry(
+                SYSTEMUI_PACKAGE,
+                "dimen",
+                "navigation_home_handle_width",
+                finalPillWidth[0].toString() + "dp"
+            ),
+            ResourceEntry(
+                SYSTEMUI_PACKAGE,
+                "dimen",
+                "navigation_handle_radius",
+                finalPillThickness[0].toString() + "dp"
+            ),
+            ResourceEntry(
+                SYSTEMUI_PACKAGE,
+                "dimen",
+                "navigation_handle_bottom",
+                finalBottomSpace[0].toString() + "dp"
+            )
+        ).apply {
+            if (isAtleastA14) {
+                addAll(
+                    listOf(
+                        ResourceEntry(
+                            PIXEL_LAUNCHER_PACKAGE,
+                            "dimen",
+                            "taskbar_stashed_handle_width",
+                            finalPillWidth[0].toString() + "dp"
+                        ),
+                        ResourceEntry(
+                            LAUNCHER3_PACKAGE,
+                            "dimen",
+                            "taskbar_stashed_handle_width",
+                            finalPillWidth[0].toString() + "dp"
+                        )
+                    )
+                )
+            }
+        }
         binding.pillShape.pillShapeApply.setOnClickListener {
             if (!hasStoragePermission()) {
                 requestStoragePermission(requireContext())
@@ -409,40 +474,21 @@ class NavigationBar : BaseFragment() {
                 return@setOnClickListener
             }
 
-            Handler(Looper.getMainLooper()).post {
+            CoroutineScope(Dispatchers.IO).launch {
                 putBoolean(PILL_SHAPE_SWITCH, true)
 
                 putInt(FABRICATED_PILL_WIDTH, finalPillWidth[0])
                 putInt(FABRICATED_PILL_THICKNESS, finalPillThickness[0])
                 putInt(FABRICATED_PILL_BOTTOM_SPACE, finalBottomSpace[0])
 
-                buildOverlayWithResource(
-                    ResourceEntry(
-                        SYSTEMUI_PACKAGE,
-                        "dimen",
-                        "navigation_home_handle_width",
-                        finalPillWidth[0].toString() + "dp"
-                    ),
-                    ResourceEntry(
-                        SYSTEMUI_PACKAGE,
-                        "dimen",
-                        "navigation_handle_radius",
-                        finalPillThickness[0].toString() + "dp"
-                    ),
-                    ResourceEntry(
-                        SYSTEMUI_PACKAGE,
-                        "dimen",
-                        "navigation_handle_bottom",
-                        finalBottomSpace[0].toString() + "dp"
-                    )
-                )
+                buildOverlayWithResource(*pillShapeResources.toTypedArray())
 
-                binding.pillShape.pillShapeReset.visibility = View.VISIBLE
+                withContext(Dispatchers.Main) {
+                    binding.pillShape.pillShapeReset.visibility = View.VISIBLE
+                }
 
-                Handler(Looper.getMainLooper()).postDelayed(
-                    { restartSystemUI() },
-                    SWITCH_ANIMATION_DELAY
-                )
+                delay(SWITCH_ANIMATION_DELAY)
+                restartSystemUI()
             }
         }
 
@@ -460,45 +506,39 @@ class NavigationBar : BaseFragment() {
                 return@setOnClickListener
             }
 
-            Handler(Looper.getMainLooper()).post {
+            CoroutineScope(Dispatchers.IO).launch {
                 putBoolean(PILL_SHAPE_SWITCH, false)
 
-                removeResourceFromOverlay(
-                    ResourceEntry(SYSTEMUI_PACKAGE, "dimen", "navigation_home_handle_width"),
-                    ResourceEntry(SYSTEMUI_PACKAGE, "dimen", "navigation_handle_radius"),
-                    ResourceEntry(SYSTEMUI_PACKAGE, "dimen", "navigation_handle_bottom")
-                )
+                removeResourceFromOverlay(*pillShapeResources.toTypedArray())
 
-                binding.pillShape.pillShapeReset.visibility = View.GONE
+                withContext(Dispatchers.Main) {
+                    binding.pillShape.pillShapeReset.visibility = View.GONE
+                }
 
-                Handler(Looper.getMainLooper()).postDelayed(
-                    { restartSystemUI() },
-                    SWITCH_ANIMATION_DELAY
-                )
+                delay(SWITCH_ANIMATION_DELAY)
+                restartSystemUI()
             }
         }
         return view
     }
 
-    private fun initializeLeftGestureSwitch(): Boolean {
-        return try {
+    private val isLeftGestureDisabled: Boolean
+        get() = try {
             Shell.cmd(
                 "settings get secure back_gesture_inset_scale_left"
             ).exec().out[0].toInt() == -1
         } catch (ignored: Exception) {
             false
         }
-    }
 
-    private fun initializeRightGestureSwitch(): Boolean {
-        return try {
+    private val isRightGestureDisabled: Boolean
+        get() = try {
             Shell.cmd(
                 "settings get secure back_gesture_inset_scale_right"
             ).exec().out[0].toInt() == -1
         } catch (ignored: Exception) {
             false
         }
-    }
 
     private fun disableOthers(identifier: String) {
         if (identifier != NAVBAR_FULL_SCREEN) {
@@ -526,138 +566,399 @@ class NavigationBar : BaseFragment() {
         putBoolean(NAVBAR_FULL_SCREEN, enable)
 
         val gcamLagFix = getBoolean(NAVBAR_GCAM_LAG_FIX)
+        val barHeight = if (gcamLagFix) "0.3dp" else "0dp"
+        val frameHeight = if (gcamLagFix) "0.1dp" else "0dp"
 
-        if (enable) {
-            val resource = if (gcamLagFix) "1dp" else "0dp"
+        val resources = mutableListOf(
+            ResourceEntry(
+                FRAMEWORK_PACKAGE,
+                "bool",
+                "config_imeDrawsImeNavBar",
+                "false"
+            ),
+            ResourceEntry(
+                FRAMEWORK_PACKAGE,
+                "dimen",
+                "navigation_bar_height",
+                barHeight
+            ),
+            ResourceEntry(
+                FRAMEWORK_PACKAGE,
+                "dimen",
+                "navigation_bar_frame_height",
+                frameHeight
+            )
+        ).apply {
+            if (isAtleastA14) {
+                addAll(
+                    listOf(
+                        ResourceEntry(
+                            FRAMEWORK_PACKAGE,
+                            "dimen",
+                            "navigation_bar_width",
+                            "0dp"
+                        ),
+                        ResourceEntry(
+                            FRAMEWORK_PACKAGE,
+                            "dimen",
+                            "navigation_bar_height_portrait",
+                            barHeight
+                        ),
+                        ResourceEntry(
+                            FRAMEWORK_PACKAGE,
+                            "dimen",
+                            "navigation_bar_height_landscape",
+                            barHeight
+                        ),
+                        ResourceEntry(
+                            FRAMEWORK_PACKAGE,
+                            "dimen",
+                            "navigation_bar_frame_height_landscape",
+                            frameHeight
+                        ),
+                        ResourceEntry(
+                            FRAMEWORK_PACKAGE,
+                            "bool",
+                            "config_allowSeamlessRotationDespiteNavBarMoving",
+                            "true"
+                        ),
+                        ResourceEntry(
+                            FRAMEWORK_PACKAGE,
+                            "bool",
+                            "config_navBarAlwaysShowOnSideEdgeGesture",
+                            "true"
+                        ),
+                        ResourceEntry(
+                            FRAMEWORK_PACKAGE,
+                            "bool",
+                            "config_navBarCanMove",
+                            "false"
+                        ),
+                        ResourceEntry(
+                            FRAMEWORK_PACKAGE,
+                            "bool",
+                            "config_navBarTapThrough",
+                            "true"
+                        ),
+                        ResourceEntry(
+                            FRAMEWORK_PACKAGE,
+                            "dimen",
+                            "config_backGestureInset",
+                            "24dp"
+                        ),
+                        ResourceEntry(
+                            FRAMEWORK_PACKAGE,
+                            "dimen",
+                            "navigation_bar_gesture_height",
+                            "0.2dp"
+                        ),
+                        ResourceEntry(
+                            PIXEL_LAUNCHER_PACKAGE,
+                            "dimen",
+                            "taskbar_nav_buttons_size",
+                            "0dp"
+                        ),
+                        ResourceEntry(
+                            PIXEL_LAUNCHER_PACKAGE,
+                            "dimen",
+                            "taskbar_stashed_handle_height",
+                            "0dp"
+                        ),
+                        ResourceEntry(
+                            LAUNCHER3_PACKAGE,
+                            "dimen",
+                            "taskbar_nav_buttons_size",
+                            "0dp"
+                        ),
+                        ResourceEntry(
+                            LAUNCHER3_PACKAGE,
+                            "dimen",
+                            "taskbar_stashed_handle_height",
+                            "0dp"
+                        )
+                    )
+                )
+            }
+        }
 
-            buildOverlayWithResource(
-                ResourceEntry(FRAMEWORK_PACKAGE, "bool", "config_imeDrawsImeNavBar", "false"),
-                ResourceEntry(FRAMEWORK_PACKAGE, "dimen", "navigation_bar_height", resource),
-                ResourceEntry(FRAMEWORK_PACKAGE, "dimen", "navigation_bar_frame_height", resource)
-            )
-        } else {
-            removeResourceFromOverlay(
-                ResourceEntry(FRAMEWORK_PACKAGE, "bool", "config_imeDrawsImeNavBar"),
-                ResourceEntry(FRAMEWORK_PACKAGE, "dimen", "navigation_bar_height"),
-                ResourceEntry(FRAMEWORK_PACKAGE, "dimen", "navigation_bar_frame_height")
-            )
+        CoroutineScope(Dispatchers.IO).launch {
+            if (enable) {
+                buildOverlayWithResource(*resources.toTypedArray())
+            } else {
+                removeResourceFromOverlay(*resources.toTypedArray())
+            }
         }
     }
 
     private fun handleImmersive(enable: Boolean, @IntRange(from = 1, to = 3) version: Int) {
         when (version) {
-            1 -> {
-                putBoolean(NAVBAR_IMMERSIVE_V1, enable)
-            }
-
-            2 -> {
-                putBoolean(NAVBAR_IMMERSIVE_V2, enable)
-            }
-
-            3 -> {
-                putBoolean(NAVBAR_IMMERSIVE_V3, enable)
-            }
+            1 -> putBoolean(NAVBAR_IMMERSIVE_V1, enable)
+            2 -> putBoolean(NAVBAR_IMMERSIVE_V2, enable)
+            3 -> putBoolean(NAVBAR_IMMERSIVE_V3, enable)
         }
 
         val gcamLagFix = getBoolean(NAVBAR_GCAM_LAG_FIX)
+        val barHeight = if (gcamLagFix) "0.3dp" else "0dp"
+        val frameHeight = if (version == 1) "48dp" else if (version == 2) "26dp" else "16dp"
 
-        if (enable) {
-            val resource = if (gcamLagFix) "1dp" else "0dp"
-            val frameResource = if (version == 1) "48dp" else if (version == 2) "26dp" else "16dp"
+        val resources = mutableListOf(
+            ResourceEntry(
+                FRAMEWORK_PACKAGE,
+                "bool",
+                "config_imeDrawsImeNavBar",
+                "false"
+            ),
+            ResourceEntry(
+                FRAMEWORK_PACKAGE,
+                "dimen",
+                "navigation_bar_height",
+                barHeight
+            ),
+            ResourceEntry(
+                FRAMEWORK_PACKAGE,
+                "dimen",
+                "navigation_bar_frame_height",
+                frameHeight
+            )
+        ).apply {
+            if (isAtleastA14) {
+                addAll(
+                    listOf(
+                        ResourceEntry(
+                            FRAMEWORK_PACKAGE,
+                            "dimen",
+                            "navigation_bar_width",
+                            "0dp"
+                        ),
+                        ResourceEntry(
+                            FRAMEWORK_PACKAGE,
+                            "dimen",
+                            "navigation_bar_height_portrait",
+                            barHeight
+                        ),
+                        ResourceEntry(
+                            FRAMEWORK_PACKAGE,
+                            "dimen",
+                            "navigation_bar_height_landscape",
+                            barHeight
+                        ),
+                        ResourceEntry(
+                            FRAMEWORK_PACKAGE,
+                            "dimen",
+                            "navigation_bar_frame_height_landscape",
+                            frameHeight
+                        ),
+                        ResourceEntry(
+                            FRAMEWORK_PACKAGE,
+                            "bool",
+                            "config_allowSeamlessRotationDespiteNavBarMoving",
+                            "true"
+                        ),
+                        ResourceEntry(
+                            FRAMEWORK_PACKAGE,
+                            "bool",
+                            "config_navBarAlwaysShowOnSideEdgeGesture",
+                            "true"
+                        ),
+                        ResourceEntry(
+                            FRAMEWORK_PACKAGE,
+                            "bool",
+                            "config_navBarCanMove",
+                            "false"
+                        ),
+                        ResourceEntry(
+                            FRAMEWORK_PACKAGE,
+                            "bool",
+                            "config_navBarTapThrough",
+                            "true"
+                        ),
+                        ResourceEntry(
+                            FRAMEWORK_PACKAGE,
+                            "dimen",
+                            "config_backGestureInset",
+                            "24dp"
+                        ),
+                        ResourceEntry(
+                            FRAMEWORK_PACKAGE,
+                            "dimen",
+                            "navigation_bar_gesture_height",
+                            "0.2dp"
+                        ),
+                        ResourceEntry(
+                            PIXEL_LAUNCHER_PACKAGE,
+                            "dimen",
+                            "taskbar_nav_buttons_size",
+                            "0dp"
+                        ),
+                        ResourceEntry(
+                            PIXEL_LAUNCHER_PACKAGE,
+                            "dimen",
+                            "taskbar_stashed_handle_height",
+                            "0dp"
+                        ),
+                        ResourceEntry(
+                            LAUNCHER3_PACKAGE,
+                            "dimen",
+                            "taskbar_nav_buttons_size",
+                            "0dp"
+                        ),
+                        ResourceEntry(
+                            LAUNCHER3_PACKAGE,
+                            "dimen",
+                            "taskbar_stashed_handle_height",
+                            "0dp"
+                        )
+                    )
+                )
+            }
+        }
 
-            buildOverlayWithResource(
-                ResourceEntry(
-                    FRAMEWORK_PACKAGE,
-                    "bool",
-                    "config_imeDrawsImeNavBar",
-                    "false"
-                ),
-                ResourceEntry(
-                    FRAMEWORK_PACKAGE,
-                    "dimen",
-                    "navigation_bar_height",
-                    resource
-                ),
-                ResourceEntry(
-                    FRAMEWORK_PACKAGE,
-                    "dimen",
-                    "navigation_bar_frame_height",
-                    frameResource
-                )
-            )
-        } else {
-            removeResourceFromOverlay(
-                ResourceEntry(
-                    FRAMEWORK_PACKAGE,
-                    "bool",
-                    "config_imeDrawsImeNavBar"
-                ),
-                ResourceEntry(
-                    FRAMEWORK_PACKAGE,
-                    "dimen",
-                    "navigation_bar_height"
-                ),
-                ResourceEntry(
-                    FRAMEWORK_PACKAGE,
-                    "dimen",
-                    "navigation_bar_frame_height"
-                )
-            )
+        CoroutineScope(Dispatchers.IO).launch {
+            if (enable) {
+                buildOverlayWithResource(*resources.toTypedArray())
+            } else {
+                removeResourceFromOverlay(*resources.toTypedArray())
+            }
         }
     }
 
     private fun handleLowSensitivity(enable: Boolean) {
         putBoolean(NAVBAR_LOW_SENS, enable)
-        if (enable) {
-            buildOverlayWithResource(
-                ResourceEntry(
-                    FRAMEWORK_PACKAGE,
-                    "dimen",
-                    "navigation_bar_gesture_height",
-                    "18dp"
-                )
-            )
-        } else {
-            removeResourceFromOverlay(
-                ResourceEntry(
-                    FRAMEWORK_PACKAGE,
-                    "dimen",
-                    "navigation_bar_gesture_height"
-                )
-            )
+
+        val resources = listOf(
+            ResourceEntry(FRAMEWORK_PACKAGE, "dimen", "navigation_bar_gesture_height", "18dp")
+        )
+
+        CoroutineScope(Dispatchers.IO).launch {
+            if (enable) {
+                buildOverlayWithResource(*resources.toTypedArray())
+            } else {
+                removeResourceFromOverlay(*resources.toTypedArray())
+            }
         }
     }
 
     private fun handleHidePill(enable: Boolean) {
         putBoolean(NAVBAR_HIDE_PILL, enable)
-        if (enable) {
-            buildOverlayWithResource(
-                ResourceEntry(
-                    SYSTEMUI_PACKAGE,
-                    "dimen",
-                    "navigation_handle_radius",
-                    "0dp"
-                ),
-                ResourceEntry(
-                    SYSTEMUI_PACKAGE,
-                    "dimen",
-                    "navigation_home_handle_width",
-                    "0dp"
-                )
+
+        val resources = mutableListOf(
+            ResourceEntry(
+                SYSTEMUI_PACKAGE,
+                "dimen",
+                "navigation_handle_radius",
+                "0dp"
+            ),
+            ResourceEntry(
+                SYSTEMUI_PACKAGE,
+                "dimen",
+                "navigation_home_handle_width",
+                "0dp"
             )
-        } else {
-            removeResourceFromOverlay(
-                ResourceEntry(
-                    SYSTEMUI_PACKAGE,
-                    "dimen",
-                    "navigation_handle_radius"
-                ),
-                ResourceEntry(
-                    SYSTEMUI_PACKAGE,
-                    "dimen",
-                    "navigation_home_handle_width"
+        ).apply {
+            if (isAtleastA14) {
+                addAll(
+                    listOf(
+                        ResourceEntry(
+                            SYSTEMUI_PACKAGE,
+                            "dimen",
+                            "navigation_handle_horizontal_margin",
+                            "0dp"
+                        ),
+                        ResourceEntry(
+                            SYSTEMUI_PACKAGE,
+                            "dimen",
+                            "navigation_handle_sample_horizontal_margin",
+                            "0dp"
+                        ),
+                        ResourceEntry(
+                            SYSTEMUI_PACKAGE,
+                            "dimen",
+                            "navigation_home_handle_width_land",
+                            "0dp"
+                        ),
+                        ResourceEntry(
+                            PIXEL_LAUNCHER_PACKAGE,
+                            "dimen",
+                            "transient_taskbar_stashed_height",
+                            "0.2dp"
+                        ),
+                        ResourceEntry(
+                            PIXEL_LAUNCHER_PACKAGE,
+                            "dimen",
+                            "taskbar_from_nav_threshold",
+                            "10dp"
+                        ),
+                        ResourceEntry(
+                            PIXEL_LAUNCHER_PACKAGE,
+                            "dimen",
+                            "taskbar_stashed_size",
+                            "0.2dp"
+                        ),
+                        ResourceEntry(
+                            PIXEL_LAUNCHER_PACKAGE,
+                            "dimen",
+                            "taskbar_suw_insets",
+                            "0.1dp"
+                        ),
+                        ResourceEntry(
+                            LAUNCHER3_PACKAGE,
+                            "dimen",
+                            "transient_taskbar_stashed_height",
+                            "0.2dp"
+                        ),
+                        ResourceEntry(
+                            LAUNCHER3_PACKAGE,
+                            "dimen",
+                            "taskbar_from_nav_threshold",
+                            "10dp"
+                        ),
+                        ResourceEntry(
+                            LAUNCHER3_PACKAGE,
+                            "dimen",
+                            "taskbar_stashed_size",
+                            "0.2dp"
+                        ),
+                        ResourceEntry(
+                            LAUNCHER3_PACKAGE,
+                            "dimen",
+                            "taskbar_suw_insets",
+                            "0.1dp"
+                        ),
+                        ResourceEntry(
+                            PIXEL_LAUNCHER_PACKAGE,
+                            "dimen",
+                            "taskbar_nav_buttons_size",
+                            "0dp"
+                        ),
+                        ResourceEntry(
+                            PIXEL_LAUNCHER_PACKAGE,
+                            "dimen",
+                            "taskbar_stashed_handle_height",
+                            "0dp"
+                        ),
+                        ResourceEntry(
+                            LAUNCHER3_PACKAGE,
+                            "dimen",
+                            "taskbar_nav_buttons_size",
+                            "0dp"
+                        ),
+                        ResourceEntry(
+                            LAUNCHER3_PACKAGE,
+                            "dimen",
+                            "taskbar_stashed_handle_height",
+                            "0dp"
+                        )
+                    )
                 )
-            )
+            }
+        }
+
+        CoroutineScope(Dispatchers.IO).launch {
+            if (enable) {
+                buildOverlayWithResource(*resources.toTypedArray())
+            } else {
+                removeResourceFromOverlay(*resources.toTypedArray())
+            }
         }
     }
 }

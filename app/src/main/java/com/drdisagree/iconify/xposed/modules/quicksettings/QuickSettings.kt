@@ -3,8 +3,6 @@ package com.drdisagree.iconify.xposed.modules.quicksettings
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.ColorStateList
-import android.content.res.Configuration
-import android.content.res.Resources
 import android.graphics.Color
 import android.graphics.PorterDuff
 import android.graphics.drawable.Drawable
@@ -24,24 +22,30 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.annotation.ColorInt
-import com.drdisagree.iconify.common.Const.SYSTEMUI_PACKAGE
-import com.drdisagree.iconify.common.Preferences.CUSTOM_QS_MARGIN
-import com.drdisagree.iconify.common.Preferences.FIX_NOTIFICATION_COLOR
-import com.drdisagree.iconify.common.Preferences.FIX_NOTIFICATION_FOOTER_BUTTON_COLOR
-import com.drdisagree.iconify.common.Preferences.FIX_QS_TILE_COLOR
-import com.drdisagree.iconify.common.Preferences.HEADER_CLOCK_SWITCH
-import com.drdisagree.iconify.common.Preferences.HIDE_QSLABEL_SWITCH
-import com.drdisagree.iconify.common.Preferences.HIDE_QS_FOOTER_BUTTONS
-import com.drdisagree.iconify.common.Preferences.HIDE_QS_ON_LOCKSCREEN
-import com.drdisagree.iconify.common.Preferences.HIDE_QS_SILENT_TEXT
-import com.drdisagree.iconify.common.Preferences.QQS_TOPMARGIN
-import com.drdisagree.iconify.common.Preferences.QS_TEXT_ALWAYS_WHITE
-import com.drdisagree.iconify.common.Preferences.QS_TEXT_FOLLOW_ACCENT
-import com.drdisagree.iconify.common.Preferences.QS_TOPMARGIN
-import com.drdisagree.iconify.common.Preferences.VERTICAL_QSTILE_SWITCH
+import com.drdisagree.iconify.data.common.Const.FRAMEWORK_PACKAGE
+import com.drdisagree.iconify.data.common.Const.SYSTEMUI_PACKAGE
+import com.drdisagree.iconify.data.common.Preferences.COMPACT_MEDIA_PLAYER
+import com.drdisagree.iconify.data.common.Preferences.CUSTOM_QS_MARGIN
+import com.drdisagree.iconify.data.common.Preferences.CUSTOM_QS_TEXT_COLOR
+import com.drdisagree.iconify.data.common.Preferences.FIX_NOTIFICATION_COLOR
+import com.drdisagree.iconify.data.common.Preferences.FIX_NOTIFICATION_FOOTER_BUTTON_COLOR
+import com.drdisagree.iconify.data.common.Preferences.FIX_QS_TILE_COLOR
+import com.drdisagree.iconify.data.common.Preferences.HEADER_CLOCK_SWITCH
+import com.drdisagree.iconify.data.common.Preferences.HIDE_QSLABEL_SWITCH
+import com.drdisagree.iconify.data.common.Preferences.HIDE_QS_FOOTER_BUTTONS
+import com.drdisagree.iconify.data.common.Preferences.HIDE_QS_ON_LOCKSCREEN
+import com.drdisagree.iconify.data.common.Preferences.HIDE_QS_SILENT_TEXT
+import com.drdisagree.iconify.data.common.Preferences.QQS_TOPMARGIN_LANDSCAPE
+import com.drdisagree.iconify.data.common.Preferences.QQS_TOPMARGIN_PORTRAIT
+import com.drdisagree.iconify.data.common.Preferences.QS_TOPMARGIN_LANDSCAPE
+import com.drdisagree.iconify.data.common.Preferences.QS_TOPMARGIN_PORTRAIT
+import com.drdisagree.iconify.data.common.Preferences.SELECTED_QS_TEXT_COLOR
+import com.drdisagree.iconify.data.common.Preferences.VERTICAL_QSTILE_SWITCH
 import com.drdisagree.iconify.xposed.ModPack
+import com.drdisagree.iconify.xposed.modules.extras.utils.DisplayUtils.isLandscape
+import com.drdisagree.iconify.xposed.modules.extras.utils.DisplayUtils.isNightMode
 import com.drdisagree.iconify.xposed.modules.extras.utils.ViewHelper.toPx
-import com.drdisagree.iconify.xposed.modules.extras.utils.isPixelVariant
+import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.ResourceHookManager
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.XposedHook.Companion.findClass
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.callMethod
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.callMethodSilently
@@ -50,11 +54,11 @@ import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.getFieldSilent
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.hookConstructor
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.hookMethod
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.hookMethodMatchPattern
+import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.isMethodAvailable
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.log
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.setField
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.setFieldSilently
 import com.drdisagree.iconify.xposed.utils.XPrefs.Xprefs
-import com.drdisagree.iconify.xposed.utils.XPrefs.XprefsIsInitialized
 import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XC_MethodHook.MethodHookParam
 import de.robv.android.xposed.XposedHelpers.callStaticMethod
@@ -66,14 +70,16 @@ class QuickSettings(context: Context) : ModPack(context) {
     private var fixQsTileColor = true
     private var fixNotificationColor = true
     private var fixNotificationFooterButtonsColor = true
-    private var qsTextAlwaysWhite = false
-    private var qsTextFollowAccent = false
+    private var customQsTextColor = false
+    private var selectedQsTextColor = 0
     private var qsTextAccentColor = Color.BLUE
     private var hideQsOnLockscreen = false
     private var hideSilentText = false
     private var hideFooterButtons = false
-    private var qqsTopMargin = 100
-    private var qsTopMargin = 100
+    private var qqsTopMarginPort = 100
+    private var qsTopMarginPort = 100
+    private var qqsTopMarginLand = 0
+    private var qsTopMarginLand = 0
     private var mParam: Any? = null
     private var mFooterButtonsContainer: ViewGroup? = null
     private var mFooterButtonsOnDrawListener: OnDrawListener? = null
@@ -86,29 +92,32 @@ class QuickSettings(context: Context) : ModPack(context) {
     private var customQsMarginsEnabled = false
     private var qsTilePrimaryTextSize: Float? = null
     private var qsTileSecondaryTextSize: Float? = null
+    private var compactMediaPlayerEnabled = false
     private var showHeaderClock = false
 
     override fun updatePrefs(vararg key: String) {
-        if (!XprefsIsInitialized) return
-
         Xprefs.apply {
             isVerticalQSTileActive = getBoolean(VERTICAL_QSTILE_SWITCH, false)
             isHideLabelActive = getBoolean(HIDE_QSLABEL_SWITCH, false)
             customQsMarginsEnabled = getBoolean(CUSTOM_QS_MARGIN, false)
-            qqsTopMargin = getSliderInt(QQS_TOPMARGIN, 100)
-            qsTopMargin = getSliderInt(QS_TOPMARGIN, 100)
+            qqsTopMarginPort = getSliderInt(QQS_TOPMARGIN_PORTRAIT, 100)
+            qsTopMarginPort = getSliderInt(QS_TOPMARGIN_PORTRAIT, 100)
+            qqsTopMarginLand = getSliderInt(QQS_TOPMARGIN_LANDSCAPE, 0)
+            qsTopMarginLand = getSliderInt(QS_TOPMARGIN_LANDSCAPE, 0)
             fixQsTileColor = isAtLeastAndroid14 &&
                     getBoolean(FIX_QS_TILE_COLOR, false)
             fixNotificationColor = isAtLeastAndroid14 &&
                     getBoolean(FIX_NOTIFICATION_COLOR, false)
             fixNotificationFooterButtonsColor = isAtLeastAndroid14 &&
                     getBoolean(FIX_NOTIFICATION_FOOTER_BUTTON_COLOR, false)
-            qsTextAlwaysWhite = getBoolean(QS_TEXT_ALWAYS_WHITE, false)
-            qsTextFollowAccent = getBoolean(QS_TEXT_FOLLOW_ACCENT, false)
+            customQsTextColor = getBoolean(CUSTOM_QS_TEXT_COLOR, false)
+            selectedQsTextColor = getString(SELECTED_QS_TEXT_COLOR, "0")!!.toInt()
             hideQsOnLockscreen = getBoolean(HIDE_QS_ON_LOCKSCREEN, false)
             hideSilentText = getBoolean(HIDE_QS_SILENT_TEXT, false)
             hideFooterButtons = getBoolean(HIDE_QS_FOOTER_BUTTONS, false)
             showHeaderClock = getBoolean(HEADER_CLOCK_SWITCH, false)
+            compactMediaPlayerEnabled = getBoolean(COMPACT_MEDIA_PLAYER, false)
+            isPixelVariant = getIsPixelVariant()
         }
 
         triggerQsElementVisibility()
@@ -122,6 +131,7 @@ class QuickSettings(context: Context) : ModPack(context) {
         fixNotificationColorA14()
         manageQsElementVisibility()
         disableQsOnSecureLockScreen()
+        compactMediaPlayer()
     }
 
     private fun setVerticalTiles() {
@@ -220,62 +230,23 @@ class QuickSettings(context: Context) : ModPack(context) {
     }
 
     private fun setQsMargin() {
-        Resources::class.java
-            .hookMethod("getDimensionPixelSize")
-            .suppressError()
-            .runBefore { param ->
-                if (!customQsMarginsEnabled) return@runBefore
+        fun getQqsMargin() = if (mContext.isLandscape) qqsTopMarginLand else qqsTopMarginPort
+        fun getQsMargin() = if (mContext.isLandscape) qsTopMarginLand else qsTopMarginPort
 
-                val qqsHeaderResNames = arrayOf(
-                    "qs_header_system_icons_area_height",
-                    "qqs_layout_margin_top",
-                    "qs_header_row_min_height",
-                    "large_screen_shade_header_min_height"
-                )
-
-                qqsHeaderResNames.forEach { resName ->
-                    try {
-                        val resId = mContext.resources.getIdentifier(
-                            resName,
-                            "dimen",
-                            mContext.packageName
-                        )
-
-                        if (param.args[0] == resId) {
-                            param.result = mContext.toPx(qqsTopMargin)
-                        }
-                    } catch (ignored: Throwable) {
-                    }
-                }
-
-                val qsHeaderResNames = arrayOf(
-                    "qs_panel_padding_top",
-                    "qs_panel_padding_top_combined_headers",
-                    "qs_header_height"
-                )
-
-                qsHeaderResNames.forEach { resName ->
-                    try {
-                        val resId = mContext.resources.getIdentifier(
-                            resName,
-                            "dimen",
-                            mContext.packageName
-                        )
-
-                        if (param.args[0] == resId) {
-                            if (showHeaderClock && Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-                                val isLandscape =
-                                    mContext.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
-
-                                param.result = if (isLandscape) 0 else mContext.toPx(qsTopMargin)
-                            } else {
-                                param.result = mContext.toPx(qsTopMargin)
-                            }
-                        }
-                    } catch (ignored: Throwable) {
-                    }
-                }
-            }
+        ResourceHookManager
+            .hookDimen()
+            .whenCondition { customQsMarginsEnabled }
+            .forPackageName(SYSTEMUI_PACKAGE)
+            .addResource("qs_header_system_icons_area_height") { getQqsMargin() }
+            .addResource("qqs_layout_margin_top") { getQqsMargin() }
+            .addResource("qs_header_row_min_height") { getQqsMargin() }
+            .addResource("qs_panel_padding_top") { getQsMargin() }
+            .addResource("qs_panel_padding_top_combined_headers") { getQsMargin() }
+            .addResource("qs_header_height") { getQsMargin() }
+            .forPackageName(FRAMEWORK_PACKAGE)
+            .addResource("quick_qs_offset_height") { getQqsMargin() }
+            .addResource("quick_qs_total_height") { getQsMargin() }
+            .apply()
 
         val quickStatusBarHeader = findClass("$SYSTEMUI_PACKAGE.qs.QuickStatusBarHeader")
 
@@ -317,7 +288,7 @@ class QuickSettings(context: Context) : ModPack(context) {
 
         val qsTileViewImplClass = findClass("$SYSTEMUI_PACKAGE.qs.tileimpl.QSTileViewImpl")!!
 
-        if (fixQsTileColor && qsTileViewImplClass.declaredMethods.find { it.name == "setStateLayer" } != null) {
+        if (fixQsTileColor && qsTileViewImplClass.isMethodAvailable("setStateLayer")) {
             qsTileViewImplClass
                 .hookMethod("setStateLayer")
                 .replace { param ->
@@ -371,25 +342,17 @@ class QuickSettings(context: Context) : ModPack(context) {
 
         qsTileViewImplClass
             .hookConstructor()
-            .runAfter { initQsAccentColor() }
-
-        qsTileViewImplClass
-            .hookConstructor()
             .runAfter { param ->
-                if (!qsTextAlwaysWhite && !qsTextFollowAccent) return@runAfter
+                if (!customQsTextColor) return@runAfter
+
+                initQsAccentColor()
 
                 @ColorInt val color: Int = qsIconLabelColor
                 @ColorInt val colorAlpha =
                     color and 0xFFFFFF or (Math.round(Color.alpha(color) * 0.8f) shl 24)
 
-                param.thisObject.setField(
-                    "colorLabelActive",
-                    color
-                )
-                param.thisObject.setField(
-                    "colorSecondaryLabelActive",
-                    colorAlpha
-                )
+                param.thisObject.setField("colorLabelActive", color)
+                param.thisObject.setField("colorSecondaryLabelActive", colorAlpha)
             }
 
         qsTileViewImplClass
@@ -440,7 +403,7 @@ class QuickSettings(context: Context) : ModPack(context) {
             .hookMethod("updateResources")
             .suppressError()
             .runAfter { param ->
-                if (!qsTextAlwaysWhite && !qsTextFollowAccent) return@runAfter
+                if (!customQsTextColor) return@runAfter
 
                 try {
                     val res = mContext.resources
@@ -487,7 +450,7 @@ class QuickSettings(context: Context) : ModPack(context) {
         footerActionsButtonViewModelClass
             .hookConstructor()
             .runBefore { param ->
-                if (!qsTextAlwaysWhite && !qsTextFollowAccent) return@runBefore
+                if (!customQsTextColor) return@runBefore
 
                 if (mContext.resources.getResourceName((param.args[0] as Int))
                         .split("/".toRegex()).dropLastWhile { it.isEmpty() }
@@ -515,7 +478,7 @@ class QuickSettings(context: Context) : ModPack(context) {
             .hookMethod("updateIcon")
             .suppressError()
             .runAfter { param ->
-                if (!qsTextAlwaysWhite && !qsTextFollowAccent) return@runAfter
+                if (!customQsTextColor) return@runAfter
 
                 @ColorInt val color: Int = qsIconLabelColor
                 try {
@@ -529,7 +492,7 @@ class QuickSettings(context: Context) : ModPack(context) {
         brightnessSliderControllerClass
             .hookConstructor()
             .runAfter { param ->
-                if (!qsTextAlwaysWhite && !qsTextFollowAccent) return@runAfter
+                if (!customQsTextColor) return@runAfter
 
                 initQsAccentColor()
 
@@ -551,7 +514,7 @@ class QuickSettings(context: Context) : ModPack(context) {
             .hookMethod("updateIcon")
             .suppressError()
             .runAfter { param ->
-                if (!qsTextAlwaysWhite && !qsTextFollowAccent) return@runAfter
+                if (!customQsTextColor) return@runAfter
 
                 @ColorInt val color: Int = qsIconLabelColor
 
@@ -724,6 +687,8 @@ class QuickSettings(context: Context) : ModPack(context) {
     }
 
     private fun disableQsOnSecureLockScreen() {
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.UPSIDE_DOWN_CAKE) return
+
         val remoteInputQuickSettingsDisablerClass =
             findClass("$SYSTEMUI_PACKAGE.statusbar.policy.RemoteInputQuickSettingsDisabler")
         val phoneStatusBarPolicyClass =
@@ -769,10 +734,45 @@ class QuickSettings(context: Context) : ModPack(context) {
             }
     }
 
+    private fun compactMediaPlayer() {
+        val mediaViewControllerClass =
+            findClass(
+                "$SYSTEMUI_PACKAGE.media.controls.ui.controller.MediaViewController",
+                "$SYSTEMUI_PACKAGE.media.controls.ui.MediaViewController"
+            )
+
+        mediaViewControllerClass
+            .hookMethod("obtainViewState")
+            .runBefore { param ->
+                if (!compactMediaPlayerEnabled) return@runBefore
+
+                val mediaHostState = param.args[0] ?: return@runBefore
+
+                // For a14 and above
+                mediaHostState.javaClass
+                    .hookMethod("getExpansion")
+                    .suppressError()
+                    .runBefore runBefore2@{ param2 ->
+                        if (!compactMediaPlayerEnabled) return@runBefore2
+
+                        param2.result = 0f
+                    }
+
+                // For some a13 and below ROMs
+                mediaHostState.javaClass
+                    .hookConstructor()
+                    .runAfter { param2 ->
+                        if (!compactMediaPlayerEnabled) return@runAfter
+
+                        param2.thisObject.setFieldSilently("expansion", 0f)
+                    }
+            }
+    }
+
     private fun isQsIconLabelStateActive(param: MethodHookParam?, stateIndex: Int): Boolean {
         if (param?.args == null) return false
 
-        if (!qsTextAlwaysWhite && !qsTextFollowAccent) return false
+        if (!customQsTextColor) return false
 
         val isActiveState: Boolean = try {
             param.args[stateIndex].getField(
@@ -797,9 +797,11 @@ class QuickSettings(context: Context) : ModPack(context) {
     @get:ColorInt
     private val qsIconLabelColor: Int
         get() {
-            return when {
-                qsTextAlwaysWhite -> Color.WHITE
-                qsTextFollowAccent -> qsTextAccentColor
+            return when (selectedQsTextColor) {
+                0 -> Color.WHITE
+                1 -> qsTextAccentColor
+                2 -> if (mContext.isNightMode) Color.WHITE else Color.BLACK
+                3 -> if (mContext.isNightMode) Color.BLACK else Color.WHITE
                 else -> Color.WHITE
             }
         }
@@ -906,5 +908,15 @@ class QuickSettings(context: Context) : ModPack(context) {
          * Source: frameworks/base/core/java/android/app/StatusBarManager.java
          */
         private const val DISABLE2_QUICK_SETTINGS = 1
+        var isPixelVariant = getIsPixelVariant()
+
+        private fun getIsPixelVariant(): Boolean {
+            for (i in 0..25) {
+                if (Xprefs.getBoolean("IconifyComponentQSSP$i.overlay")) {
+                    return true
+                }
+            }
+            return false
+        }
     }
 }

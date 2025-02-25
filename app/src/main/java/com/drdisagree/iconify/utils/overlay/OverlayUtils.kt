@@ -7,8 +7,8 @@ import android.graphics.drawable.Drawable
 import android.util.Log
 import androidx.core.content.ContextCompat
 import com.drdisagree.iconify.Iconify.Companion.appContext
-import com.drdisagree.iconify.common.Resources
-import com.drdisagree.iconify.config.RPrefs
+import com.drdisagree.iconify.data.common.Resources
+import com.drdisagree.iconify.data.config.RPrefs
 import com.topjohnwu.superuser.Shell
 import java.util.Objects
 

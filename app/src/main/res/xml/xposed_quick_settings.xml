@@ -65,33 +65,12 @@
         app:iconSpaceReserved="false"
         search:ignore="true">
 
-        <com.drdisagree.iconify.ui.preferences.SwitchPreference
+        <com.drdisagree.iconify.ui.preferences.TwoTargetSwitchPreference
             android:key="xposed_customqsmargin"
             android:summary="@string/custom_qs_margin_desc"
+            android:fragment="com.drdisagree.iconify.ui.fragments.xposed.QsMargins"
             android:title="@string/custom_qs_margin_title"
             app:iconSpaceReserved="false" />
-
-        <com.drdisagree.iconify.ui.preferences.SliderPreference
-            android:dependency="xposed_customqsmargin"
-            android:key="xposed_qqspanelTopMargin"
-            android:title="@string/qqs_panel_top_margin_title"
-            app:defaultValue="100"
-            app:iconSpaceReserved="false"
-            app:maxVal="300"
-            app:minVal="20"
-            app:tickInterval="1"
-            app:valueFormat="dp" />
-
-        <com.drdisagree.iconify.ui.preferences.SliderPreference
-            android:dependency="xposed_customqsmargin"
-            android:key="xposed_qspanelTopMargin"
-            android:title="@string/qs_panel_top_margin_title"
-            app:defaultValue="100"
-            app:iconSpaceReserved="false"
-            app:maxVal="300"
-            app:minVal="20"
-            app:tickInterval="1"
-            app:valueFormat="dp" />
 
     </com.drdisagree.iconify.ui.preferences.PreferenceCategory>
 
@@ -102,16 +81,20 @@
         search:ignore="true">
 
         <com.drdisagree.iconify.ui.preferences.SwitchPreference
-            android:key="xposed_qstextalwayswhite"
-            android:summary="@string/label_always_white_desc"
-            android:title="@string/label_always_white_title"
+            android:key="xposed_customqstextcolor"
+            android:summary="@string/custom_qs_tile_text_color_desc"
+            android:title="@string/custom_qs_tile_text_color_title"
             app:iconSpaceReserved="false" />
 
-        <com.drdisagree.iconify.ui.preferences.SwitchPreference
-            android:key="xposed_qstextfollowaccent"
-            android:summary="@string/label_follow_accent_desc"
-            android:title="@string/label_follow_accent_title"
-            app:iconSpaceReserved="false" />
+        <com.drdisagree.iconify.ui.preferences.ListPreference
+            android:defaultValue="0"
+            android:dependency="xposed_customqstextcolor"
+            android:entries="@array/qs_text_color_entries"
+            android:entryValues="@array/qs_text_color_values"
+            android:key="xposed_selectedqstextcolor"
+            android:title="@string/custom_qs_tile_text_color_list_title"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
 
     </com.drdisagree.iconify.ui.preferences.PreferenceCategory>
 
@@ -138,6 +121,20 @@
             android:key="xposed_colorednotificationalternative"
             android:summary="@string/colorize_notification_alternative_color_generation_desc"
             android:title="@string/colorize_notification_alternative_color_generation_title"
+            app:iconSpaceReserved="false" />
+
+    </com.drdisagree.iconify.ui.preferences.PreferenceCategory>
+
+    <com.drdisagree.iconify.ui.preferences.PreferenceCategory
+        android:key="xposedQuickSettingsMediaPlayer"
+        android:title="@string/section_title_media_player"
+        app:iconSpaceReserved="false"
+        search:ignore="true">
+
+        <com.drdisagree.iconify.ui.preferences.SwitchPreference
+            android:key="xposed_compactmediaplayer"
+            android:summary="@string/compact_media_player_desc"
+            android:title="@string/compact_media_player_title"
             app:iconSpaceReserved="false" />
 
     </com.drdisagree.iconify.ui.preferences.PreferenceCategory>

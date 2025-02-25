@@ -15,28 +15,30 @@ import androidx.lifecycle.lifecycleScope
 import com.drdisagree.iconify.BuildConfig
 import com.drdisagree.iconify.Iconify.Companion.appContext
 import com.drdisagree.iconify.R
-import com.drdisagree.iconify.common.Preferences.LSCLOCK_STYLE
-import com.drdisagree.iconify.common.Preferences.LSCLOCK_SWITCH
-import com.drdisagree.iconify.common.Resources.LOCKSCREEN_CLOCK_LAYOUT
-import com.drdisagree.iconify.common.Resources.searchableFragments
-import com.drdisagree.iconify.config.RPrefs.getBoolean
-import com.drdisagree.iconify.config.RPrefs.getInt
-import com.drdisagree.iconify.config.RPrefs.putBoolean
-import com.drdisagree.iconify.config.RPrefs.putInt
+import com.drdisagree.iconify.data.common.Preferences.LSCLOCK_STYLE
+import com.drdisagree.iconify.data.common.Preferences.LSCLOCK_SWITCH
+import com.drdisagree.iconify.data.common.Resources.LOCKSCREEN_CLOCK_LAYOUT
+import com.drdisagree.iconify.data.common.Resources.searchableFragments
+import com.drdisagree.iconify.data.config.RPrefs.getBoolean
+import com.drdisagree.iconify.data.config.RPrefs.getInt
+import com.drdisagree.iconify.data.config.RPrefs.putBoolean
+import com.drdisagree.iconify.data.config.RPrefs.putInt
 import com.drdisagree.iconify.databinding.FragmentXposedLockscreenClockBinding
 import com.drdisagree.iconify.ui.activities.MainActivity.Companion.replaceFragment
 import com.drdisagree.iconify.ui.base.BaseFragment
 import com.drdisagree.iconify.ui.base.ControlledPreferenceFragmentCompat
-import com.drdisagree.iconify.ui.models.ClockCarouselItemModel
+import com.drdisagree.iconify.data.models.ClockCarouselItemModel
 import com.drdisagree.iconify.ui.preferences.preferencesearch.SearchPreferenceResult
 import com.drdisagree.iconify.ui.utils.ViewHelper.setHeader
 import com.drdisagree.iconify.ui.views.ClockCarouselView
 import com.drdisagree.iconify.utils.SystemUtils
 import com.drdisagree.iconify.utils.WallpaperUtils.loadWallpaper
+import com.google.android.material.color.DynamicColors
 import com.topjohnwu.superuser.internal.UiThreadHandler.handler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.util.concurrent.Executors
+
 
 class LockscreenClockParent : BaseFragment() {
 
@@ -90,6 +92,18 @@ class LockscreenClockParent : BaseFragment() {
             R.layout.clock_carousel_view
         val clockCarouselView =
             binding.clockCarouselView.clockCarouselViewStub.inflate() as ClockCarouselView
+
+        if (context != null) {
+            val dynamicColorContext = DynamicColors.wrapContextIfAvailable(
+                requireContext(),
+                R.style.ThemeOverlay_Material3_DynamicColors_Dark
+            )
+            val attrsToResolve = intArrayOf(R.attr.colorSurfaceContainer)
+            val typedArray = dynamicColorContext.obtainStyledAttributes(attrsToResolve)
+            val colorSurfaceContainer = typedArray.getColor(0, 0)
+            typedArray.recycle()
+            clockCarouselView.setCarouselCardColor(colorSurfaceContainer)
+        }
 
         Executors.newSingleThreadExecutor().execute {
             if (context == null) return@execute

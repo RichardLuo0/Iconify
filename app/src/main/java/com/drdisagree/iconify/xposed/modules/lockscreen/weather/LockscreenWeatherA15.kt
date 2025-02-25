@@ -6,7 +6,9 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.graphics.Color
+import android.graphics.Typeface
 import android.os.Build
+import android.os.Environment
 import android.os.Handler
 import android.os.Looper
 import android.view.Gravity
@@ -16,44 +18,56 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import androidx.constraintlayout.widget.ConstraintSet
 import androidx.core.view.children
-import com.drdisagree.iconify.common.Const.ACTION_LS_CLOCK_INFLATED
-import com.drdisagree.iconify.common.Const.ACTION_WEATHER_INFLATED
-import com.drdisagree.iconify.common.Const.SYSTEMUI_PACKAGE
-import com.drdisagree.iconify.common.Preferences.ICONIFY_LOCKSCREEN_CLOCK_TAG
-import com.drdisagree.iconify.common.Preferences.ICONIFY_LOCKSCREEN_WEATHER_TAG
-import com.drdisagree.iconify.common.Preferences.LOCKSCREEN_WIDGETS_ENABLED
-import com.drdisagree.iconify.common.Preferences.LSCLOCK_SWITCH
-import com.drdisagree.iconify.common.Preferences.WEATHER_CENTER_VIEW
-import com.drdisagree.iconify.common.Preferences.WEATHER_CUSTOM_MARGINS_BOTTOM
-import com.drdisagree.iconify.common.Preferences.WEATHER_CUSTOM_MARGINS_SIDE
-import com.drdisagree.iconify.common.Preferences.WEATHER_CUSTOM_MARGINS_TOP
-import com.drdisagree.iconify.common.Preferences.WEATHER_ICON_SIZE
-import com.drdisagree.iconify.common.Preferences.WEATHER_SHOW_CONDITION
-import com.drdisagree.iconify.common.Preferences.WEATHER_SHOW_HUMIDITY
-import com.drdisagree.iconify.common.Preferences.WEATHER_SHOW_LOCATION
-import com.drdisagree.iconify.common.Preferences.WEATHER_SHOW_WIND
-import com.drdisagree.iconify.common.Preferences.WEATHER_STYLE
-import com.drdisagree.iconify.common.Preferences.WEATHER_SWITCH
-import com.drdisagree.iconify.common.Preferences.WEATHER_TEXT_COLOR
-import com.drdisagree.iconify.common.Preferences.WEATHER_TEXT_COLOR_SWITCH
-import com.drdisagree.iconify.common.Preferences.WEATHER_TEXT_SIZE
+import com.drdisagree.iconify.data.common.Const.ACTION_LS_CLOCK_INFLATED
+import com.drdisagree.iconify.data.common.Const.ACTION_WEATHER_INFLATED
+import com.drdisagree.iconify.data.common.Const.SYSTEMUI_PACKAGE
+import com.drdisagree.iconify.data.common.Preferences.ICONIFY_LOCKSCREEN_CLOCK_TAG
+import com.drdisagree.iconify.data.common.Preferences.ICONIFY_LOCKSCREEN_WEATHER_TAG
+import com.drdisagree.iconify.data.common.Preferences.LOCKSCREEN_WIDGETS_ENABLED
+import com.drdisagree.iconify.data.common.Preferences.LSCLOCK_SWITCH
+import com.drdisagree.iconify.data.common.Preferences.WEATHER_CENTER_VIEW
+import com.drdisagree.iconify.data.common.Preferences.WEATHER_CUSTOM_MARGINS_BOTTOM
+import com.drdisagree.iconify.data.common.Preferences.WEATHER_CUSTOM_MARGINS_SIDE
+import com.drdisagree.iconify.data.common.Preferences.WEATHER_CUSTOM_MARGINS_TOP
+import com.drdisagree.iconify.data.common.Preferences.WEATHER_FONT_SWITCH
+import com.drdisagree.iconify.data.common.Preferences.WEATHER_ICON_SIZE
+import com.drdisagree.iconify.data.common.Preferences.WEATHER_SHOW_CONDITION
+import com.drdisagree.iconify.data.common.Preferences.WEATHER_SHOW_HUMIDITY
+import com.drdisagree.iconify.data.common.Preferences.WEATHER_SHOW_LOCATION
+import com.drdisagree.iconify.data.common.Preferences.WEATHER_SHOW_WIND
+import com.drdisagree.iconify.data.common.Preferences.WEATHER_STYLE
+import com.drdisagree.iconify.data.common.Preferences.WEATHER_SWITCH
+import com.drdisagree.iconify.data.common.Preferences.WEATHER_TEXT_COLOR
+import com.drdisagree.iconify.data.common.Preferences.WEATHER_TEXT_COLOR_SWITCH
+import com.drdisagree.iconify.data.common.Preferences.WEATHER_TEXT_SIZE
+import com.drdisagree.iconify.data.common.Preferences.WEATHER_TRIGGER_UPDATE
 import com.drdisagree.iconify.xposed.ModPack
 import com.drdisagree.iconify.xposed.modules.extras.utils.MyConstraintSet.Companion.applyTo
 import com.drdisagree.iconify.xposed.modules.extras.utils.MyConstraintSet.Companion.clear
 import com.drdisagree.iconify.xposed.modules.extras.utils.MyConstraintSet.Companion.clone
 import com.drdisagree.iconify.xposed.modules.extras.utils.MyConstraintSet.Companion.connect
 import com.drdisagree.iconify.xposed.modules.extras.utils.MyConstraintSet.Companion.constraintSetInstance
+import com.drdisagree.iconify.xposed.modules.extras.utils.ViewHelper.applyFontRecursively
 import com.drdisagree.iconify.xposed.modules.extras.utils.ViewHelper.assignIdsToViews
 import com.drdisagree.iconify.xposed.modules.extras.utils.ViewHelper.getLsItemsContainer
 import com.drdisagree.iconify.xposed.modules.extras.utils.ViewHelper.setMargins
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.XposedHook.Companion.findClass
+import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.getFieldSilently
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.hookConstructor
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.hookMethod
+import com.drdisagree.iconify.xposed.modules.extras.views.AodBurnInProtection
 import com.drdisagree.iconify.xposed.modules.extras.views.CurrentWeatherView
 import com.drdisagree.iconify.xposed.modules.lockscreen.Lockscreen.Companion.isComposeLockscreen
 import com.drdisagree.iconify.xposed.utils.XPrefs.Xprefs
 import com.drdisagree.iconify.xposed.utils.XPrefs.XprefsIsInitialized
+import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.callbacks.XC_LoadPackage
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import java.io.File
 
 class LockscreenWeatherA15(context: Context) : ModPack(context) {
 
@@ -76,7 +90,13 @@ class LockscreenWeatherA15(context: Context) : ModPack(context) {
     private var mLockscreenClockEnabled = false
     private var mLockscreenClockInflated = false
     private var mWidgetsEnabled = false
+    private var dateSmartSpaceViewAvailable = false
     private lateinit var mWeatherContainer: LinearLayout
+    private val coroutineScope = CoroutineScope(Dispatchers.Main + Job())
+    private var aodBurnInProtection: AodBurnInProtection? = null
+    private var mCustomFontEnabled = false
+    private val mCustomFontLocation = Environment.getExternalStorageDirectory().toString() +
+            "/.iconify_files/lockscreen_weather_font.ttf"
 
     private var mBroadcastRegistered = false
     private val mReceiver: BroadcastReceiver = object : BroadcastReceiver() {
@@ -110,10 +130,12 @@ class LockscreenWeatherA15(context: Context) : ModPack(context) {
             mCenterWeather = getBoolean(WEATHER_CENTER_VIEW, false)
             mLockscreenClockEnabled = getBoolean(LSCLOCK_SWITCH, false)
             mWidgetsEnabled = getBoolean(LOCKSCREEN_WIDGETS_ENABLED, false)
+            mCustomFontEnabled = Xprefs.getBoolean(WEATHER_FONT_SWITCH, false)
         }
 
         when (key.firstOrNull()) {
             in setOf(
+                WEATHER_TRIGGER_UPDATE,
                 WEATHER_SHOW_LOCATION,
                 WEATHER_SHOW_CONDITION,
                 WEATHER_SHOW_HUMIDITY,
@@ -126,7 +148,8 @@ class LockscreenWeatherA15(context: Context) : ModPack(context) {
                 WEATHER_CUSTOM_MARGINS_BOTTOM,
                 WEATHER_CUSTOM_MARGINS_SIDE,
                 WEATHER_CUSTOM_MARGINS_TOP,
-                WEATHER_CENTER_VIEW
+                WEATHER_CENTER_VIEW,
+                WEATHER_FONT_SWITCH
             ) -> {
                 if (::mWeatherContainer.isInitialized) {
                     applyLayoutConstraints(mLsItemsContainer ?: mWeatherContainer)
@@ -172,48 +195,95 @@ class LockscreenWeatherA15(context: Context) : ModPack(context) {
 
         val aodBurnInLayerClass =
             findClass("$SYSTEMUI_PACKAGE.keyguard.ui.view.layout.sections.AodBurnInLayer")
+        var aodBurnInLayerHooked = false
+
+        // Apparently ROMs like CrDroid doesn't even use AodBurnInLayer class
+        // So we hook which ever is available
+        val keyguardStatusViewClass = findClass("com.android.keyguard.KeyguardStatusView")
+        var keyguardStatusViewHooked = false
+
+        fun initializeLockscreenLayout(param: XC_MethodHook.MethodHookParam) {
+            val entryV = param.thisObject as View
+
+            // If both are already hooked, return. We only want to hook one
+            if (aodBurnInLayerHooked && keyguardStatusViewHooked) return
+
+            entryV.addOnAttachStateChangeListener(object : OnAttachStateChangeListener {
+                override fun onViewAttachedToWindow(v: View) {
+                    Handler(Looper.getMainLooper()).postDelayed({
+                        if (!mWeatherEnabled) return@postDelayed
+
+                        val rootView = v.parent as? ViewGroup ?: return@postDelayed
+
+                        // If rootView is not R.id.keyguard_root_view, detach and return
+                        if (rootView.id != mContext.resources.getIdentifier(
+                                "keyguard_root_view",
+                                "id",
+                                mContext.packageName
+                            )
+                        ) {
+                            entryV.removeOnAttachStateChangeListener(this)
+                            return@postDelayed
+                        }
+
+                        dateSmartSpaceViewAvailable = rootView.findViewById<View?>(
+                            mContext.resources.getIdentifier(
+                                "date_smartspace_view",
+                                "id",
+                                mContext.packageName
+                            )
+                        ) != null
+
+                        mLockscreenRootView = rootView
+
+                        (mWeatherContainer.parent as? ViewGroup)?.removeView(mWeatherContainer)
+
+                        if (mLockscreenClockEnabled || mWidgetsEnabled) {
+                            mLsItemsContainer = rootView.getLsItemsContainer()
+
+                            // Add weather view after clock view if exists
+                            mLsItemsContainer!!.addView(
+                                mWeatherContainer,
+                                if (mLsItemsContainer!!.findViewWithTag<View?>(
+                                        ICONIFY_LOCKSCREEN_CLOCK_TAG
+                                    ) != null
+                                ) 1 else 0
+                            )
+                        } else {
+                            mLockscreenRootView!!.addView(mWeatherContainer)
+                        }
+
+                        applyLayoutConstraints(mLsItemsContainer ?: mWeatherContainer)
+                        aodBurnInProtection = AodBurnInProtection.registerForView(
+                            mLsItemsContainer ?: mWeatherContainer
+                        )
+
+                        placeWeatherView()
+                    }, 1000)
+                }
+
+                override fun onViewDetachedFromWindow(v: View) {}
+            })
+        }
 
         aodBurnInLayerClass
             .hookConstructor()
             .runAfter { param ->
                 if (!mWeatherEnabled) return@runAfter
 
-                val entryV = param.thisObject as View
+                aodBurnInLayerHooked = true
 
-                entryV.addOnAttachStateChangeListener(object : OnAttachStateChangeListener {
-                    override fun onViewAttachedToWindow(v: View) {
-                        Handler(Looper.getMainLooper()).postDelayed({
-                            if (!mWeatherEnabled) return@postDelayed
+                initializeLockscreenLayout(param)
+            }
 
-                            val rootView = entryV.parent as ViewGroup
-                            mLockscreenRootView = rootView
+        keyguardStatusViewClass
+            .hookConstructor()
+            .runAfter { param ->
+                if (!mWeatherEnabled) return@runAfter
 
-                            if (mLockscreenClockEnabled || mWidgetsEnabled) {
-                                mLsItemsContainer = rootView.getLsItemsContainer()
+                keyguardStatusViewHooked = true
 
-                                (mWeatherContainer.parent as? ViewGroup)
-                                    ?.removeView(mWeatherContainer)
-
-                                // Add weather view after clock view if exists
-                                mLsItemsContainer!!.addView(
-                                    mWeatherContainer,
-                                    if (mLsItemsContainer!!.findViewWithTag<View?>(
-                                            ICONIFY_LOCKSCREEN_CLOCK_TAG
-                                        ) != null
-                                    ) 1 else 0
-                                )
-                            } else {
-                                mLockscreenRootView!!.addView(mWeatherContainer)
-                            }
-
-                            applyLayoutConstraints(mLsItemsContainer ?: mWeatherContainer)
-
-                            placeWeatherView()
-                        }, 1000)
-                    }
-
-                    override fun onViewDetachedFromWindow(v: View) {}
-                })
+                initializeLockscreenLayout(param)
             }
 
         val defaultNotificationStackScrollLayoutSectionClass =
@@ -247,6 +317,17 @@ class LockscreenWeatherA15(context: Context) : ModPack(context) {
         val smartspaceSectionClass =
             findClass("$SYSTEMUI_PACKAGE.keyguard.ui.view.layout.sections.SmartspaceSection")
 
+        val bcSmartSpaceViewId = mContext.resources.getIdentifier(
+            "bc_smartspace_view",
+            "id",
+            mContext.packageName
+        )
+        val dateSmartSpaceViewId = mContext.resources.getIdentifier(
+            "date_smartspace_view",
+            "id",
+            mContext.packageName
+        )
+
         smartspaceSectionClass
             .hookMethod("applyConstraints")
             .runAfter { param ->
@@ -254,11 +335,12 @@ class LockscreenWeatherA15(context: Context) : ModPack(context) {
 
                 val constraintSet = param.args[0]
 
-                val dateSmartSpaceViewId = mContext.resources.getIdentifier(
-                    "date_smartspace_view",
-                    "id",
-                    mContext.packageName
-                )
+                val smartSpaceViewId = if (dateSmartSpaceViewAvailable) {
+                    dateSmartSpaceViewId
+                } else {
+                    // Some ROMs don't have date smartspace view
+                    bcSmartSpaceViewId
+                }
 
                 // Connect weather view to bottom of date smartspace
                 if (!mLockscreenClockEnabled && mWidgetsEnabled && mLsItemsContainer != null) {
@@ -269,7 +351,7 @@ class LockscreenWeatherA15(context: Context) : ModPack(context) {
                     constraintSet.connect(
                         mLsItemsContainer!!.id,
                         ConstraintSet.TOP,
-                        dateSmartSpaceViewId,
+                        smartSpaceViewId,
                         ConstraintSet.BOTTOM
                     )
                 } else if (mLockscreenClockEnabled && mLsItemsContainer != null) {
@@ -283,7 +365,7 @@ class LockscreenWeatherA15(context: Context) : ModPack(context) {
                         ConstraintSet.PARENT_ID,
                         ConstraintSet.TOP
                     )
-                } else if (!mLockscreenClockEnabled && !mWeatherEnabled) {
+                } else if (!mLockscreenClockEnabled && !mWidgetsEnabled) {
                     constraintSet.clear(
                         mWeatherContainer.id,
                         ConstraintSet.TOP
@@ -291,9 +373,85 @@ class LockscreenWeatherA15(context: Context) : ModPack(context) {
                     constraintSet.connect(
                         mWeatherContainer.id,
                         ConstraintSet.TOP,
-                        dateSmartSpaceViewId,
+                        smartSpaceViewId,
                         ConstraintSet.BOTTOM
                     )
+                }
+            }
+
+        fun onDozingChanged(isDozing: Boolean) {
+            aodBurnInProtection?.setMovementEnabled(isDozing)
+        }
+
+        val collapsedStatusBarFragment = findClass(
+            "$SYSTEMUI_PACKAGE.statusbar.phone.CollapsedStatusBarFragment",
+            "$SYSTEMUI_PACKAGE.statusbar.phone.fragment.CollapsedStatusBarFragment"
+        )
+
+        collapsedStatusBarFragment
+            .hookMethod("onDozingChanged")
+            .runAfter { param -> onDozingChanged(param.args[0] as Boolean) }
+
+        val dozeScrimControllerClass =
+            findClass("$SYSTEMUI_PACKAGE.statusbar.phone.DozeScrimController")
+
+        dozeScrimControllerClass
+            .hookMethod("onDozingChanged")
+            .runAfter { param -> onDozingChanged(param.args[0] as Boolean) }
+
+        // For unknown reason, rotating device makes the height of view to 0
+        // This is a workaround to make sure the view is visible
+        fun updateLayoutParams() {
+            if (!mWeatherEnabled) return
+
+            if (::mWeatherContainer.isInitialized) {
+                (mLsItemsContainer ?: mWeatherContainer).layoutParams.apply {
+                    width = ViewGroup.LayoutParams.MATCH_PARENT
+                    height = ViewGroup.LayoutParams.WRAP_CONTENT
+                }
+            }
+        }
+
+        val statusBarKeyguardViewManagerClass =
+            findClass("$SYSTEMUI_PACKAGE.statusbar.phone.StatusBarKeyguardViewManager")
+
+        statusBarKeyguardViewManagerClass
+            .hookMethod("onStartedWakingUp")
+            .suppressError()
+            .runAfter { updateLayoutParams() }
+
+        val centralSurfacesImplClass = findClass(
+            "$SYSTEMUI_PACKAGE.statusbar.phone.CentralSurfacesImpl",
+            suppressError = true
+        )
+
+        centralSurfacesImplClass
+            .hookMethod("onStartedWakingUp")
+            .suppressError()
+            .runAfter { updateLayoutParams() }
+
+        centralSurfacesImplClass
+            .hookConstructor()
+            .runAfter { param ->
+                if (!mWeatherEnabled) return@runAfter
+
+                val mWakefulnessObserver = param.thisObject.getFieldSilently("mWakefulnessObserver")
+
+                mWakefulnessObserver?.javaClass
+                    .hookMethod("onStartedWakingUp")
+                    .runAfter { updateLayoutParams() }
+            }
+
+        val dozeServiceClass = findClass("$SYSTEMUI_PACKAGE.doze.DozeService")
+
+        dozeServiceClass
+            .hookMethod("onDreamingStarted")
+            .runAfter {
+                coroutineScope.launch {
+                    repeat(5) {
+                        updateLayoutParams()
+                        delay(500L)
+                    }
                 }
             }
     }
@@ -325,6 +483,8 @@ class LockscreenWeatherA15(context: Context) : ModPack(context) {
 
     @SuppressLint("DiscouragedApi")
     private fun applyLayoutConstraints(weatherView: ViewGroup) {
+        if (mLockscreenRootView == null) return
+
         mLockscreenRootView.assignIdsToViews()
 
         weatherView.getChildAt(0)?.layoutParams?.width = LinearLayout.LayoutParams.MATCH_PARENT
@@ -360,11 +520,20 @@ class LockscreenWeatherA15(context: Context) : ModPack(context) {
             if ((weatherView == mWeatherContainer && !mLockscreenClockEnabled && !mWidgetsEnabled) ||
                 (weatherView == mLsItemsContainer && !mLockscreenClockEnabled && mWidgetsEnabled)
             ) {
-                val dateSmartspaceViewId = mContext.resources.getIdentifier(
-                    "date_smartspace_view",
-                    "id",
-                    mContext.packageName
-                )
+                val dateSmartspaceViewId = if (dateSmartSpaceViewAvailable) {
+                    mContext.resources.getIdentifier(
+                        "date_smartspace_view",
+                        "id",
+                        mContext.packageName
+                    )
+                } else {
+                    // Some ROMs don't have date smartspace view
+                    mContext.resources.getIdentifier(
+                        "bc_smartspace_view",
+                        "id",
+                        mContext.packageName
+                    )
+                }
                 // If no custom clock or widgets enabled, or only widgets enabled
                 // then connect weather view to bottom of date smartspace
                 constraintSet.connect(
@@ -445,6 +614,7 @@ class LockscreenWeatherA15(context: Context) : ModPack(context) {
         }
 
         updateMargins()
+        updateFont()
     }
 
     private fun updateMargins() {
@@ -473,6 +643,16 @@ class LockscreenWeatherA15(context: Context) : ModPack(context) {
             } else {
                 Gravity.START or Gravity.CENTER_VERTICAL
             }
+        }
+    }
+
+    private fun updateFont() {
+        if (mCustomFontEnabled && File(mCustomFontLocation).exists()) {
+            Typeface.createFromFile(File(mCustomFontLocation))
+        } else {
+            Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
+        }.also { typeface ->
+            applyFontRecursively(mWeatherContainer, typeface)
         }
     }
 

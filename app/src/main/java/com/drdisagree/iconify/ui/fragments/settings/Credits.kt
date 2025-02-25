@@ -11,7 +11,7 @@ import com.drdisagree.iconify.R
 import com.drdisagree.iconify.databinding.FragmentCreditsBinding
 import com.drdisagree.iconify.ui.adapters.InfoAdapter
 import com.drdisagree.iconify.ui.base.BaseFragment
-import com.drdisagree.iconify.ui.models.InfoModel
+import com.drdisagree.iconify.data.models.InfoModel
 import com.drdisagree.iconify.ui.utils.ViewHelper.setHeader
 import com.drdisagree.iconify.utils.parseContributors
 import com.drdisagree.iconify.utils.parseTranslators

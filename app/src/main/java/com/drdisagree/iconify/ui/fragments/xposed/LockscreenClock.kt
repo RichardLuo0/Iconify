@@ -11,13 +11,14 @@ import androidx.activity.result.contract.ActivityResultContracts
 import com.drdisagree.iconify.Iconify.Companion.appContext
 import com.drdisagree.iconify.Iconify.Companion.appContextLocale
 import com.drdisagree.iconify.R
-import com.drdisagree.iconify.common.Const.RESET_LOCKSCREEN_CLOCK_COMMAND
-import com.drdisagree.iconify.common.Dynamic.isAtleastA14
-import com.drdisagree.iconify.common.Preferences.LSCLOCK_FONT_SWITCH
-import com.drdisagree.iconify.common.Preferences.LSCLOCK_SWITCH
-import com.drdisagree.iconify.common.Resources.LSCLOCK_FONT_DIR
-import com.drdisagree.iconify.config.RPrefs.getBoolean
-import com.drdisagree.iconify.config.RPrefs.putBoolean
+import com.drdisagree.iconify.data.common.Const.RESET_LOCKSCREEN_CLOCK_COMMAND
+import com.drdisagree.iconify.data.common.Dynamic.isAtleastA14
+import com.drdisagree.iconify.data.common.Preferences.LSCLOCK_FONT_SWITCH
+import com.drdisagree.iconify.data.common.Preferences.LSCLOCK_MOVE_NOTIFICATION_ICONS
+import com.drdisagree.iconify.data.common.Preferences.LSCLOCK_SWITCH
+import com.drdisagree.iconify.data.common.Resources.LSCLOCK_FONT_DIR
+import com.drdisagree.iconify.data.config.RPrefs.getBoolean
+import com.drdisagree.iconify.data.config.RPrefs.putBoolean
 import com.drdisagree.iconify.ui.activities.MainActivity
 import com.drdisagree.iconify.ui.base.ControlledPreferenceFragmentCompat
 import com.drdisagree.iconify.ui.preferences.FilePickerPreference
@@ -84,6 +85,13 @@ class LockscreenClock : ControlledPreferenceFragmentCompat() {
                     Shell.cmd(RESET_LOCKSCREEN_CLOCK_COMMAND).exec()
                 }
 
+                MainActivity.showOrHidePendingActionButton(
+                    activityBinding = (requireActivity() as MainActivity).binding,
+                    requiresSystemUiRestart = true
+                )
+            }
+
+            LSCLOCK_MOVE_NOTIFICATION_ICONS -> {
                 MainActivity.showOrHidePendingActionButton(
                     activityBinding = (requireActivity() as MainActivity).binding,
                     requiresSystemUiRestart = true

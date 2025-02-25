@@ -22,13 +22,9 @@
         <package android:name="app.revanced.android.youtube" />
         <package android:name="app.revanced.android.apps.youtube.music" />
     </queries>
-    <uses-permission
-        android:name="android.permission.QUERY_ALL_PACKAGES"
-        tools:ignore="QueryAllPackagesPermission" />
 
     <!-- Weather Updater -->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" /> <!-- Weather Updater -->
-    <uses-permission android:name="android.permission.INTERNET" /> <!-- Weather Updater -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" /> <!-- Get Location for Weather -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" /> <!-- Get Location for Weather -->
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" /> <!-- Get Location for Weather -->
@@ -56,8 +52,8 @@
             android:exported="false" />
         <activity
             android:name=".ui.activities.WeatherActivity"
-            android:exported="true"
             android:excludeFromRecents="true"
+            android:exported="true"
             android:theme="@style/Theme.Iconify" />
         <activity
             android:name=".SplashActivity"
@@ -165,9 +161,6 @@
                 android:value="true" />
         </service> <!-- Quick Settings Tile -->
         <meta-data
-            android:name="com.google.mlkit.vision.DEPENDENCIES"
-            android:value="subject_segment" /> <!-- ML Kit download -->
-        <meta-data
             android:name="xposedmodule"
             android:value="true" /> <!-- xposed meta data -->
         <meta-data
@@ -179,11 +172,8 @@
         <meta-data
             android:name="xposedscope"
             android:resource="@array/module_scope" /> <!-- xposed meta data -->
-        <meta-data
-            android:name="com.google.mlkit.vision.DEPENDENCIES"
-            android:value="subject_segment" /> <!-- ML Kit download -->
         <provider
-            android:name=".provider.RemotePrefProvider"
+            android:name=".data.provider.RemotePrefProvider"
             android:authorities="${applicationId}"
             android:directBootAware="true"
             android:exported="true"

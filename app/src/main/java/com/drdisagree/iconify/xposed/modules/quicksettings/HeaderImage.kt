@@ -19,16 +19,16 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.RelativeLayout
 import com.bosphere.fadingedgelayout.FadingEdgeLayout
-import com.drdisagree.iconify.common.Const.ACTION_BOOT_COMPLETED
-import com.drdisagree.iconify.common.Const.SYSTEMUI_PACKAGE
-import com.drdisagree.iconify.common.Preferences.HEADER_IMAGE_ALPHA
-import com.drdisagree.iconify.common.Preferences.HEADER_IMAGE_BOTTOM_FADE_AMOUNT
-import com.drdisagree.iconify.common.Preferences.HEADER_IMAGE_HEIGHT
-import com.drdisagree.iconify.common.Preferences.HEADER_IMAGE_LANDSCAPE_SWITCH
-import com.drdisagree.iconify.common.Preferences.HEADER_IMAGE_OVERLAP
-import com.drdisagree.iconify.common.Preferences.HEADER_IMAGE_SWITCH
-import com.drdisagree.iconify.common.Preferences.HEADER_IMAGE_ZOOMTOFIT
-import com.drdisagree.iconify.common.Preferences.ICONIFY_QS_HEADER_CONTAINER_TAG
+import com.drdisagree.iconify.data.common.Const.ACTION_BOOT_COMPLETED
+import com.drdisagree.iconify.data.common.Const.SYSTEMUI_PACKAGE
+import com.drdisagree.iconify.data.common.Preferences.HEADER_IMAGE_ALPHA
+import com.drdisagree.iconify.data.common.Preferences.HEADER_IMAGE_BOTTOM_FADE_AMOUNT
+import com.drdisagree.iconify.data.common.Preferences.HEADER_IMAGE_HEIGHT
+import com.drdisagree.iconify.data.common.Preferences.HEADER_IMAGE_LANDSCAPE_SWITCH
+import com.drdisagree.iconify.data.common.Preferences.HEADER_IMAGE_OVERLAP
+import com.drdisagree.iconify.data.common.Preferences.HEADER_IMAGE_SWITCH
+import com.drdisagree.iconify.data.common.Preferences.HEADER_IMAGE_ZOOMTOFIT
+import com.drdisagree.iconify.data.common.Preferences.ICONIFY_QS_HEADER_CONTAINER_TAG
 import com.drdisagree.iconify.xposed.ModPack
 import com.drdisagree.iconify.xposed.modules.extras.utils.ViewHelper.toPx
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.XposedHook.Companion.findClass
@@ -38,7 +38,6 @@ import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.hookMethod
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.log
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.setField
 import com.drdisagree.iconify.xposed.utils.XPrefs.Xprefs
-import com.drdisagree.iconify.xposed.utils.XPrefs.XprefsIsInitialized
 import de.robv.android.xposed.XposedHelpers.callMethod
 import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam
 import java.io.File
@@ -68,8 +67,6 @@ class HeaderImage(context: Context) : ModPack(context) {
     }
 
     override fun updatePrefs(vararg key: String) {
-        if (!XprefsIsInitialized) return
-
         Xprefs.apply {
             showHeaderImage = getBoolean(HEADER_IMAGE_SWITCH, false)
             headerImageAlpha = getSliderInt(HEADER_IMAGE_ALPHA, 100)

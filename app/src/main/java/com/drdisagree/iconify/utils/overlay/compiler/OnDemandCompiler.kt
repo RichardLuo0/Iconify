@@ -1,16 +1,16 @@
 package com.drdisagree.iconify.utils.overlay.compiler
 
 import android.util.Log
-import com.drdisagree.iconify.common.Resources
-import com.drdisagree.iconify.common.Resources.BACKUP_DIR
-import com.drdisagree.iconify.common.Resources.DATA_DIR
-import com.drdisagree.iconify.common.Resources.SIGNED_DIR
-import com.drdisagree.iconify.common.Resources.SYSTEM_OVERLAY_DIR
-import com.drdisagree.iconify.common.Resources.TEMP_CACHE_DIR
-import com.drdisagree.iconify.common.Resources.TEMP_DIR
-import com.drdisagree.iconify.common.Resources.TEMP_OVERLAY_DIR
-import com.drdisagree.iconify.common.Resources.UNSIGNED_DIR
-import com.drdisagree.iconify.common.Resources.UNSIGNED_UNALIGNED_DIR
+import com.drdisagree.iconify.data.common.Resources
+import com.drdisagree.iconify.data.common.Resources.BACKUP_DIR
+import com.drdisagree.iconify.data.common.Resources.DATA_DIR
+import com.drdisagree.iconify.data.common.Resources.SIGNED_DIR
+import com.drdisagree.iconify.data.common.Resources.SYSTEM_OVERLAY_DIR
+import com.drdisagree.iconify.data.common.Resources.TEMP_CACHE_DIR
+import com.drdisagree.iconify.data.common.Resources.TEMP_DIR
+import com.drdisagree.iconify.data.common.Resources.TEMP_OVERLAY_DIR
+import com.drdisagree.iconify.data.common.Resources.UNSIGNED_DIR
+import com.drdisagree.iconify.data.common.Resources.UNSIGNED_UNALIGNED_DIR
 import com.drdisagree.iconify.utils.FileUtils.copyAssets
 import com.drdisagree.iconify.utils.MiscUtils.requiresNewToastStyle
 import com.drdisagree.iconify.utils.RootUtils.setPermissions

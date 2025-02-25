@@ -1,8 +1,10 @@
 package com.drdisagree.iconify.xposed.modules.lockscreen.depthwallpaper
 
 import android.annotation.SuppressLint
+import android.content.BroadcastReceiver
 import android.content.Context
-import android.content.res.Resources
+import android.content.Intent
+import android.content.IntentFilter
 import android.graphics.ImageDecoder
 import android.graphics.drawable.AnimatedImageDrawable
 import android.graphics.drawable.Drawable
@@ -18,25 +20,27 @@ import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
-import com.drdisagree.iconify.common.Const.SYSTEMUI_PACKAGE
-import com.drdisagree.iconify.common.Preferences.DEPTH_WALLPAPER_BACKGROUND_MOVEMENT_MULTIPLIER
-import com.drdisagree.iconify.common.Preferences.DEPTH_WALLPAPER_CHANGED
-import com.drdisagree.iconify.common.Preferences.DEPTH_WALLPAPER_FADE_ANIMATION
-import com.drdisagree.iconify.common.Preferences.DEPTH_WALLPAPER_FOREGROUND_ALPHA
-import com.drdisagree.iconify.common.Preferences.DEPTH_WALLPAPER_FOREGROUND_MOVEMENT_MULTIPLIER
-import com.drdisagree.iconify.common.Preferences.DEPTH_WALLPAPER_PARALLAX_EFFECT
-import com.drdisagree.iconify.common.Preferences.DEPTH_WALLPAPER_SWITCH
-import com.drdisagree.iconify.common.Preferences.ICONIFY_DEPTH_WALLPAPER_TAG
-import com.drdisagree.iconify.common.Preferences.ICONIFY_LOCKSCREEN_CLOCK_TAG
-import com.drdisagree.iconify.common.Preferences.UNZOOM_DEPTH_WALLPAPER
+import com.drdisagree.iconify.data.common.Const.ACTION_UPDATE_DEPTH_WALLPAPER_FOREGROUND_VISIBILITY
+import com.drdisagree.iconify.data.common.Const.SYSTEMUI_PACKAGE
+import com.drdisagree.iconify.data.common.Preferences.DEPTH_WALLPAPER_BACKGROUND_MOVEMENT_MULTIPLIER
+import com.drdisagree.iconify.data.common.Preferences.DEPTH_WALLPAPER_CHANGED
+import com.drdisagree.iconify.data.common.Preferences.DEPTH_WALLPAPER_FADE_ANIMATION
+import com.drdisagree.iconify.data.common.Preferences.DEPTH_WALLPAPER_FOREGROUND_ALPHA
+import com.drdisagree.iconify.data.common.Preferences.DEPTH_WALLPAPER_FOREGROUND_MOVEMENT_MULTIPLIER
+import com.drdisagree.iconify.data.common.Preferences.DEPTH_WALLPAPER_PARALLAX_EFFECT
+import com.drdisagree.iconify.data.common.Preferences.DEPTH_WALLPAPER_SWITCH
+import com.drdisagree.iconify.data.common.Preferences.ICONIFY_DEPTH_WALLPAPER_TAG
+import com.drdisagree.iconify.data.common.Preferences.ICONIFY_LOCKSCREEN_CLOCK_TAG
+import com.drdisagree.iconify.data.common.Preferences.UNZOOM_DEPTH_WALLPAPER
 import com.drdisagree.iconify.xposed.ModPack
 import com.drdisagree.iconify.xposed.modules.extras.utils.ViewHelper.toPx
+import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.ResourceHookManager
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.XposedHook.Companion.findClass
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.getField
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.hookMethod
 import com.drdisagree.iconify.xposed.modules.extras.views.ParallaxImageView
+import com.drdisagree.iconify.xposed.modules.lockscreen.AlbumArt.Companion.shouldShowAlbumArt
 import com.drdisagree.iconify.xposed.utils.XPrefs.Xprefs
-import com.drdisagree.iconify.xposed.utils.XPrefs.XprefsIsInitialized
 import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam
 import java.io.File
@@ -58,9 +62,21 @@ class DepthWallpaper(context: Context) : ModPack(context) {
     private var unzoomWallpaper = false
     private var foregroundAlpha = 1.0f
 
-    override fun updatePrefs(vararg key: String) {
-        if (!XprefsIsInitialized) return
+    private var mBroadcastRegistered = false
+    private val mReceiver: BroadcastReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action == ACTION_UPDATE_DEPTH_WALLPAPER_FOREGROUND_VISIBILITY) {
+                // Hide foreground when album art is showing
+                if (showDepthWallpaper && !shouldShowAlbumArt) {
+                    mDepthWallpaperForeground?.visibility = View.VISIBLE
+                } else {
+                    mDepthWallpaperForeground?.visibility = View.GONE
+                }
+            }
+        }
+    }
 
+    override fun updatePrefs(vararg key: String) {
         Xprefs.apply {
             showDepthWallpaper = getBoolean(DEPTH_WALLPAPER_SWITCH, false)
             showFadingAnimation = getBoolean(DEPTH_WALLPAPER_FADE_ANIMATION, false)
@@ -86,7 +102,30 @@ class DepthWallpaper(context: Context) : ModPack(context) {
         }
     }
 
+    @SuppressLint("UnspecifiedRegisterReceiverFlag")
     override fun handleLoadPackage(loadPackageParam: LoadPackageParam) {
+        // Receiver to handle foreground visibility
+        if (!mBroadcastRegistered) {
+            val intentFilter = IntentFilter().apply {
+                addAction(ACTION_UPDATE_DEPTH_WALLPAPER_FOREGROUND_VISIBILITY)
+            }
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                mContext.registerReceiver(
+                    mReceiver,
+                    intentFilter,
+                    Context.RECEIVER_EXPORTED
+                )
+            } else {
+                mContext.registerReceiver(
+                    mReceiver,
+                    intentFilter
+                )
+            }
+
+            mBroadcastRegistered = true
+        }
+
         val keyguardBottomAreaViewClass =
             findClass("$SYSTEMUI_PACKAGE.statusbar.phone.KeyguardBottomAreaView")
 
@@ -365,58 +404,15 @@ class DepthWallpaper(context: Context) : ModPack(context) {
                 }
             })
 
-        Resources::class.java
-            .hookMethod(
-                "getDimensionPixelOffset",
-                "getDimensionPixelSize"
-            )
-            .suppressError()
-            .run(object : XC_MethodHook() {
-                override fun beforeHookedMethod(param: MethodHookParam) {
-                    if (showDepthWallpaper) {
-                        if (Build.VERSION.SDK_INT >= 33) {
-                            try {
-                                val resId = mContext.resources.getIdentifier(
-                                    "keyguard_indication_area_padding",
-                                    "dimen",
-                                    mContext.packageName
-                                )
-
-                                if (param.args[0] == resId) {
-                                    param.result = 0
-                                }
-                            } catch (ignored: Throwable) {
-                            }
-                        } else {
-                            // These resources are only available on Android 12L and below
-                            try {
-                                val resId = mContext.resources.getIdentifier(
-                                    "keyguard_indication_margin_bottom",
-                                    "dimen",
-                                    mContext.packageName
-                                )
-
-                                if (param.args[0] == resId) {
-                                    param.result = 0
-                                }
-                            } catch (ignored: Throwable) {
-                            }
-                            try {
-                                val resId = mContext.resources.getIdentifier(
-                                    "keyguard_indication_margin_bottom_fingerprint_in_display",
-                                    "dimen",
-                                    mContext.packageName
-                                )
-
-                                if (param.args[0] == resId) {
-                                    param.result = 0
-                                }
-                            } catch (ignored: Throwable) {
-                            }
-                        }
-                    }
-                }
-            })
+        ResourceHookManager
+            .hookDimen()
+            .forPackageName(SYSTEMUI_PACKAGE)
+            .whenCondition { showDepthWallpaper && Build.VERSION.SDK_INT >= 33 }
+            .addResource("keyguard_indication_area_padding") { 0 }
+            .whenCondition { showDepthWallpaper && Build.VERSION.SDK_INT < 33 } // These resources are only available on Android 12L and below
+            .addResource("keyguard_indication_margin_bottom") { 0 }
+            .addResource("keyguard_indication_margin_bottom_fingerprint_in_display") { 0 }
+            .apply()
 
         val dozeScrimControllerClass =
             findClass("$SYSTEMUI_PACKAGE.statusbar.phone.DozeScrimController")

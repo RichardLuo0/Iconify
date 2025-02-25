@@ -31,7 +31,6 @@ import java.util.List;
  * <p>
  * All "delays" and "times" are as fractions from 0-1.
  */
-@SuppressWarnings("all")
 public class TouchAnimator {
 
     private final Object[] mTargets;
@@ -133,8 +132,8 @@ public class TouchAnimator {
     }
 
     public static class Builder {
-        private List<Object> mTargets = new ArrayList<>();
-        private List<KeyframeSet> mValues = new ArrayList<>();
+        private final List<Object> mTargets = new ArrayList<>();
+        private final List<KeyframeSet> mValues = new ArrayList<>();
 
         private float mStartDelay;
         private float mEndDelay;
@@ -158,6 +157,7 @@ public class TouchAnimator {
             mValues.add(keyframeSet);
         }
 
+        @SuppressWarnings("rawtypes")
         private static Property getProperty(Object target, String property, Class<?> cls) {
             if (target instanceof View) {
                 switch (property) {
@@ -211,8 +211,8 @@ public class TouchAnimator {
         }
 
         public TouchAnimator build() {
-            return new TouchAnimator(mTargets.toArray(new Object[mTargets.size()]),
-                    mValues.toArray(new KeyframeSet[mValues.size()]),
+            return new TouchAnimator(mTargets.toArray(new Object[0]),
+                    mValues.toArray(new KeyframeSet[0]),
                     mStartDelay, mEndDelay, mInterpolator, mListener);
         }
     }
@@ -234,10 +234,12 @@ public class TouchAnimator {
 
         protected abstract void interpolate(int index, float amount, Object target);
 
+        @SuppressWarnings({"rawtypes", "unchecked"})
         public static KeyframeSet ofInt(Property property, int... values) {
             return new IntKeyframeSet((Property<?, Integer>) property, values);
         }
 
+        @SuppressWarnings({"rawtypes", "unchecked"})
         public static KeyframeSet ofFloat(Property property, float... values) {
             return new FloatKeyframeSet((Property<?, Float>) property, values);
         }
@@ -254,6 +256,7 @@ public class TouchAnimator {
         }
 
         @Override
+        @SuppressWarnings({"unchecked"})
         protected void interpolate(int index, float amount, Object target) {
             float firstFloat = mValues[index - 1];
             float secondFloat = mValues[index];
@@ -272,6 +275,7 @@ public class TouchAnimator {
         }
 
         @Override
+        @SuppressWarnings({"unchecked"})
         protected void interpolate(int index, float amount, Object target) {
             int firstFloat = mValues[index - 1];
             int secondFloat = mValues[index];
@@ -279,10 +283,12 @@ public class TouchAnimator {
         }
     }
 
+    @SuppressWarnings("SameParameterValue")
     private static int constrain(int amount, int low, int high) {
         return amount < low ? low : (Math.min(amount, high));
     }
 
+    @SuppressWarnings("SameParameterValue")
     private static float constrain(float amount, float low, float high) {
         return amount < low ? low : (Math.min(amount, high));
     }

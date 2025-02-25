@@ -5,8 +5,6 @@ import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
 import android.content.Context
 import android.content.Intent
-import android.content.res.Configuration
-import android.content.res.Resources
 import android.graphics.Bitmap
 import android.graphics.BitmapShader
 import android.graphics.Canvas
@@ -33,6 +31,7 @@ import android.net.NetworkCapabilities
 import android.net.wifi.WifiManager
 import android.os.Handler
 import android.os.Looper
+import android.os.Process
 import android.os.UserHandle
 import android.provider.Settings
 import android.telephony.SubscriptionManager
@@ -51,34 +50,38 @@ import androidx.core.graphics.ColorUtils
 import androidx.core.graphics.drawable.DrawableCompat
 import androidx.core.graphics.drawable.toBitmap
 import androidx.palette.graphics.Palette
-import com.drdisagree.iconify.common.Const.FRAMEWORK_PACKAGE
-import com.drdisagree.iconify.common.Const.SYSTEMUI_PACKAGE
-import com.drdisagree.iconify.common.Preferences.ICONIFY_QS_HEADER_CONTAINER_SHADE_TAG
-import com.drdisagree.iconify.common.Preferences.ICONIFY_QS_HEADER_CONTAINER_TAG
-import com.drdisagree.iconify.common.Preferences.OP_QS_HEADER_BLUR_LEVEL
-import com.drdisagree.iconify.common.Preferences.OP_QS_HEADER_EXPANSION_Y
-import com.drdisagree.iconify.common.Preferences.OP_QS_HEADER_GAP_EXPANDED
-import com.drdisagree.iconify.common.Preferences.OP_QS_HEADER_HIDE_STOCK_MEDIA
-import com.drdisagree.iconify.common.Preferences.OP_QS_HEADER_SWITCH
-import com.drdisagree.iconify.common.Preferences.OP_QS_HEADER_TOP_MARGIN
-import com.drdisagree.iconify.common.Preferences.OP_QS_HEADER_VIBRATE
-import com.drdisagree.iconify.common.Preferences.QS_TEXT_ALWAYS_WHITE
-import com.drdisagree.iconify.common.Preferences.QS_TEXT_FOLLOW_ACCENT
+import com.drdisagree.iconify.data.common.Const.FRAMEWORK_PACKAGE
+import com.drdisagree.iconify.data.common.Const.SYSTEMUI_PACKAGE
+import com.drdisagree.iconify.data.common.Preferences.CUSTOM_QS_TEXT_COLOR
+import com.drdisagree.iconify.data.common.Preferences.ICONIFY_QS_HEADER_CONTAINER_SHADE_TAG
+import com.drdisagree.iconify.data.common.Preferences.ICONIFY_QS_HEADER_CONTAINER_TAG
+import com.drdisagree.iconify.data.common.Preferences.OP_QS_HEADER_BLUR_LEVEL
+import com.drdisagree.iconify.data.common.Preferences.OP_QS_HEADER_EXPANSION_Y
+import com.drdisagree.iconify.data.common.Preferences.OP_QS_HEADER_GAP_EXPANDED
+import com.drdisagree.iconify.data.common.Preferences.OP_QS_HEADER_SWITCH
+import com.drdisagree.iconify.data.common.Preferences.OP_QS_HEADER_TOP_MARGIN
+import com.drdisagree.iconify.data.common.Preferences.OP_QS_HEADER_VIBRATE
+import com.drdisagree.iconify.data.common.Preferences.SELECTED_QS_TEXT_COLOR
 import com.drdisagree.iconify.utils.color.monet.quantize.QuantizerCelebi
 import com.drdisagree.iconify.utils.color.monet.score.Score
 import com.drdisagree.iconify.xposed.ModPack
 import com.drdisagree.iconify.xposed.modules.extras.callbacks.ControllersProvider
 import com.drdisagree.iconify.xposed.modules.extras.utils.ActivityLauncherUtils
+import com.drdisagree.iconify.xposed.modules.extras.utils.DisplayUtils.isLandscape
+import com.drdisagree.iconify.xposed.modules.extras.utils.DisplayUtils.isNightMode
 import com.drdisagree.iconify.xposed.modules.extras.utils.SettingsLibUtils.Companion.getColorAttrDefaultColor
 import com.drdisagree.iconify.xposed.modules.extras.utils.TouchAnimator
 import com.drdisagree.iconify.xposed.modules.extras.utils.VibrationUtils
 import com.drdisagree.iconify.xposed.modules.extras.utils.ViewHelper.applyBlur
+import com.drdisagree.iconify.xposed.modules.extras.utils.ViewHelper.findChildIndexContainsTag
+import com.drdisagree.iconify.xposed.modules.extras.utils.ViewHelper.reAddView
 import com.drdisagree.iconify.xposed.modules.extras.utils.ViewHelper.toPx
-import com.drdisagree.iconify.xposed.modules.extras.utils.isQsTileOverlayEnabled
+import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.ResourceHookManager
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.XposedHook.Companion.findClass
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.callMethod
+import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.callStaticMethod
+import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.getAnyField
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.getField
-import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.getFieldSilently
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.hookConstructor
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.hookMethod
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.isMethodAvailable
@@ -89,8 +92,8 @@ import com.drdisagree.iconify.xposed.modules.extras.views.OpQsHeaderView
 import com.drdisagree.iconify.xposed.modules.extras.views.OpQsMediaPlayerView
 import com.drdisagree.iconify.xposed.modules.extras.views.OpQsMediaPlayerView.Companion.opMediaDefaultBackground
 import com.drdisagree.iconify.xposed.utils.XPrefs.Xprefs
-import com.drdisagree.iconify.xposed.utils.XPrefs.XprefsIsInitialized
 import de.robv.android.xposed.XC_MethodHook
+import de.robv.android.xposed.XC_MethodHook.MethodHookParam
 import de.robv.android.xposed.XposedHelpers.callStaticMethod
 import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam
 import kotlinx.coroutines.CoroutineScope
@@ -115,21 +118,19 @@ class OpQsHeader(context: Context) : ModPack(context) {
     // Preferences
     private var showOpQsHeaderView = false
     private var vibrateOnClick = false
-    private var hideStockMediaPlayer = false
     private var mediaBlurLevel = 10f
     private var topMarginValue = 0
     private var expansionAmount = 0
-    private var qsTextAlwaysWhite = false
-    private var qsTextFollowAccent = false
+    private var customQsTextColor = false
+    private var selectedQsTextColor = 0
     private var expandedQsGap = 0
 
     // Views
-    private var mQsHeaderContainer: LinearLayout = LinearLayout(mContext)
+    private var mOpQsContainer: LinearLayout = LinearLayout(mContext)
     private var mQsHeaderContainerShade: LinearLayout = LinearLayout(mContext).apply {
         tag = ICONIFY_QS_HEADER_CONTAINER_SHADE_TAG
     }
     private var mQsPanelView: ViewGroup? = null
-    private var mQuickStatusBarHeader: FrameLayout? = null
     private var mQQSContainerAnimator: TouchAnimator? = null
     private lateinit var mHeaderQsPanel: LinearLayout
     private var mOpQsHeaderView: OpQsHeaderView? = null
@@ -166,8 +167,9 @@ class OpQsHeader(context: Context) : ModPack(context) {
     private var mActivityStarter: Any? = null
     private var mMediaOutputDialogFactory: Any? = null
     private var mNotificationMediaManager: Any? = null
+    private var mBluetoothTile: Any? = null
     private var mBluetoothController: Any? = null
-    private var qsTileViewImplInstance: Any? = null
+    private var qsTileViewImplParam: MethodHookParam? = null
     private lateinit var mConnectivityManager: ConnectivityManager
     private lateinit var mTelephonyManager: TelephonyManager
     private lateinit var mWifiManager: WifiManager
@@ -184,18 +186,16 @@ class OpQsHeader(context: Context) : ModPack(context) {
     private var previousBlurLevel = 10f
 
     override fun updatePrefs(vararg key: String) {
-        if (!XprefsIsInitialized) return
-
         Xprefs.apply {
             showOpQsHeaderView = getBoolean(OP_QS_HEADER_SWITCH, false)
             vibrateOnClick = getBoolean(OP_QS_HEADER_VIBRATE, false)
-            hideStockMediaPlayer = getBoolean(OP_QS_HEADER_HIDE_STOCK_MEDIA, false)
-            mediaBlurLevel = getSliderInt(OP_QS_HEADER_BLUR_LEVEL, 10).toFloat()
+            mediaBlurLevel = getSliderInt(OP_QS_HEADER_BLUR_LEVEL, 40) / 100f * 25f
             topMarginValue = getSliderInt(OP_QS_HEADER_TOP_MARGIN, 0)
             expansionAmount = getSliderInt(OP_QS_HEADER_EXPANSION_Y, 0)
             expandedQsGap = getSliderInt(OP_QS_HEADER_GAP_EXPANDED, 0)
-            qsTextAlwaysWhite = getBoolean(QS_TEXT_ALWAYS_WHITE, false)
-            qsTextFollowAccent = getBoolean(QS_TEXT_FOLLOW_ACCENT, false)
+            customQsTextColor = getBoolean(CUSTOM_QS_TEXT_COLOR, false)
+            selectedQsTextColor = getString(SELECTED_QS_TEXT_COLOR, "0")!!.toInt()
+            isQsTileOverlayEnabled = getIsQsTileOverlayEnabled()
         }
 
         when (key.firstOrNull()) {
@@ -207,8 +207,7 @@ class OpQsHeader(context: Context) : ModPack(context) {
     }
 
     override fun handleLoadPackage(loadPackageParam: LoadPackageParam) {
-        val qsPanelClass = findClass("$SYSTEMUI_PACKAGE.qs.QSPanel")!!
-        val quickQsPanelClass = findClass("$SYSTEMUI_PACKAGE.qs.QuickQSPanel")!!
+        val qsPanelClass = findClass("$SYSTEMUI_PACKAGE.qs.QSPanel")
         val qsImplClass = findClass(
             "$SYSTEMUI_PACKAGE.qs.QSImpl",
             "$SYSTEMUI_PACKAGE.qs.QSFragment"
@@ -228,6 +227,7 @@ class OpQsHeader(context: Context) : ModPack(context) {
         )
         val dependencyClass = findClass("$SYSTEMUI_PACKAGE.Dependency")
         val activityStarterClass = findClass("$SYSTEMUI_PACKAGE.plugins.ActivityStarter")
+        val bluetoothTileClass = findClass("$SYSTEMUI_PACKAGE.qs.tiles.BluetoothTile")
         val bluetoothControllerImplClass =
             findClass("$SYSTEMUI_PACKAGE.statusbar.policy.BluetoothControllerImpl")
         val notificationMediaManagerClass =
@@ -236,9 +236,8 @@ class OpQsHeader(context: Context) : ModPack(context) {
             "$SYSTEMUI_PACKAGE.media.controls.ui.controller.MediaControlPanel",
             "$SYSTEMUI_PACKAGE.media.controls.ui.MediaControlPanel"
         )
-        val volumeDialogImplClass = findClass(
-            "$SYSTEMUI_PACKAGE.volume.VolumeDialogImpl"
-        )
+        val volumeDialogImplClass = findClass("$SYSTEMUI_PACKAGE.volume.VolumeDialogImpl")
+        val utilsClass = findClass("$SYSTEMUI_PACKAGE.util.Utils")
         launchableImageView = findClass("$SYSTEMUI_PACKAGE.animation.view.LaunchableImageView")
         launchableLinearLayout =
             findClass("$SYSTEMUI_PACKAGE.animation.view.LaunchableLinearLayout")
@@ -263,6 +262,10 @@ class OpQsHeader(context: Context) : ModPack(context) {
                 mActivityLauncherUtils = ActivityLauncherUtils(mContext, mActivityStarter)
             }
 
+        bluetoothTileClass
+            .hookConstructor()
+            .runAfter { param -> mBluetoothTile = param.thisObject }
+
         bluetoothControllerImplClass
             .hookConstructor()
             .runAfter { param -> mBluetoothController = param.thisObject }
@@ -274,11 +277,10 @@ class OpQsHeader(context: Context) : ModPack(context) {
         val getMediaOutputDialog = object : XC_MethodHook() {
             override fun afterHookedMethod(param: MethodHookParam) {
                 if (mMediaOutputDialogFactory == null) {
-                    mMediaOutputDialogFactory = try {
-                        param.thisObject.getField("mMediaOutputDialogFactory")
-                    } catch (ignored: Throwable) {
-                        param.thisObject.getField("mMediaOutputDialogManager")
-                    }
+                    mMediaOutputDialogFactory = param.thisObject.getAnyField(
+                        "mMediaOutputDialogFactory",
+                        "mMediaOutputDialogManager"
+                    )
                 }
             }
         }
@@ -291,9 +293,20 @@ class OpQsHeader(context: Context) : ModPack(context) {
             .hookConstructor()
             .run(getMediaOutputDialog)
 
+        var lastInitTime = 0L
+        val cooldownTime = 500L
+
         qsTileViewImplClass
-            .hookMethod("init")
-            .runBefore { param -> qsTileViewImplInstance = param.thisObject }
+            .hookConstructor()
+            .runAfter { param ->
+                qsTileViewImplParam = param
+
+                val currentTime = System.currentTimeMillis()
+                if (currentTime - lastInitTime >= cooldownTime) {
+                    initResources()
+                    lastInitTime = currentTime
+                }
+            }
 
         tileLayoutClass
             .hookConstructor()
@@ -321,7 +334,7 @@ class OpQsHeader(context: Context) : ModPack(context) {
                         "onThemeChanged"
                     )
                     .runAfter {
-                        if (showOpQsHeaderView && qsTileViewImplInstance != null) {
+                        if (showOpQsHeaderView) {
                             updateOpHeaderView()
                         }
                     }
@@ -332,7 +345,7 @@ class OpQsHeader(context: Context) : ModPack(context) {
             .runAfter { param ->
                 if (!showOpQsHeaderView) return@runAfter
 
-                mQuickStatusBarHeader = param.thisObject as FrameLayout
+                val mQuickStatusBarHeader = param.thisObject as FrameLayout
 
                 mHeaderQsPanel = (param.thisObject as FrameLayout).findViewById(
                     mContext.resources.getIdentifier(
@@ -342,7 +355,7 @@ class OpQsHeader(context: Context) : ModPack(context) {
                     )
                 )
 
-                mQsHeaderContainer.apply {
+                mOpQsContainer.apply {
                     layoutParams = LinearLayout.LayoutParams(
                         LinearLayout.LayoutParams.MATCH_PARENT,
                         LinearLayout.LayoutParams.WRAP_CONTENT
@@ -358,17 +371,12 @@ class OpQsHeader(context: Context) : ModPack(context) {
                     orientation = LinearLayout.VERTICAL
                 }
 
-                (mQsHeaderContainer.parent as? ViewGroup)?.removeView(mQsHeaderContainer)
-                val headerImageAvailable = mQuickStatusBarHeader!!.findViewWithTag<ViewGroup?>(
+                val headerImageIndex = mQuickStatusBarHeader.findChildIndexContainsTag(
                     ICONIFY_QS_HEADER_CONTAINER_TAG
                 )
-                mQuickStatusBarHeader!!.addView(
-                    mQsHeaderContainer,
-                    if (headerImageAvailable == null) {
-                        -1
-                    } else {
-                        mQuickStatusBarHeader!!.indexOfChild(headerImageAvailable) + 1
-                    }
+                mQuickStatusBarHeader.reAddView(
+                    mOpQsContainer,
+                    if (headerImageIndex == -1) headerImageIndex else headerImageIndex + 1
                 )
 
                 val relativeLayout = RelativeLayout(mContext).apply {
@@ -405,24 +413,18 @@ class OpQsHeader(context: Context) : ModPack(context) {
                         mediaPlayerContainer.adapter = mMediaPlayerAdapter
                     }
 
-                    mQsHeaderContainer.addView(mOpQsHeaderView)
+                    mOpQsContainer.addView(mOpQsHeaderView)
                     updateOpHeaderView()
 
-                    (mQsHeaderContainer.parent as? ViewGroup)?.removeView(mQsHeaderContainer)
-                    addView(mQsHeaderContainer)
-
-                    (mHeaderQsPanel.parent as? ViewGroup)?.removeView(mHeaderQsPanel)
-                    addView(mHeaderQsPanel)
+                    reAddView(mOpQsContainer)
+                    reAddView(mHeaderQsPanel)
 
                     (mHeaderQsPanel.layoutParams as RelativeLayout.LayoutParams).apply {
                         addRule(RelativeLayout.BELOW, mOpQsHeaderView!!.id)
                     }
                 }
 
-                mQuickStatusBarHeader!!.addView(
-                    relativeLayout,
-                    mQuickStatusBarHeader!!.childCount
-                )
+                mQuickStatusBarHeader.addView(relativeLayout, mQuickStatusBarHeader.childCount)
 
                 buildHeaderViewExpansion()
             }
@@ -431,9 +433,9 @@ class OpQsHeader(context: Context) : ModPack(context) {
         quickStatusBarHeaderClass
             .hookMethod("updateResources")
             .runAfter { param ->
-                mQuickStatusBarHeader = param.thisObject as FrameLayout
+                val mQuickStatusBarHeader = param.thisObject as FrameLayout
 
-                mHeaderQsPanel = (param.thisObject as FrameLayout).findViewById(
+                mHeaderQsPanel = mQuickStatusBarHeader.findViewById(
                     mContext.resources.getIdentifier(
                         "quick_qs_panel",
                         "id",
@@ -445,28 +447,17 @@ class OpQsHeader(context: Context) : ModPack(context) {
 
                 buildHeaderViewExpansion()
 
-                if (isLandscape) {
-                    if (mQsHeaderContainer.parent != mQsHeaderContainerShade) {
-                        (mQsHeaderContainer.parent as? ViewGroup)?.removeView(mQsHeaderContainer)
-                        mQsHeaderContainerShade.addView(mQsHeaderContainer, -1)
-                    }
+                if (mContext.isLandscape) {
+                    mQsHeaderContainerShade.reAddView(mOpQsContainer)
                     mQsHeaderContainerShade.visibility = View.VISIBLE
                 } else {
-                    if (mQsHeaderContainer.parent != mQuickStatusBarHeader) {
-                        val headerImageAvailable =
-                            mQuickStatusBarHeader!!.findViewWithTag<ViewGroup?>(
-                                ICONIFY_QS_HEADER_CONTAINER_TAG
-                            )
-                        (mQsHeaderContainer.parent as? ViewGroup)?.removeView(mQsHeaderContainer)
-                        mQuickStatusBarHeader?.addView(
-                            mQsHeaderContainer,
-                            if (headerImageAvailable == null) {
-                                0
-                            } else {
-                                mQuickStatusBarHeader!!.indexOfChild(headerImageAvailable) + 1
-                            }
-                        )
-                    }
+                    val headerImageIndex = mQuickStatusBarHeader.findChildIndexContainsTag(
+                        ICONIFY_QS_HEADER_CONTAINER_TAG
+                    )
+                    mQuickStatusBarHeader.reAddView(
+                        mOpQsContainer,
+                        if (headerImageIndex == -1) 0 else headerImageIndex + 1
+                    )
                     mQsHeaderContainerShade.visibility = View.GONE
                 }
             }
@@ -488,7 +479,7 @@ class OpQsHeader(context: Context) : ModPack(context) {
                 } as LinearLayout
 
                 (mQsPanel.layoutParams as MarginLayoutParams).topMargin =
-                    if (isLandscape) {
+                    if (mContext.isLandscape) {
                         0
                     } else {
                         (qqsTileHeight * 2) + (qsTileMarginVertical * 2) +
@@ -506,312 +497,65 @@ class OpQsHeader(context: Context) : ModPack(context) {
             .run(updateQsTopMargin)
 
         // Hide stock media player
-        val reAttachMediaHostAvailable = qsPanelClass.declaredMethods.any {
-            it.name == "reAttachMediaHost"
-        }
+        qsPanelClass
+            .hookConstructor()
+            .runAfter { param ->
+                if (!showOpQsHeaderView) return@runAfter
 
-        if (showOpQsHeaderView && hideStockMediaPlayer && reAttachMediaHostAvailable) {
-            qsPanelClass
-                .hookMethod("reAttachMediaHost")
-                .replace { }
-
-            // Ensure stock media player is hidden
-            qsImplClass
-                .hookMethod("onComponentCreated")
-                .runAfter { param ->
-                    if (!showOpQsHeaderView) return@runAfter
-
-                    try {
-                        val mQSPanelController = param.thisObject.getField("mQSPanelController")
-
-                        val listener = Runnable {
-                            val mediaHost = mQSPanelController.callMethod("getMediaHost")
-                            val hostView = mediaHost.callMethod("getHostView")
-
-                            hostView.callMethod("setAlpha", 0.0f)
-
-                            try {
-                                mQSPanelController.callMethod("requestAnimatorUpdate")
-                            } catch (ignored: Throwable) {
-                                val mQSAnimator = param.thisObject.getField("mQSAnimator")
-                                mQSAnimator.callMethod("requestAnimatorUpdate")
-                            }
-                        }
-
-                        mQSPanelController.callMethod(
-                            "setUsingHorizontalLayoutChangeListener",
-                            listener
-                        )
-                    } catch (ignored: Throwable) {
-                    }
-                }
-        } else if (hideStockMediaPlayer) { // If reAttachMediaHost is not available, we need to hook switchTileLayout()
-            qsPanelControllerBaseClass
-                .hookMethod("switchTileLayout")
-                .runBefore { param ->
-                    if (!showOpQsHeaderView) return@runBefore
-
-                    val force = param.args[0] as Boolean
-                    val horizontal = param.thisObject.callMethod(
-                        "shouldUseHorizontalLayout"
-                    ) as Boolean
-                    val mUsingHorizontalLayout = param.thisObject.getField(
-                        "mUsingHorizontalLayout"
-                    ) as Boolean
-
-                    if (horizontal != mUsingHorizontalLayout || force) {
-                        val mQSLogger = param.thisObject.getField("mQSLogger")
-                        val qsPanel = param.thisObject.getField("mView")
-                        val qsPanelTag = qsPanel.callMethod("getDumpableTag")
-
-                        try {
-                            mQSLogger.callMethod(
-                                "logSwitchTileLayout",
-                                horizontal,
-                                mUsingHorizontalLayout,
-                                force,
-                                qsPanelTag
-                            )
-                        } catch (ignored: Throwable) {
-                            mQSLogger.callMethod(
-                                "logSwitchTileLayout",
-                                qsPanelTag,
-                                horizontal,
-                                mUsingHorizontalLayout,
-                                force
-                            )
-                        }
-
-                        param.thisObject.setField(
-                            "mUsingHorizontalLayout",
-                            horizontal
-                        )
-
-                        val mUsingHorizontalLayout2 = qsPanel.getField(
-                            "mUsingHorizontalLayout"
-                        ) as Boolean
-
-                        if (horizontal != mUsingHorizontalLayout2 || force) {
-                            qsPanel.setField(
-                                "mUsingHorizontalLayout",
-                                horizontal
-                            )
-
-                            val mHorizontalContentContainer = qsPanel.getField(
-                                "mHorizontalContentContainer"
-                            ) as LinearLayout
-
-                            val newParent: ViewGroup = if (horizontal) {
-                                mHorizontalContentContainer
-                            } else {
-                                qsPanel as ViewGroup
-                            }
-                            val mTileLayout = qsPanel.getField("mTileLayout")
-                            val index = if (!horizontal) {
-                                qsPanel.getField("mMovableContentStartIndex")
-                            } else {
-                                0
-                            } as Int
-
-                            callStaticMethod(
-                                qsPanelClass,
-                                "switchToParent",
-                                mTileLayout,
-                                newParent,
-                                index,
-                                qsPanelTag
-                            )
-
-                            val mFooter = qsPanel.getFieldSilently("mFooter") as? View
-
-                            if (mFooter != null) {
-                                callStaticMethod(
-                                    qsPanelClass,
-                                    "switchToParent",
-                                    mFooter,
-                                    newParent,
-                                    index + 1,
-                                    qsPanelTag
-                                )
-                            }
-
-                            mTileLayout.callMethod(
-                                "setMinRows",
-                                if (horizontal) 2 else 1
-                            )
-                            mTileLayout.callMethod(
-                                "setMaxColumns",
-                                if (horizontal) 2 else 4
-                            )
-
-                            val mHorizontalLinearLayout = qsPanel.getFieldSilently(
-                                "mHorizontalLinearLayout"
-                            ) as? LinearLayout
-
-                            if (mHorizontalLinearLayout != null &&
-                                quickQsPanelClass.isInstance(qsPanel)
-                            ) {
-                                val mMediaTotalBottomMargin =
-                                    qsPanel.getField("mMediaTotalBottomMargin") as Int
-                                val mQsPanelBottomPadding = (qsPanel as LinearLayout).paddingBottom
-
-                                val layoutParams =
-                                    mHorizontalLinearLayout.layoutParams as LinearLayout.LayoutParams
-                                layoutParams.bottomMargin =
-                                    (mMediaTotalBottomMargin - mQsPanelBottomPadding)
-                                        .coerceAtLeast(0)
-                                mHorizontalLinearLayout.layoutParams = layoutParams
-                            }
-
-                            qsPanel.callMethod("updatePadding")
-
-                            mHorizontalLinearLayout?.visibility = if (!horizontal) {
-                                View.GONE
-                            } else {
-                                View.VISIBLE
-                            }
-                        }
-
-                        (param.thisObject.getFieldSilently(
-                            "mUsingHorizontalLayoutChangedListener"
-                        ) as? Runnable)?.run()
-                    }
-
-                    param.result = true
-                }
-        }
-
-        val hasSwitchAllContentToParent = qsPanelClass.declaredMethods.any {
-            it.name == "switchAllContentToParent"
-        }
-        val hasSwitchToParentMethod = qsPanelClass.declaredMethods.any { method ->
-            method.name == "switchToParent" &&
-                    method.parameterTypes.contentEquals(
-                        arrayOf(View::class.java, ViewGroup::class.java, Int::class.java)
-                    )
-        }
-
-        if (hasSwitchAllContentToParent && hasSwitchToParentMethod) {
-            qsPanelClass
-                .hookMethod("switchAllContentToParent")
-                .runBefore { param ->
-                    if (!showOpQsHeaderView) return@runBefore
-
-                    val parent = param.args[0] as ViewGroup
-                    val mMovableContentStartIndex = param.thisObject.getField(
-                        "mMovableContentStartIndex"
-                    ) as Int
-                    val index = if (parent === param.thisObject) mMovableContentStartIndex else 0
-                    val targetParentId = mContext.resources.getIdentifier(
-                        "quick_settings_panel",
-                        "id",
-                        SYSTEMUI_PACKAGE
-                    )
-
-                    if (parent.id == targetParentId) {
-                        val checkExistingView =
-                            parent.findViewWithTag<ViewGroup?>(ICONIFY_QS_HEADER_CONTAINER_SHADE_TAG)
-                        if (checkExistingView != null) {
-                            mQsHeaderContainerShade = checkExistingView as LinearLayout
-                            if (parent.indexOfChild(mQsHeaderContainerShade) == index) {
-                                return@runBefore
-                            }
-                        }
-
-                        param.thisObject.callMethod(
-                            "switchToParent",
-                            mQsHeaderContainerShade,
-                            parent,
-                            index
-                        )
-                    }
-                }
-
-            if (showOpQsHeaderView) {
-                qsPanelClass
-                    .hookMethod("switchToParent")
-                    .parameters(
-                        View::class.java,
-                        ViewGroup::class.java,
-                        Int::class.java,
-                        String::class.java
-                    )
-                    .replace { param ->
-                        val view = param.args[0] as View
-                        val newParent = param.args[1] as? ViewGroup
-                        val tempIndex = param.args[2] as Int
-
-                        if (newParent == null) {
-                            return@replace
-                        }
-
-                        val index = if (view.tag == ICONIFY_QS_HEADER_CONTAINER_SHADE_TAG) {
-                            tempIndex
-                        } else {
-                            tempIndex + 1
-                        }
-
-                        val currentParent = view.parent as? ViewGroup
-
-                        if (currentParent != newParent) {
-                            currentParent?.removeView(view)
-                            newParent.addView(view, index.coerceAtMost(newParent.childCount))
-                        } else if (newParent.indexOfChild(view) == index) {
-                            return@replace
-                        } else {
-                            newParent.removeView(view)
-                            newParent.addView(view, index.coerceAtMost(newParent.childCount))
-                        }
-                    }
+                param.thisObject.setField("mUsingMediaPlayer", false)
             }
-        } else { // Some ROMs don't have this method switchAllContentToParent()
-            qsPanelControllerBaseClass
-                .hookMethod("onInit")
-                .runBefore { param ->
-                    mQsPanelView = param.thisObject.getField(
-                        "mView"
-                    ) as ViewGroup
-                }
 
-            qsPanelClass
-                .hookMethod("switchToParent")
-                .parameters(
-                    View::class.java,
-                    ViewGroup::class.java,
-                    Int::class.java,
-                    String::class.java
+        qsPanelControllerBaseClass
+            .hookConstructor()
+            .runAfter { param ->
+                if (!showOpQsHeaderView) return@runAfter
+
+                param.thisObject.setField("mUsingMediaPlayer", false)
+            }
+
+        qsPanelControllerBaseClass
+            .hookMethod("onInit")
+            .runBefore { param ->
+                mQsPanelView = param.thisObject.getField("mView") as ViewGroup
+            }
+
+        qsPanelClass
+            .hookMethod("switchToParent")
+            .parameters(
+                View::class.java,
+                ViewGroup::class.java,
+                Int::class.java,
+                String::class.java
+            )
+            .runBefore { param ->
+                if (!showOpQsHeaderView || mQsPanelView == null) return@runBefore
+
+                val child = param.args[0] as View
+                val parent = param.args[1] as? ViewGroup ?: return@runBefore
+                val targetParentId = mContext.resources.getIdentifier(
+                    "quick_settings_panel",
+                    "id",
+                    SYSTEMUI_PACKAGE
                 )
-                .runBefore { param ->
-                    if (!showOpQsHeaderView ||
-                        mQsPanelView == null ||
-                        (param.args[1] as? ViewGroup) == null
-                    ) return@runBefore
 
-                    val parent = param.args[1] as ViewGroup
-                    val mMovableContentStartIndex = mQsPanelView.getField(
-                        "mMovableContentStartIndex"
-                    ) as Int
-                    val index = if (parent === mQsPanelView) mMovableContentStartIndex else 0
-                    val targetParentId = mContext.resources.getIdentifier(
-                        "quick_settings_panel",
-                        "id",
-                        SYSTEMUI_PACKAGE
-                    )
+                if (parent.id == targetParentId) {
+                    parent.findViewWithTag<LinearLayout?>(ICONIFY_QS_HEADER_CONTAINER_SHADE_TAG)
+                        ?.also { mQsHeaderContainerShade = it }
 
-                    if (parent.id == targetParentId) {
-                        val mQsHeaderContainerShadeParent =
-                            mQsHeaderContainerShade.parent as? ViewGroup
-                        if (mQsHeaderContainerShadeParent != parent ||
-                            mQsHeaderContainerShadeParent.indexOfChild(mQsHeaderContainerShade) != index
-                        ) {
-                            mQsHeaderContainerShadeParent?.removeView(mQsHeaderContainerShade)
-                            parent.addView(mQsHeaderContainerShade, index)
-                        }
+                    if (parent.indexOfChild(mQsHeaderContainerShade) == 0) {
+                        val index = ((param.args[2] as Int) + 1).coerceAtMost(parent.childCount)
+                        parent.reAddView(child, index)
+                        param.result = null
+                        return@runBefore
                     }
 
-                    param.args[2] = ((param.args[2] as Int) + 1).coerceAtMost(parent.childCount)
+                    parent.reAddView(mQsHeaderContainerShade, 0)
                 }
-        }
+
+                parent.reAddView(child, ((param.args[2] as Int) + 1))
+
+                param.result = null
+            }
 
         qsImplClass
             .hookMethod("setQsExpansion")
@@ -831,67 +575,32 @@ class OpQsHeader(context: Context) : ModPack(context) {
                 setExpansion(onKeyguardAndExpanded, expansion)
             }
 
-        hookResources()
-    }
-
-    private fun hookResources() {
-        Resources::class.java
-            .hookMethod("getBoolean")
-            .suppressError()
+        utilsClass
+            .hookMethod("useMediaResumption")
             .runBefore { param ->
-                if (!showOpQsHeaderView) return@runBefore
-
-                val resId1 = mContext.resources.getIdentifier(
-                    "config_use_split_notification_shade",
-                    "bool",
-                    SYSTEMUI_PACKAGE
-                )
-
-                val resId2 = mContext.resources.getIdentifier(
-                    "config_skinnyNotifsInLandscape",
-                    "bool",
-                    SYSTEMUI_PACKAGE
-                )
-
-                if (param.args[0] == resId1) {
-                    param.result = isLandscape
-                } else if (param.args[0] == resId2) {
+                if (showOpQsHeaderView) {
                     param.result = false
                 }
             }
 
-        Resources::class.java
-            .hookMethod("getInteger")
-            .runBefore { param ->
-                if (!showOpQsHeaderView) return@runBefore
+        hookResources()
+    }
 
-                val resId1 = mContext.resources.getIdentifier(
-                    "quick_settings_max_rows",
-                    "integer",
-                    SYSTEMUI_PACKAGE
-                )
+    private fun hookResources() {
+        ResourceHookManager
+            .hookBoolean()
+            .whenCondition { showOpQsHeaderView }
+            .forPackageName(SYSTEMUI_PACKAGE)
+            .addResource("config_use_split_notification_shade") { mContext.isLandscape }
+            .addResource("config_skinnyNotifsInLandscape") { false }
+            .apply()
 
-                if (param.args[0] == resId1) {
-                    param.result = 3
-                }
-            }
-
-        Resources::class.java
-            .hookMethod("getDimensionPixelSize")
-            .suppressError()
-            .runBefore { param ->
-                if (!showOpQsHeaderView) return@runBefore
-
-                val res1 = mContext.resources.getIdentifier(
-                    "qs_brightness_margin_top",
-                    "dimen",
-                    SYSTEMUI_PACKAGE
-                )
-
-                if (res1 != 0 && param.args[0] == res1) {
-                    param.result = 0
-                }
-            }
+        ResourceHookManager
+            .hookDimen()
+            .whenCondition { showOpQsHeaderView }
+            .forPackageName(SYSTEMUI_PACKAGE)
+            .addResource("qs_brightness_margin_top") { 0 }
+            .apply()
     }
 
     private fun updateOpHeaderView() {
@@ -918,9 +627,9 @@ class OpQsHeader(context: Context) : ModPack(context) {
                 SYSTEMUI_PACKAGE
             )
         )
-        val derivedTopMargin = if (isLandscape) 0 else topMarginValue
+        val derivedTopMargin = if (mContext.isLandscape) 0 else topMarginValue
 
-        val params = mQsHeaderContainer.layoutParams as MarginLayoutParams
+        val params = mOpQsContainer.layoutParams as MarginLayoutParams
         val qqsHeaderResId = if (largeScreenHeaderActive) resources.getIdentifier(
             "qqs_layout_margin_top",
             "dimen",
@@ -933,7 +642,7 @@ class OpQsHeader(context: Context) : ModPack(context) {
         )
         val topMargin = resources.getDimensionPixelSize(qqsHeaderResId)
         params.topMargin = topMargin + mContext.toPx(derivedTopMargin)
-        mQsHeaderContainer.layoutParams = params
+        mOpQsContainer.layoutParams = params
 
         (mHeaderQsPanel.layoutParams as MarginLayoutParams).topMargin = topMargin +
                 (qqsTileHeight * 2) + (qsTileMarginVertical * 2) + mContext.toPx(derivedTopMargin)
@@ -946,7 +655,7 @@ class OpQsHeader(context: Context) : ModPack(context) {
             )
         ) - resources.getDimensionPixelOffset(qqsHeaderResId)
 
-        val mQQSExpansionY = if (isLandscape) {
+        val mQQSExpansionY = if (mContext.isLandscape) {
             0
         } else {
             qsHeaderHeight + 16 - topMargin + expansionAmount
@@ -954,7 +663,7 @@ class OpQsHeader(context: Context) : ModPack(context) {
 
         val builderP: TouchAnimator.Builder = TouchAnimator.Builder()
             .addFloat(
-                mQsHeaderContainer,
+                mOpQsContainer,
                 "translationY",
                 0F,
                 mContext.toPx(mQQSExpansionY).toFloat()
@@ -967,7 +676,7 @@ class OpQsHeader(context: Context) : ModPack(context) {
         val keyguardExpansionFraction = if (forceExpanded) 1f else expansionFraction
         mQQSContainerAnimator?.setPosition(keyguardExpansionFraction)
 
-        mQsHeaderContainer.alpha = if (forceExpanded) expansionFraction else 1f
+        mOpQsContainer.alpha = if (forceExpanded) expansionFraction else 1f
     }
 
     private val mWifiCallback: ControllersProvider.OnWifiChanged =
@@ -1195,41 +904,45 @@ class OpQsHeader(context: Context) : ModPack(context) {
         val networkCapabilities =
             mConnectivityManager.getNetworkCapabilities(network) ?: return defaultInfo
 
-        if (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)) {
-            for (subscriptionInfo in activeSubscriptionInfoList) {
-                val subId = subscriptionInfo.subscriptionId
-                val subTelephonyManager = mTelephonyManager.createForSubscriptionId(subId)
+        if (!networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)) {
+            return defaultInfo
+        }
 
-                if (subTelephonyManager.simState == TelephonyManager.SIM_STATE_READY &&
-                    networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)
-                ) {
-                    val carrierName = subscriptionInfo.carrierName.toString()
-                    val signalStrength = subTelephonyManager.signalStrength
-                    val signalStrengthLevel = signalStrength?.level?.coerceIn(0, 4) ?: 0
+        val activeDataSubId = SubscriptionManager.getDefaultDataSubscriptionId()
 
-                    val networkType = when (subTelephonyManager.networkType) {
-                        TelephonyManager.NETWORK_TYPE_NR -> "5G"
-                        TelephonyManager.NETWORK_TYPE_LTE -> "LTE"
-                        TelephonyManager.NETWORK_TYPE_HSDPA,
-                        TelephonyManager.NETWORK_TYPE_HSPA,
-                        TelephonyManager.NETWORK_TYPE_HSUPA,
-                        TelephonyManager.NETWORK_TYPE_UMTS -> "3G"
+        for (subscriptionInfo in activeSubscriptionInfoList) {
+            val subId = subscriptionInfo.subscriptionId
+            val subTelephonyManager = mTelephonyManager.createForSubscriptionId(subId)
 
-                        TelephonyManager.NETWORK_TYPE_EDGE,
-                        TelephonyManager.NETWORK_TYPE_GPRS -> "2G"
+            if (subId == activeDataSubId &&
+                subTelephonyManager.simState == TelephonyManager.SIM_STATE_READY
+            ) {
+                val carrierName = subscriptionInfo.carrierName.toString()
+                val signalStrength = subTelephonyManager.signalStrength
+                val signalStrengthLevel = signalStrength?.level?.coerceIn(0, 4) ?: 0
 
-                        TelephonyManager.NETWORK_TYPE_CDMA,
-                        TelephonyManager.NETWORK_TYPE_EVDO_0,
-                        TelephonyManager.NETWORK_TYPE_EVDO_A,
-                        TelephonyManager.NETWORK_TYPE_EVDO_B,
-                        TelephonyManager.NETWORK_TYPE_1xRTT -> "CDMA"
+                val networkType = when (subTelephonyManager.networkType) {
+                    TelephonyManager.NETWORK_TYPE_NR -> "5G"
+                    TelephonyManager.NETWORK_TYPE_LTE -> "LTE"
+                    TelephonyManager.NETWORK_TYPE_HSDPA,
+                    TelephonyManager.NETWORK_TYPE_HSPA,
+                    TelephonyManager.NETWORK_TYPE_HSUPA,
+                    TelephonyManager.NETWORK_TYPE_UMTS -> "3G"
 
-                        TelephonyManager.NETWORK_TYPE_GSM -> "GSM"
-                        else -> null
-                    }
+                    TelephonyManager.NETWORK_TYPE_EDGE,
+                    TelephonyManager.NETWORK_TYPE_GPRS -> "2G"
 
-                    return CarrierInfo(carrierName, signalStrengthLevel, networkType)
+                    TelephonyManager.NETWORK_TYPE_CDMA,
+                    TelephonyManager.NETWORK_TYPE_EVDO_0,
+                    TelephonyManager.NETWORK_TYPE_EVDO_A,
+                    TelephonyManager.NETWORK_TYPE_EVDO_B,
+                    TelephonyManager.NETWORK_TYPE_1xRTT -> "CDMA"
+
+                    TelephonyManager.NETWORK_TYPE_GSM -> "GSM"
+                    else -> null
                 }
+
+                return CarrierInfo(carrierName, signalStrengthLevel, networkType)
             }
         }
 
@@ -1278,7 +991,11 @@ class OpQsHeader(context: Context) : ModPack(context) {
     private fun toggleBluetoothState(v: View) {
         mHandler.post {
             if (!ControllersProvider.showBluetoothDialog(mContext, v)) {
-                mBluetoothController.callMethod("setBluetoothEnabled", !isBluetoothEnabled)
+                try {
+                    mBluetoothController.callMethod("setBluetoothEnabled", !isBluetoothEnabled)
+                } catch (throwable: Throwable) {
+                    mBluetoothTile.callMethod("toggleBluetooth")
+                }
             }
         }
 
@@ -1975,48 +1692,80 @@ class OpQsHeader(context: Context) : ModPack(context) {
     private fun launchMediaOutputSwitcher(packageName: String?, v: View) {
         if (packageName == null) return
 
-        if (mMediaOutputDialogFactory != null) {
-            if (isMethodAvailable(
-                    mMediaOutputDialogFactory,
+        mMediaOutputDialogFactory?.let { mediaOutputDialog ->
+            val dialogTransitionAnimatorControllerClass = findClass(
+                "$SYSTEMUI_PACKAGE.animation.DialogTransitionAnimator\$Controller",
+                suppressError = true
+            )
+
+            when {
+                mediaOutputDialog.isMethodAvailable(
                     "create",
                     String::class.java,
                     Boolean::class.java,
                     View::class.java
-                )
-            ) {
-                mMediaOutputDialogFactory.callMethod("create", packageName, true, v)
-            } else if (isMethodAvailable(
-                    mMediaOutputDialogFactory,
+                ) -> {
+                    mediaOutputDialog.callMethod("create", packageName, true, v)
+                }
+
+                mediaOutputDialog.isMethodAvailable(
                     "create",
                     View::class.java,
                     String::class.java,
                     Boolean::class.java,
                     Boolean::class.java
-                )
-            ) {
-                mMediaOutputDialogFactory.callMethod("create", v, packageName, true, true)
-            } else if (isMethodAvailable(
-                    mMediaOutputDialogFactory,
+                ) -> {
+                    mediaOutputDialog.callMethod("create", v, packageName, true, true)
+                }
+
+                mediaOutputDialog.isMethodAvailable(
                     "createAndShow",
                     String::class.java,
                     Boolean::class.java,
                     View::class.java,
                     UserHandle::class.java,
                     MediaSession.Token::class.java
-                )
-            ) {
-                mMediaOutputDialogFactory.callMethod(
+                ) -> {
+                    mediaOutputDialog.callMethod(
+                        "createAndShow",
+                        packageName,
+                        true,
+                        v,
+                        null,
+                        null
+                    )
+                }
+
+                dialogTransitionAnimatorControllerClass != null && mediaOutputDialog.isMethodAvailable(
                     "createAndShow",
-                    packageName,
-                    true,
-                    v,
-                    null,
-                    null
-                )
-            } else {
-                log(this@OpQsHeader, "No method available to create MediaOutputDialog")
+                    String::class.java,
+                    Boolean::class.java,
+                    dialogTransitionAnimatorControllerClass,
+                    Boolean::class.java,
+                    UserHandle::class.java,
+                    MediaSession.Token::class.java
+                ) -> {
+                    val myUserId = UserHandle::class.java.callStaticMethod(
+                        "getUserId",
+                        Process.myUid()
+                    ) as Int
+
+                    mediaOutputDialog.callMethod(
+                        "createAndShow",
+                        packageName,
+                        true,
+                        null,
+                        true,
+                        UserHandle.getUserHandleForUid(myUserId),
+                        null
+                    )
+                }
+
+                else -> {
+                    log(this@OpQsHeader, "No method available to create MediaOutputDialog")
+                }
             }
-        } else {
+        } ?: run {
             log(this@OpQsHeader, "MediaOutputDialogFactory is not available")
         }
     }
@@ -2079,7 +1828,9 @@ class OpQsHeader(context: Context) : ModPack(context) {
     }
 
     private fun initResources() {
-        mContext.apply {
+        val context = qsTileViewImplParam?.args?.get(0) as? Context ?: mContext
+
+        context.apply {
             colorAccent = getColorAttrDefaultColor(
                 this,
                 android.R.attr.colorAccent
@@ -2111,25 +1862,23 @@ class OpQsHeader(context: Context) : ModPack(context) {
             )
         }
 
-        qsTileViewImplInstance?.let { thisObject ->
+        qsTileViewImplParam?.thisObject?.let { thisObject ->
             val qsTileOverlayEnabled = isQsTileOverlayEnabled
 
             colorActive = if (qsTileOverlayEnabled) Color.WHITE
-            else thisObject.getField(
-                "colorActive"
-            ) as Int
+            else thisObject.getField("colorActive") as Int
             colorInactive = if (qsTileOverlayEnabled) Color.TRANSPARENT
-            else thisObject.getField(
-                "colorInactive"
-            ) as Int
-            colorLabelActive = if (qsTextAlwaysWhite) Color.WHITE
-            else if (qsTextFollowAccent) colorAccent
-            else thisObject.getField(
-                "colorLabelActive"
-            ) as Int
-            colorLabelInactive = thisObject.getField(
-                "colorLabelInactive"
-            ) as Int
+            else thisObject.getField("colorInactive") as Int
+            colorLabelActive = if (customQsTextColor) {
+                when (selectedQsTextColor) {
+                    0 -> Color.WHITE
+                    1 -> colorAccent
+                    2 -> if (context.isNightMode) Color.WHITE else Color.BLACK
+                    3 -> if (context.isNightMode) Color.BLACK else Color.WHITE
+                    else -> Color.WHITE
+                }
+            } else thisObject.getField("colorLabelActive") as Int
+            colorLabelInactive = thisObject.getField("colorLabelInactive") as Int
         }
 
         opMediaBackgroundDrawable = if (colorInactive != null && colorInactive != 0) {
@@ -2140,8 +1889,8 @@ class OpQsHeader(context: Context) : ModPack(context) {
             }
         } else {
             ContextCompat.getDrawable(
-                mContext,
-                mContext.resources.getIdentifier(
+                context,
+                context.resources.getIdentifier(
                     "qs_tile_background_shape",
                     "drawable",
                     SYSTEMUI_PACKAGE
@@ -2149,11 +1898,11 @@ class OpQsHeader(context: Context) : ModPack(context) {
             )!!
         }
 
-        mContext.apply {
+        context.apply {
             mWifiManager = getSystemService(WifiManager::class.java)
             mTelephonyManager = getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
             mBluetoothManager = getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
-            mMediaSessionManager = mContext.getSystemService(MediaSessionManager::class.java)
+            mMediaSessionManager = context.getSystemService(MediaSessionManager::class.java)
             mConnectivityManager =
                 getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
             mSubscriptionManager =
@@ -2164,11 +1913,20 @@ class OpQsHeader(context: Context) : ModPack(context) {
         mBluetoothEnabled = isBluetoothEnabled
     }
 
-    private val isLandscape: Boolean
-        get() = mContext.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
-
     companion object {
         var launchableImageView: Class<*>? = null
         var launchableLinearLayout: Class<*>? = null
+        var isQsTileOverlayEnabled = getIsQsTileOverlayEnabled()
+
+        private fun getIsQsTileOverlayEnabled(): Boolean {
+            for (i in 0..25) {
+                if (Xprefs.getBoolean("IconifyComponentQSSN$i.overlay") ||
+                    Xprefs.getBoolean("IconifyComponentQSSP$i.overlay")
+                ) {
+                    return true
+                }
+            }
+            return false
+        }
     }
 }

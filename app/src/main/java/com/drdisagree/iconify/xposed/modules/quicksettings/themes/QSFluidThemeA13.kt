@@ -22,10 +22,10 @@ import android.widget.ImageView
 import android.widget.SeekBar
 import androidx.core.content.res.ResourcesCompat
 import com.drdisagree.iconify.R
-import com.drdisagree.iconify.common.Const.SYSTEMUI_PACKAGE
-import com.drdisagree.iconify.common.Preferences.FLUID_NOTIF_TRANSPARENCY
-import com.drdisagree.iconify.common.Preferences.FLUID_POWERMENU_TRANSPARENCY
-import com.drdisagree.iconify.common.Preferences.FLUID_QSPANEL
+import com.drdisagree.iconify.data.common.Const.SYSTEMUI_PACKAGE
+import com.drdisagree.iconify.data.common.Preferences.FLUID_NOTIF_TRANSPARENCY
+import com.drdisagree.iconify.data.common.Preferences.FLUID_POWERMENU_TRANSPARENCY
+import com.drdisagree.iconify.data.common.Preferences.FLUID_QSPANEL
 import com.drdisagree.iconify.xposed.HookRes
 import com.drdisagree.iconify.xposed.ModPack
 import com.drdisagree.iconify.xposed.modules.extras.utils.SettingsLibUtils
@@ -40,7 +40,6 @@ import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.setField
 import com.drdisagree.iconify.xposed.modules.extras.views.RoundedCornerProgressDrawable
 import com.drdisagree.iconify.xposed.utils.SystemUtils
 import com.drdisagree.iconify.xposed.utils.XPrefs.Xprefs
-import com.drdisagree.iconify.xposed.utils.XPrefs.XprefsIsInitialized
 import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam
 import kotlin.math.max
@@ -76,8 +75,6 @@ class QSFluidThemeA13(context: Context) : ModPack(context) {
     private var mSlider: SeekBar? = null
 
     override fun updatePrefs(vararg key: String) {
-        if (!XprefsIsInitialized) return
-
         Xprefs.apply {
             fluidQsThemeEnabled = getBoolean(FLUID_QSPANEL, false)
             fluidNotifEnabled = fluidQsThemeEnabled &&
@@ -391,7 +388,10 @@ class QSFluidThemeA13(context: Context) : ModPack(context) {
             }
 
         brightnessMirrorControllerClass
-            .hookMethod("onFinishInflate")
+            .hookMethod(
+                "onFinishInflate",
+                "reinflate"
+            )
             .runAfter { param ->
                 if (!fluidQsThemeEnabled) return@runAfter
 

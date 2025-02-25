@@ -20,8 +20,8 @@ import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.viewpager.widget.ViewPager
 import com.drdisagree.iconify.BuildConfig
-import com.drdisagree.iconify.common.Const.FRAMEWORK_PACKAGE
-import com.drdisagree.iconify.common.Const.SYSTEMUI_PACKAGE
+import com.drdisagree.iconify.data.common.Const.FRAMEWORK_PACKAGE
+import com.drdisagree.iconify.data.common.Const.SYSTEMUI_PACKAGE
 import com.drdisagree.iconify.xposed.modules.extras.utils.ViewHelper.toPx
 import com.drdisagree.iconify.xposed.modules.quicksettings.OpQsHeader.Companion.launchableLinearLayout
 import kotlin.properties.Delegates

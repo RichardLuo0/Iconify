@@ -1,11 +1,11 @@
 package com.drdisagree.iconify.ui.fragments.xposed
 
 import com.drdisagree.iconify.R
-import com.drdisagree.iconify.common.Preferences.BLACK_QSPANEL
-import com.drdisagree.iconify.common.Preferences.FLUID_NOTIF_TRANSPARENCY
-import com.drdisagree.iconify.common.Preferences.FLUID_POWERMENU_TRANSPARENCY
-import com.drdisagree.iconify.common.Preferences.FLUID_QSPANEL
-import com.drdisagree.iconify.common.Preferences.LIGHT_QSPANEL
+import com.drdisagree.iconify.data.common.Preferences.BLACK_QSPANEL
+import com.drdisagree.iconify.data.common.Preferences.FLUID_NOTIF_TRANSPARENCY
+import com.drdisagree.iconify.data.common.Preferences.FLUID_POWERMENU_TRANSPARENCY
+import com.drdisagree.iconify.data.common.Preferences.FLUID_QSPANEL
+import com.drdisagree.iconify.data.common.Preferences.LIGHT_QSPANEL
 import com.drdisagree.iconify.ui.activities.MainActivity
 import com.drdisagree.iconify.ui.base.ControlledPreferenceFragmentCompat
 

@@ -7,7 +7,7 @@ import android.net.Uri
 import android.provider.OpenableColumns
 import androidx.activity.result.ActivityResultLauncher
 import com.drdisagree.iconify.Iconify.Companion.appContext
-import com.drdisagree.iconify.common.Resources
+import com.drdisagree.iconify.data.common.Resources
 import com.drdisagree.iconify.utils.SystemUtils.hasStoragePermission
 import com.drdisagree.iconify.utils.SystemUtils.requestStoragePermission
 import com.topjohnwu.superuser.Shell

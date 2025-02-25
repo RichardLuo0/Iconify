@@ -3,6 +3,7 @@ package com.drdisagree.iconify.xposed.modules.misc
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.XResources
+import android.graphics.Color
 import android.os.Build
 import android.util.TypedValue
 import android.view.Gravity
@@ -11,14 +12,15 @@ import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
-import com.drdisagree.iconify.common.Const.SYSTEMUI_PACKAGE
-import com.drdisagree.iconify.common.Preferences.FIXED_STATUS_ICONS_SIDEMARGIN
-import com.drdisagree.iconify.common.Preferences.FIXED_STATUS_ICONS_SWITCH
-import com.drdisagree.iconify.common.Preferences.FIXED_STATUS_ICONS_TOPMARGIN
-import com.drdisagree.iconify.common.Preferences.HEADER_CLOCK_SWITCH
-import com.drdisagree.iconify.common.Preferences.HIDE_DATA_DISABLED_ICON
-import com.drdisagree.iconify.common.Preferences.HIDE_STATUS_ICONS_SWITCH
-import com.drdisagree.iconify.common.Preferences.QSPANEL_HIDE_CARRIER
+import com.drdisagree.iconify.data.common.Const.SYSTEMUI_PACKAGE
+import com.drdisagree.iconify.data.common.Preferences.FIXED_STATUS_ICONS_SIDEMARGIN
+import com.drdisagree.iconify.data.common.Preferences.FIXED_STATUS_ICONS_SWITCH
+import com.drdisagree.iconify.data.common.Preferences.FIXED_STATUS_ICONS_TOPMARGIN
+import com.drdisagree.iconify.data.common.Preferences.HEADER_CLOCK_SWITCH
+import com.drdisagree.iconify.data.common.Preferences.HIDE_DATA_DISABLED_ICON
+import com.drdisagree.iconify.data.common.Preferences.HIDE_STATUS_ICONS_SWITCH
+import com.drdisagree.iconify.data.common.Preferences.QSPANEL_HIDE_CARRIER
+import com.drdisagree.iconify.data.common.References.FABRICATED_SB_COLOR_SOURCE
 import com.drdisagree.iconify.xposed.HookRes.Companion.resParams
 import com.drdisagree.iconify.xposed.ModPack
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.XposedHook.Companion.findClass
@@ -29,7 +31,6 @@ import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.hookLayout
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.hookMethod
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.setField
 import com.drdisagree.iconify.xposed.utils.XPrefs.Xprefs
-import com.drdisagree.iconify.xposed.utils.XPrefs.XprefsIsInitialized
 import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam
 
 @SuppressLint("DiscouragedApi")
@@ -45,10 +46,9 @@ class Miscellaneous(context: Context) : ModPack(context) {
     private var statusIconContainer: LinearLayout? = null
     private var mobileSignalControllerParam: Any? = null
     private var showHeaderClockA14 = false
+    private var coloredStatusbarOverlayEnabled = false
 
     override fun updatePrefs(vararg key: String) {
-        if (!XprefsIsInitialized) return
-
         Xprefs.apply {
             hideQsCarrierGroup = getBoolean(QSPANEL_HIDE_CARRIER, false)
             hideStatusIcons = getBoolean(HIDE_STATUS_ICONS_SWITCH, false)
@@ -58,6 +58,8 @@ class Miscellaneous(context: Context) : ModPack(context) {
             hideDataDisabledIcon = getBoolean(HIDE_DATA_DISABLED_ICON, false)
             showHeaderClockA14 = getBoolean(HEADER_CLOCK_SWITCH, false) &&
                     Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE
+            coloredStatusbarOverlayEnabled = getBoolean("IconifyComponentSBTint.overlay") ||
+                    getString(FABRICATED_SB_COLOR_SOURCE, "System") == "Custom"
         }
 
         if (key.isNotEmpty()) {
@@ -91,6 +93,7 @@ class Miscellaneous(context: Context) : ModPack(context) {
         hideStatusIcons()
         fixedStatusIconsA12()
         hideDataDisabledIcon()
+        fixRotationViewColor()
     }
 
     private fun hideElements() {
@@ -562,6 +565,19 @@ class Miscellaneous(context: Context) : ModPack(context) {
                         privacyContainer.addView(statusIconContainer)
                     }
                 } catch (ignored: Throwable) {
+                }
+            }
+    }
+
+    private fun fixRotationViewColor() {
+        val floatingRotationButtonClass =
+            findClass("$SYSTEMUI_PACKAGE.shared.rotation.FloatingRotationButton")
+
+        floatingRotationButtonClass
+            .hookMethod("updateIcon")
+            .runBefore { param ->
+                if (coloredStatusbarOverlayEnabled) {
+                    param.args[1] = Color.BLACK
                 }
             }
     }

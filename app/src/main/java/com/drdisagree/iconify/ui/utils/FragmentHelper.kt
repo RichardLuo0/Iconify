@@ -29,7 +29,6 @@ import com.drdisagree.iconify.ui.fragments.tweaks.MediaPlayer
 import com.drdisagree.iconify.ui.fragments.tweaks.Miscellaneous
 import com.drdisagree.iconify.ui.fragments.tweaks.NavigationBar
 import com.drdisagree.iconify.ui.fragments.tweaks.QsIconLabel
-import com.drdisagree.iconify.ui.fragments.tweaks.QsPanelMargin
 import com.drdisagree.iconify.ui.fragments.tweaks.QsRowColumn
 import com.drdisagree.iconify.ui.fragments.tweaks.QsTileSize
 import com.drdisagree.iconify.ui.fragments.tweaks.Statusbar
@@ -85,7 +84,6 @@ fun isInGroup(fragment: Fragment, group: FragmentGroup): Boolean {
                     fragment is QsRowColumn ||
                     fragment is QsIconLabel ||
                     fragment is QsTileSize ||
-                    fragment is QsPanelMargin ||
                     fragment is Statusbar ||
                     fragment is NavigationBar ||
                     fragment is MediaPlayer ||

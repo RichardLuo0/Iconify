@@ -1,15 +1,15 @@
 package com.drdisagree.iconify.utils.helper
 
 import android.util.Log
-import com.drdisagree.iconify.common.Dynamic.AAPT
-import com.drdisagree.iconify.common.Dynamic.AAPT2
-import com.drdisagree.iconify.common.Dynamic.AAPT2LIB
-import com.drdisagree.iconify.common.Dynamic.AAPTLIB
-import com.drdisagree.iconify.common.Dynamic.NATIVE_LIBRARY_DIR
-import com.drdisagree.iconify.common.Dynamic.ZIPALIGN
-import com.drdisagree.iconify.common.Dynamic.ZIPALIGNLIB
-import com.drdisagree.iconify.common.Resources
-import com.drdisagree.iconify.common.Resources.BIN_DIR
+import com.drdisagree.iconify.data.common.Dynamic.AAPT
+import com.drdisagree.iconify.data.common.Dynamic.AAPT2
+import com.drdisagree.iconify.data.common.Dynamic.AAPT2LIB
+import com.drdisagree.iconify.data.common.Dynamic.AAPTLIB
+import com.drdisagree.iconify.data.common.Dynamic.NATIVE_LIBRARY_DIR
+import com.drdisagree.iconify.data.common.Dynamic.ZIPALIGN
+import com.drdisagree.iconify.data.common.Dynamic.ZIPALIGNLIB
+import com.drdisagree.iconify.data.common.Resources
+import com.drdisagree.iconify.data.common.Resources.BIN_DIR
 import com.drdisagree.iconify.utils.FileUtils
 import com.topjohnwu.superuser.Shell
 

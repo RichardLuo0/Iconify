@@ -12,7 +12,7 @@
     <string name="module_installation_step5">Signature des surcouches APK</string>
     <string name="module_installation_step6">Nettoyage</string>
     <string name="onboarding_title_1">Lassé de l\'interface par défaut ?</string>
-    <string name="onboarding_subtitle_1">Modifions tout selon vos préférences.</string>
+    <string name="onboarding_subtitle_1">Modifions tout selon nos préférences.</string>
     <string name="onboarding_desc_1">Abandonnez la monotonie de l’interface utilisateur d’origine. Personnalisez chaque détail technique en fonction de votre style et de vos préférences.</string>
     <string name="onboarding_title_2">Mon appareil est-il supporté ?</string>
     <string name="onboarding_subtitle_2">Iconify prend en charge toutes les ROM Pixel et AOSP.</string>
@@ -94,6 +94,7 @@
     <string name="activity_desc_xposed_menu">LSPosed requis pour ces options</string>
     <string name="activity_title_extras">Suppléments</string>
     <string name="activity_desc_extras">Ajustements et options supplémentaires</string>
+    <string name="activity_title_dual_statusbar">Double barre d\'état</string>
     <!-- Settings -->
     <string name="settings_section_title_general">Général</string>
     <string name="settings_app_language">Language</string>
@@ -127,6 +128,8 @@
     <string name="settings_show_home_page_card_desc">Montrez une belle carte sur la page d\'accueil.</string>
     <string name="settings_vibrate_ui_card_title">Vibration</string>
     <string name="settings_vibrate_ui_page_card_desc">Améliore les interactions à l\'écran avec des vibrations.</string>
+    <string name="settings_slider_controller_title">Contrôleur de curseur</string>
+    <string name="settings_slider_controller_desc">Activer pour afficher les boutons plus et moins avec les curseurs.</string>
     <string name="settings_clear_app_cache_title">Vider le cache de l\'application</string>
     <string name="settings_clear_app_cache_desc">Effacez le cache généré en raison de l\'utilisation de polices, d\'images ou de gifs personnalisés.</string>
     <string name="activity_title_experimental">Expérimental</string>
@@ -296,12 +299,17 @@
     <string name="section_title_qs_text_color">Couleur du texte du QS</string>
     <string name="qs_text_color_normal">Normal</string>
     <string name="qs_text_color_pixel">Pixel</string>
+    <string name="custom_qs_tile_text_color_title">Couleur du texte personnalisé</string>
+    <string name="custom_qs_tile_text_color_desc">Activer la couleur de texte personnalisée des tuiles QS</string>
+    <string name="custom_qs_tile_text_color_list_title">Options de couleur du texte</string>
     <string name="label_always_white_title">Tout en blanc</string>
     <string name="label_always_white_desc">Titre blanc, sous-titre blanc</string>
     <string name="label_always_white_v2_title">Tout en blanc v2</string>
     <string name="label_always_white_v2_desc">Titre blanc, sous-titre accentué</string>
     <string name="label_follow_system_title">Suivre le système</string>
     <string name="label_follow_system_desc">Titre système, sous-titre système</string>
+    <string name="label_follow_system_inverse_title">Suivre l\'inversion du système</string>
+    <!--<string name="label_follow_system_inverse_desc">Title system, subtitle system</string>-->
     <string name="label_follow_system_v2_title">Suivre le système v2</string>
     <string name="label_follow_system_v2_desc">Titres système, accent des sous-titres</string>
     <string name="label_fix_text_color_title">Corriger la couleur des textes</string>
@@ -316,6 +324,7 @@
     <!-- QS Panel Margin -->
     <string name="qqs_panel_top_margin_title">Marges du panneau Qs rapide</string>
     <string name="qs_panel_top_margin_title">Marge supérieure du panneau Qs</string>
+    <string name="qs_panel_top_margin_info">Faites pivoter l\'appareil pour voir les modifications. Si cela ne fonctionne pas, redémarrez SystemUI.</string>
     <!-- Statusbar -->
     <string name="section_title_spacing">Espacement</string>
     <string name="sb_left_padding">Rembourrage gauche</string>
@@ -369,20 +378,16 @@
     <string name="vp_thick_background_desc">Rendre la trace du curseur de volume épaisse</string>
     <string name="vp_no_background_title">Aucun fond</string>
     <string name="vp_no_background_desc">Supprimer la piste du curseur de volume</string>
-    <string name="section_title_custom_magisk_module">Module magisk personnalisé</string>
+    <string name="read_carefully">Lisez attentivement !</string>
+    <!-- Volume Panel Style -->
     <string name="volume_style">Style du volume</string>
-    <string name="volume_module_desc">Crée un module flashable Magisk pour ce style</string>
+    <string name="volume_style_default">Par défaut</string>
     <string name="volume_style_gradient">Dégradé</string>
     <string name="volume_style_doublelayer">Double couche</string>
     <string name="volume_style_shadedlayer">Couche ombrée</string>
     <string name="volume_style_neumorph">Neumorph</string>
     <string name="volume_style_outline">Contour</string>
     <string name="volume_style_neumorphoutline">Contour neumorph</string>
-    <string name="btn_create_module">Créer le module</string>
-    <string name="toast_module_created">Module créé avec succès</string>
-    <string name="read_carefully">Lisez attentivement !</string>
-    <string name="volume_module_installation_guide">Cette option créera un module magisk dans le dossier de téléchargement de votre stockage interne. Flashez le module nommé IconifyCompanion.zip dans Magisk. Désinstallez toujours le module Iconify Companion précédent (s\'il est installé) et redémarrez avant d\'en flasher un nouveau.\n\n<b>Remarque :</b>\n• Désinstallez le module avant de mettre à jour la ROM.\n• Recréez le module si vous modifiez ou mettre à jour la rom.\n• Ne flashez pas un module qui n\'a pas été créé en fonction de votre rom.</string>
-    <string name="volume_module_unstable_desc">Currently volume module is unstable on Android 14 and above. Try at your own risk.</string>
     <!-- Media Player -->
     <string name="cont_desc_media_player">Aperçu du lecteur multimédia</string>
     <string name="media_player_preview_music_title">Titre</string>
@@ -406,7 +411,6 @@
     <string name="section_title_privacy_chip">Puce de confidentialité</string>
     <string name="accent_privacy_chip_title">Puce de confidentialité colorée</string>
     <string name="accent_privacy_chip_desc">Rendre la puce de confidentialité colorée</string>
-    <string name="section_title_media_player">Lecteur multimédia</string>
     <string name="disable_progress_wave_title">Désactiver la vague de progression</string>
     <string name="disable_progress_wave_desc">Désactiver l\'animation de la vague de progression</string>
     <!-- Xposed Menu -->
@@ -420,7 +424,7 @@
     <string name="activity_desc_themes">Personnaliser avec des thèmes</string>
     <string name="activity_title_quick_settings">Paramètres rapides</string>
     <string name="activity_desc_quick_settings">Ajustements liés au panneau QS</string>
-    <string name="activity_title_lockscreen">Ecran de vérouillage</string>
+    <string name="activity_title_lockscreen">Écran de verrouillage</string>
     <string name="activity_desc_lockscreen">Personnaliser l\'apparence de l\'écran de verrouillage</string>
     <string name="activity_title_battery_style">Style de la batterie</string>
     <string name="activity_desc_battery_style">Personnaliser la vue de l\'icône de la batterie</string>
@@ -444,6 +448,9 @@
     <string name="activity_title_xposed_others">Autres</string>
     <string name="activity_desc_xposed_others">Autres modifications et personnalisation xposed</string>
     <string name="activity_title_xposed_weather_settings">Paramètres de la météo</string>
+    <string name="activity_title_xposed_launcher">Lanceur d\'applications</string>
+    <string name="activity_desc_xposed_launcher">Modifications relatives au lanceur</string>
+    <string name="activity_title_lockscreen_album_art">Pochette de l\'album</string>
     <!-- Oneplus QS Header -->
     <string name="oneplus_qs_header_title">En-tête OnePlus des Paramètres Rapides</string>
     <string name="oneplus_qs_header_desc">Active le style du lecteur de musique de OxygenOS</string>
@@ -455,6 +462,7 @@
     <string name="oneplus_qs_header_fade_level">Niveau de fondu</string>
     <string name="oneplus_qs_header_top_margin">Marge supérieure</string>
     <string name="oneplus_qs_header_expansion_y">Quantité d\'extension</string>
+    <string name="oneplus_qs_header_gap">Écart élargi</string>
     <!-- Lockscreen Widgets -->
     <string name="lockscreen_widgets_title">Widgets de l\'écran de verrouillage</string>
     <string name="lockscreen_widgets_enabled_title">Activer les widgets de l\'écran de verrouillage</string>
@@ -486,6 +494,9 @@
     <string name="mini_widget_icon_inactive">Couleur inactive de l\'icône du mini widget</string>
     <string name="weather_settings">Paramètres de la météo</string>
     <string name="lockscreen_widgets_scale">Échelle des widgets</string>
+    <string name="lockscreen_device_widget_style_title">Style du Widget de l\'appareil</string>
+    <string name="lockscreen_device_widget_style_classic">Barre avec deux arcs</string>
+    <string name="lockscreen_device_widget_style_arcs">Quatre Arcs</string>
     <!-- LS Widgets Actions -->
     <string name="camera">Caméra</string>
     <string name="clock_timer">Horloge/Minuterie</string>
@@ -554,6 +565,9 @@
     <string name="colored_qs_notification_title">Icône de notification colorée</string>
     <string name="colored_qs_notification_desc">Afficher l\'icône de l\'application en tant qu\'icône de notification</string>
     <string name="section_title_qs_margin">Marges QS</string>
+    <string name="section_title_media_player">Lecteur multimédia</string>
+    <string name="compact_media_player_title">Lecteur multimédia compact</string>
+    <string name="compact_media_player_desc">Rendre le lecteur multimédia compact</string>
     <string name="section_title_qs_elements">Éléments des réglages rapides</string>
     <string name="hide_qs_on_lockscreen_title">Masquer les réglages rapides sur l\'écran de verrouillage</string>
     <string name="hide_qs_on_lockscreen_desc">Désactiver les réglages rapides sur écran de verrouillage sécurisé</string>
@@ -691,6 +705,8 @@
     <string name="lockscreen_clock_auto_hide_clock_title">Cacher automatiquement l\'horloge</string>
     <string name="lockscreen_clock_auto_hide_clock_desc">Masquer l\'horloge lors d\'une notification entrante</string>
     <string name="custom_lockscreen_clock_style_title">Style de l\'horloge</string>
+    <string name="lockscreen_clock_move_notification_icon_title">Icônes AOD en dessous de l\'horloge</string>
+    <string name="lockscreen_clock_move_notification_icon_desc">Déplacer les icônes AOD sous l\'horloge personnalisée, peut être buggé sur les anciennes ROM</string>
     <string name="lockscreen_clock_font_title">Police de l\'horloge</string>
     <string name="lockscreen_clock_font_desc">Utiliser une police personnalisée pour l\'horloge de l\'écran de verrouillage</string>
     <string name="lsclock_custom_color_title">Couleur de l\'horloge personnalisée</string>
@@ -804,6 +820,36 @@
     <string name="hide_ls_carrier_desc">Masquer le nom de l\'opérateur sur l\'écran de verrouillage</string>
     <string name="hide_ls_statusbar_title">Masquer la barre d\'état sur l\'écran de verrouillage</string>
     <string name="hide_ls_statusbar_desc">Masquer la barre d\'état sur l\'écran de verrouillage</string>
+    <string name="sb_swap_wifi_cellular_title">Interchanger le wifi et cellulaire</string>
+    <string name="sb_swap_wifi_cellular_desc">Interchanger l\'icône du wifi et cellulaire</string>
+    <string name="sb_swap_cellular_network_type_title">Permuter le type Cellulaire et Réseau</string>
+    <string name="sb_swap_cellular_network_type_desc">Permuter les icônes de type cellulaire et réseau (3G 4G LTE etc.)</string>
+    <string name="sb_clock_on_right_side_title">Horloge sur le côté final</string>
+    <string name="sb_clock_on_right_side_desc">Afficher l\'horloge à la fin de la barre d\'état</string>
+    <string name="sb_show_4g_icon_title">Icône 4G</string>
+    <string name="sb_show_4g_icon_desc">Afficher l\'icône 4G dans la barre d\'état au lieu de LTE</string>
+    <string name="sb_max_notification_icons_title">Limite d\'icônes de notification</string>
+    <string name="dual_status_bar_title">Double barre d\'état</string>
+    <string name="dual_status_bar_desc">Afficher les éléments de la barre d\'état en deux lignes</string>
+    <!-- Xposed Dual Statusbar -->
+    <string name="dsb_title">Barre d\'état à double ligne</string>
+    <string name="dsb_portrait_only_title">Portrait uniquement</string>
+    <string name="dsb_single_line_start_side_title">Côté de départ d\'une seule ligne</string>
+    <string name="dsb_single_line_start_side_desc">Afficher une ligne au début de la barre d\'état</string>
+    <string name="dsb_single_line_end_side_title">Côté final d\'une seule ligne</string>
+    <string name="dsb_single_line_end_side_desc">Afficher une ligne à la fin de la barre d\'état</string>
+    <string name="dsb_swap_start_side_title">Permuter le côté de départ</string>
+    <string name="dsb_swap_start_side_desc">Permuter la position des icônes d\'horloge et de notification</string>
+    <string name="dsb_swap_end_side_title">Permuter le côté final</string>
+    <string name="dsb_swap_end_side_desc">Permuter la position des icônes de batterie et d\'état</string>
+    <string name="dsb_statusbar_height_title">Hauteur de la barre d\'état</string>
+    <string name="dsb_start_padding_title">Mage de départ</string>
+    <string name="dsb_end_padding_title">Marge de fin</string>
+    <string name="dsb_top_padding_title">Marge supérieure</string>
+    <string name="dsb_start_top_margin_title">Marge de départ supérieure</string>
+    <string name="dsb_start_bottom_margin_title">Marge inférieure de départ</string>
+    <string name="dsb_end_top_margin_title">Fin de la marge supérieure</string>
+    <string name="dsb_end_bottom_margin_title">Fin de la marge supérieure</string>
     <!-- Xposed Others -->
     <string name="qs_header">En-tête du panneau d\'accès rapide</string>
     <string name="hide_carrier_group_title">Cacher le groupe d\'opérateur</string>
@@ -815,9 +861,9 @@
     <string name="hide_ls_lock_icon_desc">Masquer l\'icône de verrouillage sur l\'écran de verrouillage</string>
     <string name="fixed_status_icons_title">Icônes d\'état fixes</string>
     <string name="fixed_status_icons_desc">Définir les icônes de statut en position fixe\nPeut être bogué sur certaine rom</string>
-    <string name="ls_wallpaper_blur_title">Wallpaper Blur</string>
-    <string name="ls_wallpaper_blur_desc">Apply blur effect on lockscreen</string>
-    <string name="ls_wallpaper_blur_radius_title">Wallpaper Blur Intensity</string>
+    <string name="ls_wallpaper_blur_title">Flou de fond d\'écran</string>
+    <string name="ls_wallpaper_blur_desc">Appliquer l\'effet de flou sur l\'écran de verrouillage</string>
+    <string name="ls_wallpaper_blur_radius_title">Intensité du flou du fond d\'écran</string>
     <!-- Changelog -->
     <string name="activity_title_changelog">Journal de modifications</string>
     <string name="no_internet_connection">Impossible de se connecter au serveur!\nIl peut y avoir un problème avec votre connexion internet ou le serveur peut être en panne pour le moment. Veuillez réessayer plus tard.</string>
@@ -830,6 +876,7 @@
     <string name="view_changelog">Voir la liste des changements</string>
     <string name="hide_changelog">Masquer le journal des modifications</string>
     <string name="already_up_to_date">Vous êtes déjà à jour.</string>
+    <string name="auto_update_disabled">La mise à jour automatique est désactivée pour les versions bêta.</string>
     <string name="current_version">Version actuelle :</string>
     <string name="latest_version">Dernière Version :</string>
     <string name="update_checking_failed">Échec de la vérification des mises à jour !</string>
@@ -1075,6 +1122,9 @@
     <string name="accent_tertiary">Accent tertiaire</string>
     <string name="text_color_primary">Couleur primaire du texte</string>
     <string name="text_color_inverse">Couleur du texte inversée</string>
+    <string name="learn_more">En savoir plus</string>
+    <string name="custom_tiles_footer_info">Pour s\'assurer que les tuiles personnalisées fonctionnent correctement, utilisez d\'abord les tuiles internet et bluetooth par défaut une fois avant d\'utiliser les tuiles personnalisées.</string>
+    <string name="hig_res_image_footer_info">Évitez d\'utiliser des images haute résolution, car elles peuvent causer le plantage de l\'interface utilisateur de votre système.</string>
     <!-- Weather -->
     <!-- Omni Jaws Strings -->
     <string name="units_title">Unité</string>
@@ -1182,6 +1232,40 @@
     <string name="lockscreen_weather_selection_str_gradient">Dégradé</string>
     <string name="lockscreen_weather_selection_str_border_accent">Sombre avec bordures accentuées</string>
     <string name="lockscreen_weather_selection_str_border_gradient">Sombre avec bordures en dégradé</string>
+    <string name="lockscreen_weather_font_title">Police de la météo</string>
+    <string name="lockscreen_weather_font_desc">Utiliser une police personnalisée pour le texte de la météo</string>
+    <!-- Media art -->
+    <string name="media_art_title">Afficher les pochettes de l\'album multimédia</string>
+    <string name="media_art_summary">Afficher la pochette de l\'album média quand disponible</string>
+    <string name="media_art_blur_level_title">Niveau de flou</string>
+    <!-- Album art filter -->
+    <string name="albumart_filter_title">Filtre de pochette de média</string>
+    <string name="albumart_filter_none">Aucun</string>
+    <string name="albumart_filter_grayscale">Niveau de gris</string>
+    <string name="albumart_filter_tint">Teinte accentuée</string>
+    <string name="albumart_filter_blur">Flou</string>
+    <string name="albumart_filter_grayblur">Niveaux de gris et flou</string>
+    <!-- Launcher mods -->
+    <string name="section_title_icons">Icônes</string>
+    <string name="section_title_home_screen">Écran d’accueil</string>
+    <string name="section_title_app_drawer">Tiroir d\'application</string>
+    <string name="section_title_recents">Récents</string>
+    <string name="force_themed_icons_title">Forcer les icônes à thème</string>
+    <string name="force_themed_icons_desc">Générer des icônes monochromatiques si elles ne sont pas fournies par l\'application</string>
+    <string name="app_drawer_themed_icons_title">Icônes du thème du tiroir d\'applications</string>
+    <string name="app_drawer_themed_icons_desc">Activer les icônes à thème dans le tiroir d\'applications</string>
+    <string name="double_tap_to_sleep_title">Double appui pour mettre en veille</string>
+    <string name="double_tap_to_sleep_desc">Double appui sur un espace vide de l\'écran d\'accueil pour éteindre l\'écran</string>
+    <string name="desktop_icon_labels_title">Labels d\'icônes sur le bureau</string>
+    <string name="app_drawer_icon_labels_title">Étiquettes d\'icônes dans le tiroir d\'applications</string>
+    <string name="disable_recents_blur_title">Désactiver le flou des applications récentes</string>
+    <string name="disable_recents_blur_desc">Désactiver le flou si l\'écran des applications récentes est bogué</string>
+    <string name="hide_desktop_search_bar_title">Masquer la barre de recherche du bureau</string>
+    <string name="hide_desktop_search_bar_desc">Masquer la barre de recherche dans le dock du bureau</string>
+    <string name="dock_spacing_title">Espacement du dock</string>
+    <string name="app_drawer_background_opacity_title">Opacité de l\'arrière-plan du tiroir d\'applications</string>
+    <string name="recents_background_opacity_title">Opacité de l\'arrière-plan des applications récentes</string>
+    <string name="launcher_mod_footer_info">Actuellement, seuls les Pixel Launcher et Launcher3 sont pris en charge.</string>
     <!-- Alert Dialogs -->
     <string name="systemui_restart_required_title">Redémarrage de l\'interface utilisateur système nécessaire</string>
     <string name="systemui_restart_required_desc">Un redémarrage de l\'interface utilisateur est nécessaire pour que cette modification prenne effet.</string>

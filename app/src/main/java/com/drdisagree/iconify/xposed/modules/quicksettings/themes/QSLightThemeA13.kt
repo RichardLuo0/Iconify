@@ -12,11 +12,10 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.graphics.ColorUtils
-import com.drdisagree.iconify.common.Const.SYSTEMUI_PACKAGE
-import com.drdisagree.iconify.common.Preferences.DUALTONE_QSPANEL
-import com.drdisagree.iconify.common.Preferences.LIGHT_QSPANEL
-import com.drdisagree.iconify.common.Preferences.QS_TEXT_ALWAYS_WHITE
-import com.drdisagree.iconify.common.Preferences.QS_TEXT_FOLLOW_ACCENT
+import com.drdisagree.iconify.data.common.Const.SYSTEMUI_PACKAGE
+import com.drdisagree.iconify.data.common.Preferences.CUSTOM_QS_TEXT_COLOR
+import com.drdisagree.iconify.data.common.Preferences.DUALTONE_QSPANEL
+import com.drdisagree.iconify.data.common.Preferences.LIGHT_QSPANEL
 import com.drdisagree.iconify.xposed.ModPack
 import com.drdisagree.iconify.xposed.modules.extras.utils.SettingsLibUtils.Companion.getColorAttr
 import com.drdisagree.iconify.xposed.modules.extras.utils.SettingsLibUtils.Companion.getColorAttrDefaultColor
@@ -30,7 +29,6 @@ import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.log
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.setField
 import com.drdisagree.iconify.xposed.utils.SystemUtils
 import com.drdisagree.iconify.xposed.utils.XPrefs.Xprefs
-import com.drdisagree.iconify.xposed.utils.XPrefs.XprefsIsInitialized
 import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam
 import java.util.Arrays
 
@@ -43,8 +41,7 @@ class QSLightThemeA13(context: Context) : ModPack(context) {
     private var colorInactive: Int? = null
     private var mClockViewQSHeader: Any? = null
     private var unlockedScrimState: Any? = null
-    private var qsTextAlwaysWhite = false
-    private var qsTextFollowAccent = false
+    private var customQsTextColor = false
     private val qsLightThemeOverlay = "IconifyComponentQSLT.overlay"
     private val qsDualToneOverlay = "IconifyComponentQSDT.overlay"
 
@@ -53,13 +50,10 @@ class QSLightThemeA13(context: Context) : ModPack(context) {
     }
 
     override fun updatePrefs(vararg key: String) {
-        if (!XprefsIsInitialized) return
-
         Xprefs.apply {
             lightQSHeaderEnabled = getBoolean(LIGHT_QSPANEL, false)
             dualToneQSEnabled = lightQSHeaderEnabled && getBoolean(DUALTONE_QSPANEL, false)
-            qsTextAlwaysWhite = getBoolean(QS_TEXT_ALWAYS_WHITE, false)
-            qsTextFollowAccent = getBoolean(QS_TEXT_FOLLOW_ACCENT, false)
+            customQsTextColor = getBoolean(CUSTOM_QS_TEXT_COLOR, false)
         }
 
         if (key.isNotEmpty()) {
@@ -354,7 +348,7 @@ class QSLightThemeA13(context: Context) : ModPack(context) {
                 if (!lightQSHeaderEnabled || isDark) return@runAfter
 
                 try {
-                    if (!qsTextAlwaysWhite && !qsTextFollowAccent) {
+                    if (!customQsTextColor) {
                         param.thisObject.setField("colorLabelActive", Color.WHITE)
                         param.thisObject.setField("colorSecondaryLabelActive", -0x7f000001)
                     }
@@ -376,7 +370,7 @@ class QSLightThemeA13(context: Context) : ModPack(context) {
                 if (isDisabledState) {
                     param.result = -0x80000000
                 } else {
-                    if (isActiveState && !qsTextAlwaysWhite && !qsTextFollowAccent) {
+                    if (isActiveState && !customQsTextColor) {
                         param.result = Color.WHITE
                     } else if (!isActiveState) {
                         param.result = Color.BLACK
@@ -396,7 +390,7 @@ class QSLightThemeA13(context: Context) : ModPack(context) {
                 if (isDisabledState) {
                     param.result = -0x80000000
                 } else {
-                    if (isActiveState && !qsTextAlwaysWhite && !qsTextFollowAccent) {
+                    if (isActiveState && !customQsTextColor) {
                         mIcon.imageTintList = ColorStateList.valueOf(Color.WHITE)
                     } else if (!isActiveState) {
                         mIcon.imageTintList = ColorStateList.valueOf(Color.BLACK)

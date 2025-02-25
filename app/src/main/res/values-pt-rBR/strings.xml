@@ -94,6 +94,7 @@
     <string name="activity_desc_xposed_menu">LSPosed necessário para usar essas opções</string>
     <string name="activity_title_extras">Extras</string>
     <string name="activity_desc_extras">Ajustes e opções adicionais</string>
+    <string name="activity_title_dual_statusbar">Barra de status dupla</string>
     <!-- Settings -->
     <string name="settings_section_title_general">Geral</string>
     <string name="settings_app_language">Idioma</string>
@@ -127,6 +128,8 @@
     <string name="settings_show_home_page_card_desc">Mostre um lindo cartão na página inicial.</string>
     <string name="settings_vibrate_ui_card_title">Feedback tátil</string>
     <string name="settings_vibrate_ui_page_card_desc">Melhore o feedback de toque com sensação tátil interativa</string>
+    <string name="settings_slider_controller_title">Controlador deslizante</string>
+    <string name="settings_slider_controller_desc">Ative para exibir os botões de mais e menos com controles deslizantes.</string>
     <string name="settings_clear_app_cache_title">Limpar cache do app</string>
     <string name="settings_clear_app_cache_desc">Limpe caches gerados devido ao uso de fontes, imagens ou gifs personalizados.</string>
     <string name="activity_title_experimental">Experimental</string>
@@ -296,12 +299,17 @@
     <string name="section_title_qs_text_color">Cor do texto do painel QS</string>
     <string name="qs_text_color_normal">Normal</string>
     <string name="qs_text_color_pixel">Pixel</string>
+    <string name="custom_qs_tile_text_color_title">Cor de texto personalizada</string>
+    <string name="custom_qs_tile_text_color_desc">Ativa a cor de texto personalizada do bloco QS</string>
+    <string name="custom_qs_tile_text_color_list_title">Opções de cores de texto</string>
     <string name="label_always_white_title">Sempre branco</string>
     <string name="label_always_white_desc">Título branco, subtítulo branco</string>
     <string name="label_always_white_v2_title">Sempre branco v2</string>
     <string name="label_always_white_v2_desc">Título branco, subtítulo destacado</string>
     <string name="label_follow_system_title">Seguir sistema</string>
     <string name="label_follow_system_desc">Sistema de títulos, sistema de subtítulo</string>
+    <string name="label_follow_system_inverse_title">Seguir inverso do sistema</string>
+    <!--<string name="label_follow_system_inverse_desc">Title system, subtitle system</string>-->
     <string name="label_follow_system_v2_title">Seguir sistema v2</string>
     <string name="label_follow_system_v2_desc">Sistema de título, destaque de subtítulo</string>
     <string name="label_fix_text_color_title">Corrigir cor do texto</string>
@@ -316,6 +324,7 @@
     <!-- QS Panel Margin -->
     <string name="qqs_panel_top_margin_title">Margem superior do painel QQS</string>
     <string name="qs_panel_top_margin_title">Margem superior do painel QS</string>
+    <string name="qs_panel_top_margin_info">Gire o dispositivo para ver as alterações. Se isso não funcionar, reinicie a Interface do sistema.</string>
     <!-- Statusbar -->
     <string name="section_title_spacing">Espaçamento</string>
     <string name="sb_left_padding">Preenchimento esquerdo</string>
@@ -369,20 +378,16 @@
     <string name="vp_thick_background_desc">Acompanhe o controle deslizante de volume espesso</string>
     <string name="vp_no_background_title">Sem fundo</string>
     <string name="vp_no_background_desc">Remova a faixa do controle deslizante de volume</string>
-    <string name="section_title_custom_magisk_module">Módulo Magisk personalizado</string>
+    <string name="read_carefully">Leia cuidadosamente!</string>
+    <!-- Volume Panel Style -->
     <string name="volume_style">Estilo de volume</string>
-    <string name="volume_module_desc">Crie um módulo magisk flashavel para este estilo</string>
+    <string name="volume_style_default">Padrão</string>
     <string name="volume_style_gradient">Gradiente</string>
     <string name="volume_style_doublelayer">Dupla camada</string>
     <string name="volume_style_shadedlayer">Camada sombreada</string>
     <string name="volume_style_neumorph">Neumorfo</string>
     <string name="volume_style_outline">Contorno</string>
     <string name="volume_style_neumorphoutline">Contorno neumorfo</string>
-    <string name="btn_create_module">Criar módulo</string>
-    <string name="toast_module_created">Módulo criado com sucesso</string>
-    <string name="read_carefully">Leia cuidadosamente!</string>
-    <string name="volume_module_installation_guide">Esta opção criará um módulo magisk dentro da pasta Download em seu armazenamento interno. Flash o módulo chamado IconifyCompanion.zip no Magisk. Sempre desinstale o módulo Iconify Companion anterior (se instalado) e reinicie antes de flashar o novo.\n\n<b>Observação:</b>\n• Desinstale o módulo antes de atualizar a ROM.\n• Recrie o módulo se você alterar ou atualize a rom.\n• Não faça o flash de um módulo que não tenha sido criado com base na sua ROM.</string>
-    <string name="volume_module_unstable_desc">Currently volume module is unstable on Android 14 and above. Try at your own risk.</string>
     <!-- Media Player -->
     <string name="cont_desc_media_player">Visualização do reprodutor de mídia</string>
     <string name="media_player_preview_music_title">Título da música</string>
@@ -406,7 +411,6 @@
     <string name="section_title_privacy_chip">Chip de privacidade</string>
     <string name="accent_privacy_chip_title">Chip de privacidade de destaque</string>
     <string name="accent_privacy_chip_desc">Torne o chip de privacidade em destaque colorido</string>
-    <string name="section_title_media_player">Reprodutor de mídia</string>
     <string name="disable_progress_wave_title">Desativar onda de progresso</string>
     <string name="disable_progress_wave_desc">Desative a animação de onda da barra de progresso</string>
     <!-- Xposed Menu -->
@@ -444,6 +448,9 @@
     <string name="activity_title_xposed_others">Outros</string>
     <string name="activity_desc_xposed_others">Diversos ajustes do Xposed</string>
     <string name="activity_title_xposed_weather_settings">Configurações do clima</string>
+    <string name="activity_title_xposed_launcher">Launcher</string>
+    <string name="activity_desc_xposed_launcher">Modificações relacionadas ao launcher</string>
+    <string name="activity_title_lockscreen_album_art">Arte do álbum de mídia</string>
     <!-- Oneplus QS Header -->
     <string name="oneplus_qs_header_title">Cabeçalho OnePlus QS</string>
     <string name="oneplus_qs_header_desc">Ative o reprodutor de mídia e blocos estilo OOS no QS</string>
@@ -455,6 +462,7 @@
     <string name="oneplus_qs_header_fade_level">Nível de esmaecimento</string>
     <string name="oneplus_qs_header_top_margin">Margem superior</string>
     <string name="oneplus_qs_header_expansion_y">Valor de expansão</string>
+    <string name="oneplus_qs_header_gap">Lacuna expandida</string>
     <!-- Lockscreen Widgets -->
     <string name="lockscreen_widgets_title">Widgets na tela de bloqueio</string>
     <string name="lockscreen_widgets_enabled_title">Ativar widgets na tela de bloqueio</string>
@@ -486,6 +494,9 @@
     <string name="mini_widget_icon_inactive">Cor inativa do ícone do mini widget</string>
     <string name="weather_settings">Configurações do clima</string>
     <string name="lockscreen_widgets_scale">Escala de widgets</string>
+    <string name="lockscreen_device_widget_style_title">Estilo do widget do dispositivo</string>
+    <string name="lockscreen_device_widget_style_classic">Barra com dois arcos</string>
+    <string name="lockscreen_device_widget_style_arcs">Quatro arcos</string>
     <!-- LS Widgets Actions -->
     <string name="camera">Câmera</string>
     <string name="clock_timer">Relógio/Temporizador</string>
@@ -554,6 +565,9 @@
     <string name="colored_qs_notification_title">Ícone de notificação colorido</string>
     <string name="colored_qs_notification_desc">Mostre o ícone do app como ícone de notificação</string>
     <string name="section_title_qs_margin">Margem QS</string>
+    <string name="section_title_media_player">Reprodutor de mídia</string>
+    <string name="compact_media_player_title">Reprodutor de mídia compacto</string>
+    <string name="compact_media_player_desc">Torne o reprodutor de mídia compacto</string>
     <string name="section_title_qs_elements">Elementos QS</string>
     <string name="hide_qs_on_lockscreen_title">Ocultar QS na tela de bloqueio</string>
     <string name="hide_qs_on_lockscreen_desc">Desative o painel de configurações rápidas na tela de bloqueio segura</string>
@@ -691,6 +705,8 @@
     <string name="lockscreen_clock_auto_hide_clock_title">Ocultar relógio automaticamente</string>
     <string name="lockscreen_clock_auto_hide_clock_desc">Oculte o relógio na notificação recebida</string>
     <string name="custom_lockscreen_clock_style_title">Estilo do relógio</string>
+    <string name="lockscreen_clock_move_notification_icon_title">Ícones AOD abaixo do relógio</string>
+    <string name="lockscreen_clock_move_notification_icon_desc">Move ícones AOD abaixo do relógio personalizado. Pode apresentar erros em ROMs mais antigas.</string>
     <string name="lockscreen_clock_font_title">Fonte do relógio</string>
     <string name="lockscreen_clock_font_desc">Use fonte personalizada para o relógio da tela de bloqueio</string>
     <string name="lsclock_custom_color_title">Cor do relógio personalizada</string>
@@ -804,6 +820,36 @@
     <string name="hide_ls_carrier_desc">Oculte o nome da operadora na tela de bloqueio</string>
     <string name="hide_ls_statusbar_title">Ocultar barra de status na tela de bloqueio</string>
     <string name="hide_ls_statusbar_desc">Oculte a barra de status na tela de bloqueio</string>
+    <string name="sb_swap_wifi_cellular_title">Trocar Wi-Fi e celular</string>
+    <string name="sb_swap_wifi_cellular_desc">Troque os ícones de Wi-Fi e celular</string>
+    <string name="sb_swap_cellular_network_type_title">Trocar tipo de celular e rede</string>
+    <string name="sb_swap_cellular_network_type_desc">Troque os ícones de celular e tipo de rede (3G, 4G, LTE, etc.)</string>
+    <string name="sb_clock_on_right_side_title">Relógio no lado final</string>
+    <string name="sb_clock_on_right_side_desc">Mostre o relógio no final da barra de status</string>
+    <string name="sb_show_4g_icon_title">Ícone 4G</string>
+    <string name="sb_show_4g_icon_desc">Exibe o ícone 4G na barra de status em vez de LTE</string>
+    <string name="sb_max_notification_icons_title">Limite de ícones de notificação</string>
+    <string name="dual_status_bar_title">Barra de status dupla</string>
+    <string name="dual_status_bar_desc">Exibe elementos da barra de status em duas linhas</string>
+    <!-- Xposed Dual Statusbar -->
+    <string name="dsb_title">Barra de status de linha dupla</string>
+    <string name="dsb_portrait_only_title">Somente retrato</string>
+    <string name="dsb_single_line_start_side_title">Lado inicial de linha única</string>
+    <string name="dsb_single_line_start_side_desc">Mostre uma linha no lado inicial da barra de status</string>
+    <string name="dsb_single_line_end_side_title">Lado final de linha única</string>
+    <string name="dsb_single_line_end_side_desc">Mostre uma linha no final da barra de status</string>
+    <string name="dsb_swap_start_side_title">Trocar lado inicial</string>
+    <string name="dsb_swap_start_side_desc">Troque a posição do relógio e dos ícones de notificação</string>
+    <string name="dsb_swap_end_side_title">Trocar lado final</string>
+    <string name="dsb_swap_end_side_desc">Troque a posição da bateria e dos ícones de status</string>
+    <string name="dsb_statusbar_height_title">Altura da barra de status</string>
+    <string name="dsb_start_padding_title">Preenchimento inicial</string>
+    <string name="dsb_end_padding_title">Preenchimento final</string>
+    <string name="dsb_top_padding_title">Preenchimento superior</string>
+    <string name="dsb_start_top_margin_title">Margem superior inicial</string>
+    <string name="dsb_start_bottom_margin_title">Margem inferior inicial</string>
+    <string name="dsb_end_top_margin_title">Margem superior final</string>
+    <string name="dsb_end_bottom_margin_title">Margem inferior final</string>
     <!-- Xposed Others -->
     <string name="qs_header">Cabeçalho QS</string>
     <string name="hide_carrier_group_title">Ocultar grupo de operadoras</string>
@@ -815,9 +861,9 @@
     <string name="hide_ls_lock_icon_desc">Oculte a visualização do ícone de cadeado na tela de bloqueio</string>
     <string name="fixed_status_icons_title">Ícones de status fixos</string>
     <string name="fixed_status_icons_desc">Defina ícones de status em posição fixa.\nPode haver bugs em algumas ROMs.</string>
-    <string name="ls_wallpaper_blur_title">Wallpaper Blur</string>
-    <string name="ls_wallpaper_blur_desc">Apply blur effect on lockscreen</string>
-    <string name="ls_wallpaper_blur_radius_title">Wallpaper Blur Intensity</string>
+    <string name="ls_wallpaper_blur_title">Desfoque do plano de fundo</string>
+    <string name="ls_wallpaper_blur_desc">Aplique um efeito de desfoque na tela de bloqueio</string>
+    <string name="ls_wallpaper_blur_radius_title">Intensidade de desfoque do plano de fundo</string>
     <!-- Changelog -->
     <string name="activity_title_changelog">Registro de alterações</string>
     <string name="no_internet_connection">Não foi possível conectar ao servidor!\nPode haver um problema com sua conexão com a internet ou o servidor pode estar inativo neste momento. Por favor, tente novamente mais tarde.</string>
@@ -830,6 +876,7 @@
     <string name="view_changelog">Visualizar registro de alteração</string>
     <string name="hide_changelog">Ocultar registro de alterações</string>
     <string name="already_up_to_date">Você está atualizado.</string>
+    <string name="auto_update_disabled">A atualização automática está desativada para compilação debug.</string>
     <string name="current_version">Versão atual:</string>
     <string name="latest_version">Última versão:</string>
     <string name="update_checking_failed">Falha ao verificar por atualizações!</string>
@@ -1075,6 +1122,9 @@
     <string name="accent_tertiary">Destaque terciário</string>
     <string name="text_color_primary">Cor do texto primário</string>
     <string name="text_color_inverse">Cor do texto inversa</string>
+    <string name="learn_more">Saiba mais</string>
+    <string name="custom_tiles_footer_info">Para garantir que os blocos personalizados funcionem corretamente, primeiro use os blocos padrão de Internet e Bluetooth uma vez antes de usar os personalizados.</string>
+    <string name="hig_res_image_footer_info">Evite usar imagens de alta resolução, pois elas podem causar falha na Interface do sistema.</string>
     <!-- Weather -->
     <!-- Omni Jaws Strings -->
     <string name="units_title">Unidade</string>
@@ -1182,6 +1232,40 @@
     <string name="lockscreen_weather_selection_str_gradient">Gradiente</string>
     <string name="lockscreen_weather_selection_str_border_accent">Escuro com bordas destacadas</string>
     <string name="lockscreen_weather_selection_str_border_gradient">Escuro com bordas gradientes</string>
+    <string name="lockscreen_weather_font_title">Fonte do clima</string>
+    <string name="lockscreen_weather_font_desc">Use fonte personalizada para texto meteorológico</string>
+    <!-- Media art -->
+    <string name="media_art_title">Mostrar arte do álbum de mídia</string>
+    <string name="media_art_summary">Exibe a arte do álbum de mídia quando disponível</string>
+    <string name="media_art_blur_level_title">Nível do blur</string>
+    <!-- Album art filter -->
+    <string name="albumart_filter_title">Filtro de arte do álbum de mídia</string>
+    <string name="albumart_filter_none">Nenhum</string>
+    <string name="albumart_filter_grayscale">Tons de cinza</string>
+    <string name="albumart_filter_tint">Destaque matizado</string>
+    <string name="albumart_filter_blur">Blur</string>
+    <string name="albumart_filter_grayblur">Tons de cinza e blur</string>
+    <!-- Launcher mods -->
+    <string name="section_title_icons">Ícones</string>
+    <string name="section_title_home_screen">Tela inicial</string>
+    <string name="section_title_app_drawer">Gaveta de apps</string>
+    <string name="section_title_recents">Recentes</string>
+    <string name="force_themed_icons_title">Forçar ícones temáticos</string>
+    <string name="force_themed_icons_desc">Gere ícones monocromáticos se não forem fornecidos pelo app</string>
+    <string name="app_drawer_themed_icons_title">Ícones temáticos da gaveta de apps</string>
+    <string name="app_drawer_themed_icons_desc">Ative ícones temáticos na gaveta de apps</string>
+    <string name="double_tap_to_sleep_title">Toque duas vezes para desligar a tela</string>
+    <string name="double_tap_to_sleep_desc">Toque duas vezes no espaço vazio da tela inicial para desligar a tela</string>
+    <string name="desktop_icon_labels_title">Nome dos ícones na tela inicial</string>
+    <string name="app_drawer_icon_labels_title">Nome dos ícones na gaveta de apps</string>
+    <string name="disable_recents_blur_title">Desativar blur nos recentes</string>
+    <string name="disable_recents_blur_desc">Desative o blur se a tela dos apps recentes estiver com erros</string>
+    <string name="hide_desktop_search_bar_title">Ocultar barra de pesquisa na tela inicial</string>
+    <string name="hide_desktop_search_bar_desc">Oculte a barra de pesquisa da dock da tela inicial</string>
+    <string name="dock_spacing_title">Espaçamento da dock</string>
+    <string name="app_drawer_background_opacity_title">Opacidade do fundo da gaveta de apps</string>
+    <string name="recents_background_opacity_title">Opacidade do fundo dos recentes</string>
+    <string name="launcher_mod_footer_info">Atualmente, apenas Pixel Launcher e Launcher3 são suportados.</string>
     <!-- Alert Dialogs -->
     <string name="systemui_restart_required_title">Necessário reiniciar a Interface do sistema</string>
     <string name="systemui_restart_required_desc">É necessário reiniciar a Interface do sistema para que esta alteração tenha efeito.</string>

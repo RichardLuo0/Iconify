@@ -19,74 +19,74 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.content.res.ResourcesCompat
 import com.drdisagree.iconify.R
-import com.drdisagree.iconify.common.Const.SYSTEMUI_PACKAGE
-import com.drdisagree.iconify.common.Preferences.BATTERY_STYLE_CIRCLE
-import com.drdisagree.iconify.common.Preferences.BATTERY_STYLE_CUSTOM_LANDSCAPE
-import com.drdisagree.iconify.common.Preferences.BATTERY_STYLE_CUSTOM_RLANDSCAPE
-import com.drdisagree.iconify.common.Preferences.BATTERY_STYLE_DEFAULT
-import com.drdisagree.iconify.common.Preferences.BATTERY_STYLE_DEFAULT_LANDSCAPE
-import com.drdisagree.iconify.common.Preferences.BATTERY_STYLE_DEFAULT_RLANDSCAPE
-import com.drdisagree.iconify.common.Preferences.BATTERY_STYLE_DOTTED_CIRCLE
-import com.drdisagree.iconify.common.Preferences.BATTERY_STYLE_FILLED_CIRCLE
-import com.drdisagree.iconify.common.Preferences.BATTERY_STYLE_LANDSCAPE_BATTERYA
-import com.drdisagree.iconify.common.Preferences.BATTERY_STYLE_LANDSCAPE_BATTERYB
-import com.drdisagree.iconify.common.Preferences.BATTERY_STYLE_LANDSCAPE_BATTERYC
-import com.drdisagree.iconify.common.Preferences.BATTERY_STYLE_LANDSCAPE_BATTERYD
-import com.drdisagree.iconify.common.Preferences.BATTERY_STYLE_LANDSCAPE_BATTERYE
-import com.drdisagree.iconify.common.Preferences.BATTERY_STYLE_LANDSCAPE_BATTERYF
-import com.drdisagree.iconify.common.Preferences.BATTERY_STYLE_LANDSCAPE_BATTERYG
-import com.drdisagree.iconify.common.Preferences.BATTERY_STYLE_LANDSCAPE_BATTERYH
-import com.drdisagree.iconify.common.Preferences.BATTERY_STYLE_LANDSCAPE_BATTERYI
-import com.drdisagree.iconify.common.Preferences.BATTERY_STYLE_LANDSCAPE_BATTERYJ
-import com.drdisagree.iconify.common.Preferences.BATTERY_STYLE_LANDSCAPE_BATTERYK
-import com.drdisagree.iconify.common.Preferences.BATTERY_STYLE_LANDSCAPE_BATTERYL
-import com.drdisagree.iconify.common.Preferences.BATTERY_STYLE_LANDSCAPE_BATTERYM
-import com.drdisagree.iconify.common.Preferences.BATTERY_STYLE_LANDSCAPE_BATTERYN
-import com.drdisagree.iconify.common.Preferences.BATTERY_STYLE_LANDSCAPE_BATTERYO
-import com.drdisagree.iconify.common.Preferences.BATTERY_STYLE_LANDSCAPE_COLOROS
-import com.drdisagree.iconify.common.Preferences.BATTERY_STYLE_LANDSCAPE_IOS_15
-import com.drdisagree.iconify.common.Preferences.BATTERY_STYLE_LANDSCAPE_IOS_16
-import com.drdisagree.iconify.common.Preferences.BATTERY_STYLE_LANDSCAPE_KIM
-import com.drdisagree.iconify.common.Preferences.BATTERY_STYLE_LANDSCAPE_MIUI_PILL
-import com.drdisagree.iconify.common.Preferences.BATTERY_STYLE_LANDSCAPE_SMILEY
-import com.drdisagree.iconify.common.Preferences.BATTERY_STYLE_LANDSCAPE_STYLE_A
-import com.drdisagree.iconify.common.Preferences.BATTERY_STYLE_LANDSCAPE_STYLE_B
-import com.drdisagree.iconify.common.Preferences.BATTERY_STYLE_PORTRAIT_AIROO
-import com.drdisagree.iconify.common.Preferences.BATTERY_STYLE_PORTRAIT_CAPSULE
-import com.drdisagree.iconify.common.Preferences.BATTERY_STYLE_PORTRAIT_LORN
-import com.drdisagree.iconify.common.Preferences.BATTERY_STYLE_PORTRAIT_MX
-import com.drdisagree.iconify.common.Preferences.BATTERY_STYLE_PORTRAIT_ORIGAMI
-import com.drdisagree.iconify.common.Preferences.BATTERY_STYLE_RLANDSCAPE_COLOROS
-import com.drdisagree.iconify.common.Preferences.BATTERY_STYLE_RLANDSCAPE_STYLE_A
-import com.drdisagree.iconify.common.Preferences.BATTERY_STYLE_RLANDSCAPE_STYLE_B
-import com.drdisagree.iconify.common.Preferences.CUSTOM_BATTERY_BLEND_COLOR
-import com.drdisagree.iconify.common.Preferences.CUSTOM_BATTERY_CHARGING_COLOR
-import com.drdisagree.iconify.common.Preferences.CUSTOM_BATTERY_CHARGING_ICON_MARGIN_LEFT
-import com.drdisagree.iconify.common.Preferences.CUSTOM_BATTERY_CHARGING_ICON_MARGIN_RIGHT
-import com.drdisagree.iconify.common.Preferences.CUSTOM_BATTERY_CHARGING_ICON_STYLE
-import com.drdisagree.iconify.common.Preferences.CUSTOM_BATTERY_CHARGING_ICON_SWITCH
-import com.drdisagree.iconify.common.Preferences.CUSTOM_BATTERY_CHARGING_ICON_WIDTH_HEIGHT
-import com.drdisagree.iconify.common.Preferences.CUSTOM_BATTERY_DIMENSION
-import com.drdisagree.iconify.common.Preferences.CUSTOM_BATTERY_FILL_ALPHA
-import com.drdisagree.iconify.common.Preferences.CUSTOM_BATTERY_FILL_COLOR
-import com.drdisagree.iconify.common.Preferences.CUSTOM_BATTERY_FILL_GRAD_COLOR
-import com.drdisagree.iconify.common.Preferences.CUSTOM_BATTERY_HEIGHT
-import com.drdisagree.iconify.common.Preferences.CUSTOM_BATTERY_HIDE_BATTERY
-import com.drdisagree.iconify.common.Preferences.CUSTOM_BATTERY_HIDE_PERCENTAGE
-import com.drdisagree.iconify.common.Preferences.CUSTOM_BATTERY_INSIDE_PERCENTAGE
-import com.drdisagree.iconify.common.Preferences.CUSTOM_BATTERY_LAYOUT_REVERSE
-import com.drdisagree.iconify.common.Preferences.CUSTOM_BATTERY_MARGIN_BOTTOM
-import com.drdisagree.iconify.common.Preferences.CUSTOM_BATTERY_MARGIN_LEFT
-import com.drdisagree.iconify.common.Preferences.CUSTOM_BATTERY_MARGIN_RIGHT
-import com.drdisagree.iconify.common.Preferences.CUSTOM_BATTERY_MARGIN_TOP
-import com.drdisagree.iconify.common.Preferences.CUSTOM_BATTERY_PERIMETER_ALPHA
-import com.drdisagree.iconify.common.Preferences.CUSTOM_BATTERY_POWERSAVE_FILL_COLOR
-import com.drdisagree.iconify.common.Preferences.CUSTOM_BATTERY_POWERSAVE_INDICATOR_COLOR
-import com.drdisagree.iconify.common.Preferences.CUSTOM_BATTERY_RAINBOW_FILL_COLOR
-import com.drdisagree.iconify.common.Preferences.CUSTOM_BATTERY_STYLE
-import com.drdisagree.iconify.common.Preferences.CUSTOM_BATTERY_SWAP_PERCENTAGE
-import com.drdisagree.iconify.common.Preferences.CUSTOM_BATTERY_WIDTH
-import com.drdisagree.iconify.common.Preferences.ICONIFY_CHARGING_ICON_TAG
+import com.drdisagree.iconify.data.common.Const.SYSTEMUI_PACKAGE
+import com.drdisagree.iconify.data.common.Preferences.BATTERY_STYLE_CIRCLE
+import com.drdisagree.iconify.data.common.Preferences.BATTERY_STYLE_CUSTOM_LANDSCAPE
+import com.drdisagree.iconify.data.common.Preferences.BATTERY_STYLE_CUSTOM_RLANDSCAPE
+import com.drdisagree.iconify.data.common.Preferences.BATTERY_STYLE_DEFAULT
+import com.drdisagree.iconify.data.common.Preferences.BATTERY_STYLE_DEFAULT_LANDSCAPE
+import com.drdisagree.iconify.data.common.Preferences.BATTERY_STYLE_DEFAULT_RLANDSCAPE
+import com.drdisagree.iconify.data.common.Preferences.BATTERY_STYLE_DOTTED_CIRCLE
+import com.drdisagree.iconify.data.common.Preferences.BATTERY_STYLE_FILLED_CIRCLE
+import com.drdisagree.iconify.data.common.Preferences.BATTERY_STYLE_LANDSCAPE_BATTERYA
+import com.drdisagree.iconify.data.common.Preferences.BATTERY_STYLE_LANDSCAPE_BATTERYB
+import com.drdisagree.iconify.data.common.Preferences.BATTERY_STYLE_LANDSCAPE_BATTERYC
+import com.drdisagree.iconify.data.common.Preferences.BATTERY_STYLE_LANDSCAPE_BATTERYD
+import com.drdisagree.iconify.data.common.Preferences.BATTERY_STYLE_LANDSCAPE_BATTERYE
+import com.drdisagree.iconify.data.common.Preferences.BATTERY_STYLE_LANDSCAPE_BATTERYF
+import com.drdisagree.iconify.data.common.Preferences.BATTERY_STYLE_LANDSCAPE_BATTERYG
+import com.drdisagree.iconify.data.common.Preferences.BATTERY_STYLE_LANDSCAPE_BATTERYH
+import com.drdisagree.iconify.data.common.Preferences.BATTERY_STYLE_LANDSCAPE_BATTERYI
+import com.drdisagree.iconify.data.common.Preferences.BATTERY_STYLE_LANDSCAPE_BATTERYJ
+import com.drdisagree.iconify.data.common.Preferences.BATTERY_STYLE_LANDSCAPE_BATTERYK
+import com.drdisagree.iconify.data.common.Preferences.BATTERY_STYLE_LANDSCAPE_BATTERYL
+import com.drdisagree.iconify.data.common.Preferences.BATTERY_STYLE_LANDSCAPE_BATTERYM
+import com.drdisagree.iconify.data.common.Preferences.BATTERY_STYLE_LANDSCAPE_BATTERYN
+import com.drdisagree.iconify.data.common.Preferences.BATTERY_STYLE_LANDSCAPE_BATTERYO
+import com.drdisagree.iconify.data.common.Preferences.BATTERY_STYLE_LANDSCAPE_COLOROS
+import com.drdisagree.iconify.data.common.Preferences.BATTERY_STYLE_LANDSCAPE_IOS_15
+import com.drdisagree.iconify.data.common.Preferences.BATTERY_STYLE_LANDSCAPE_IOS_16
+import com.drdisagree.iconify.data.common.Preferences.BATTERY_STYLE_LANDSCAPE_KIM
+import com.drdisagree.iconify.data.common.Preferences.BATTERY_STYLE_LANDSCAPE_MIUI_PILL
+import com.drdisagree.iconify.data.common.Preferences.BATTERY_STYLE_LANDSCAPE_SMILEY
+import com.drdisagree.iconify.data.common.Preferences.BATTERY_STYLE_LANDSCAPE_STYLE_A
+import com.drdisagree.iconify.data.common.Preferences.BATTERY_STYLE_LANDSCAPE_STYLE_B
+import com.drdisagree.iconify.data.common.Preferences.BATTERY_STYLE_PORTRAIT_AIROO
+import com.drdisagree.iconify.data.common.Preferences.BATTERY_STYLE_PORTRAIT_CAPSULE
+import com.drdisagree.iconify.data.common.Preferences.BATTERY_STYLE_PORTRAIT_LORN
+import com.drdisagree.iconify.data.common.Preferences.BATTERY_STYLE_PORTRAIT_MX
+import com.drdisagree.iconify.data.common.Preferences.BATTERY_STYLE_PORTRAIT_ORIGAMI
+import com.drdisagree.iconify.data.common.Preferences.BATTERY_STYLE_RLANDSCAPE_COLOROS
+import com.drdisagree.iconify.data.common.Preferences.BATTERY_STYLE_RLANDSCAPE_STYLE_A
+import com.drdisagree.iconify.data.common.Preferences.BATTERY_STYLE_RLANDSCAPE_STYLE_B
+import com.drdisagree.iconify.data.common.Preferences.CUSTOM_BATTERY_BLEND_COLOR
+import com.drdisagree.iconify.data.common.Preferences.CUSTOM_BATTERY_CHARGING_COLOR
+import com.drdisagree.iconify.data.common.Preferences.CUSTOM_BATTERY_CHARGING_ICON_MARGIN_LEFT
+import com.drdisagree.iconify.data.common.Preferences.CUSTOM_BATTERY_CHARGING_ICON_MARGIN_RIGHT
+import com.drdisagree.iconify.data.common.Preferences.CUSTOM_BATTERY_CHARGING_ICON_STYLE
+import com.drdisagree.iconify.data.common.Preferences.CUSTOM_BATTERY_CHARGING_ICON_SWITCH
+import com.drdisagree.iconify.data.common.Preferences.CUSTOM_BATTERY_CHARGING_ICON_WIDTH_HEIGHT
+import com.drdisagree.iconify.data.common.Preferences.CUSTOM_BATTERY_DIMENSION
+import com.drdisagree.iconify.data.common.Preferences.CUSTOM_BATTERY_FILL_ALPHA
+import com.drdisagree.iconify.data.common.Preferences.CUSTOM_BATTERY_FILL_COLOR
+import com.drdisagree.iconify.data.common.Preferences.CUSTOM_BATTERY_FILL_GRAD_COLOR
+import com.drdisagree.iconify.data.common.Preferences.CUSTOM_BATTERY_HEIGHT
+import com.drdisagree.iconify.data.common.Preferences.CUSTOM_BATTERY_HIDE_BATTERY
+import com.drdisagree.iconify.data.common.Preferences.CUSTOM_BATTERY_HIDE_PERCENTAGE
+import com.drdisagree.iconify.data.common.Preferences.CUSTOM_BATTERY_INSIDE_PERCENTAGE
+import com.drdisagree.iconify.data.common.Preferences.CUSTOM_BATTERY_LAYOUT_REVERSE
+import com.drdisagree.iconify.data.common.Preferences.CUSTOM_BATTERY_MARGIN_BOTTOM
+import com.drdisagree.iconify.data.common.Preferences.CUSTOM_BATTERY_MARGIN_LEFT
+import com.drdisagree.iconify.data.common.Preferences.CUSTOM_BATTERY_MARGIN_RIGHT
+import com.drdisagree.iconify.data.common.Preferences.CUSTOM_BATTERY_MARGIN_TOP
+import com.drdisagree.iconify.data.common.Preferences.CUSTOM_BATTERY_PERIMETER_ALPHA
+import com.drdisagree.iconify.data.common.Preferences.CUSTOM_BATTERY_POWERSAVE_FILL_COLOR
+import com.drdisagree.iconify.data.common.Preferences.CUSTOM_BATTERY_POWERSAVE_INDICATOR_COLOR
+import com.drdisagree.iconify.data.common.Preferences.CUSTOM_BATTERY_RAINBOW_FILL_COLOR
+import com.drdisagree.iconify.data.common.Preferences.CUSTOM_BATTERY_STYLE
+import com.drdisagree.iconify.data.common.Preferences.CUSTOM_BATTERY_SWAP_PERCENTAGE
+import com.drdisagree.iconify.data.common.Preferences.CUSTOM_BATTERY_WIDTH
+import com.drdisagree.iconify.data.common.Preferences.ICONIFY_CHARGING_ICON_TAG
 import com.drdisagree.iconify.xposed.HookRes.Companion.modRes
 import com.drdisagree.iconify.xposed.HookRes.Companion.resParams
 import com.drdisagree.iconify.xposed.ModPack
@@ -141,7 +141,6 @@ import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.log
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.setExtraField
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.setField
 import com.drdisagree.iconify.xposed.utils.XPrefs.Xprefs
-import com.drdisagree.iconify.xposed.utils.XPrefs.XprefsIsInitialized
 import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XC_MethodHook.MethodHookParam
 import de.robv.android.xposed.XposedHelpers.getBooleanField
@@ -178,10 +177,7 @@ class BatteryStyleManager(context: Context) : ModPack(context) {
     private var mIsCharging = false
 
     override fun updatePrefs(vararg key: String) {
-        if (!XprefsIsInitialized) return
-
         var batteryStyle: Int
-
         Xprefs.apply {
             batteryStyle = getString(CUSTOM_BATTERY_STYLE, "0")!!.toInt()
             val hidePercentage: Boolean = getBoolean(CUSTOM_BATTERY_HIDE_PERCENTAGE, false)
@@ -696,8 +692,6 @@ class BatteryStyleManager(context: Context) : ModPack(context) {
     }
 
     private fun isBatteryCharging(thisObject: Any): Boolean {
-        var mIsIncompatibleCharging = false
-
         val mCharging: Boolean = try {
             thisObject.getField("mCharging") as Boolean
         } catch (ignored: Throwable) {
@@ -708,11 +702,8 @@ class BatteryStyleManager(context: Context) : ModPack(context) {
             }
         }
 
-        try {
-            mIsIncompatibleCharging = thisObject.getField("mIsIncompatibleCharging") as Boolean
-        } catch (throwable: Throwable) {
-            log(this@BatteryStyleManager, throwable)
-        }
+        val mIsIncompatibleCharging =
+            thisObject.getFieldSilently("mIsIncompatibleCharging") as? Boolean ?: false
 
         return mCharging && !mIsIncompatibleCharging
     }
@@ -819,7 +810,12 @@ class BatteryStyleManager(context: Context) : ModPack(context) {
             BATTERY_STYLE_LANDSCAPE_BATTERYM -> LandscapeBatteryM(context, frameColor)
             BATTERY_STYLE_LANDSCAPE_BATTERYN -> LandscapeBatteryN(context, frameColor)
             BATTERY_STYLE_LANDSCAPE_BATTERYO -> LandscapeBatteryO(context, frameColor)
-            BATTERY_STYLE_CIRCLE, BATTERY_STYLE_DOTTED_CIRCLE -> CircleBattery(context, frameColor)
+            BATTERY_STYLE_CIRCLE, BATTERY_STYLE_DOTTED_CIRCLE -> CircleBattery(
+                context,
+                frameColor
+            ).apply {
+                setMeterStyle(mBatteryStyle)
+            }
             BATTERY_STYLE_FILLED_CIRCLE -> CircleFilledBattery(context, frameColor)
             BATTERY_STYLE_LANDSCAPE_KIM -> LandscapeBatteryKim(context, frameColor)
             else -> null

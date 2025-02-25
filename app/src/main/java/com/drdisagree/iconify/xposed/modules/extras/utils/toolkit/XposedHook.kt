@@ -1,6 +1,10 @@
 package com.drdisagree.iconify.xposed.modules.extras.utils.toolkit
 
+import android.annotation.SuppressLint
+import android.content.Context
+import android.content.res.Resources
 import android.content.res.XResources
+import com.drdisagree.iconify.xposed.modules.extras.utils.ViewHelper.toPx
 import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XC_MethodReplacement
 import de.robv.android.xposed.XposedBridge.hookAllConstructors
@@ -12,6 +16,7 @@ import de.robv.android.xposed.XposedHelpers.findAndHookMethod
 import de.robv.android.xposed.XposedHelpers.getStaticObjectField
 import de.robv.android.xposed.callbacks.XC_LayoutInflated
 import de.robv.android.xposed.callbacks.XC_LoadPackage
+import java.lang.ref.WeakReference
 import java.lang.reflect.Method
 import java.util.regex.Pattern
 
@@ -108,6 +113,7 @@ class MethodHookHelper(
 
     private var parameterTypes: Array<Any?>? = null
     private var printError: Boolean = true
+    private var throwError: Boolean = false
 
     @Suppress("UNCHECKED_CAST")
     fun parameters(vararg parameterTypes: Any?): MethodHookHelper {
@@ -124,20 +130,26 @@ class MethodHookHelper(
             methodNames.forEach { methodName ->
                 if (isPattern) {
                     val pattern = Pattern.compile(methodName)
-                    clazz?.declaredMethods?.forEach { method ->
+                    clazz?.declaredMethods?.toList()?.union(clazz.methods.toList())
+                        ?.forEach { method ->
                         if (pattern.matcher(method.name).matches()) {
                             hookMethod(method, callback)
                         }
                     }
                 } else {
-                    clazz?.declaredMethods?.find { it.name == methodName }?.let { method ->
+                    clazz?.declaredMethods?.toList()?.union(clazz.methods.toList())
+                        ?.find { it.name == methodName }?.let { method ->
                         hookMethod(method, callback)
                     } ?: run {
-                        if (printError && methodNames!!.size == 1) {
-                            log(
-                                XposedHook,
-                                "Method not found: $methodName${if (clazz?.simpleName != null) " in ${clazz.simpleName}" else ""}"
-                            )
+                        if (printError) {
+                            if (clazz != null && methodNames!!.size == 1) {
+                                log(
+                                    XposedHook,
+                                    "Method not found: $methodName in ${clazz.simpleName}"
+                                )
+                            }
+                        } else if (throwError) {
+                            throw Throwable("Method not found: $methodName in ${clazz?.simpleName}")
                         }
                     }
                 }
@@ -156,20 +168,26 @@ class MethodHookHelper(
             methodNames.forEach { methodName ->
                 if (isPattern) {
                     val pattern = Pattern.compile(methodName)
-                    clazz?.declaredMethods?.forEach { method ->
+                    clazz?.declaredMethods?.toList()?.union(clazz.methods.toList())
+                        ?.forEach { method ->
                         if (pattern.matcher(method.name).matches()) {
                             hookMethodBefore(method, callback)
                         }
                     }
                 } else {
-                    clazz?.declaredMethods?.find { it.name == methodName }?.let { method ->
+                    clazz?.declaredMethods?.toList()?.union(clazz.methods.toList())
+                        ?.find { it.name == methodName }?.let { method ->
                         hookMethodBefore(method, callback)
                     } ?: run {
-                        if (printError && methodNames!!.size == 1) {
-                            log(
-                                XposedHook,
-                                "Method not found: $methodName${if (clazz?.simpleName != null) " in ${clazz.simpleName}" else ""}"
-                            )
+                        if (printError) {
+                            if (clazz != null && methodNames!!.size == 1) {
+                                log(
+                                    XposedHook,
+                                    "Method not found: $methodName in ${clazz.simpleName}"
+                                )
+                            }
+                        } else if (throwError) {
+                            throw Throwable("Method not found: $methodName in ${clazz?.simpleName}")
                         }
                     }
                 }
@@ -188,20 +206,26 @@ class MethodHookHelper(
             methodNames.forEach { methodName ->
                 if (isPattern) {
                     val pattern = Pattern.compile(methodName)
-                    clazz?.declaredMethods?.forEach { method ->
+                    clazz?.declaredMethods?.toList()?.union(clazz.methods.toList())
+                        ?.forEach { method ->
                         if (pattern.matcher(method.name).matches()) {
                             hookMethodAfter(method, callback)
                         }
                     }
                 } else {
-                    clazz?.declaredMethods?.find { it.name == methodName }?.let { method ->
+                    clazz?.declaredMethods?.toList()?.union(clazz.methods.toList())
+                        ?.find { it.name == methodName }?.let { method ->
                         hookMethodAfter(method, callback)
                     } ?: run {
-                        if (printError && methodNames!!.size == 1) {
-                            log(
-                                XposedHook,
-                                "Method not found: $methodName${if (clazz?.simpleName != null) " in ${clazz.simpleName}" else ""}"
-                            )
+                        if (printError) {
+                            if (clazz != null && methodNames!!.size == 1) {
+                                log(
+                                    XposedHook,
+                                    "Method not found: $methodName in ${clazz.simpleName}"
+                                )
+                            }
+                        } else if (throwError) {
+                            throw Throwable("Method not found: $methodName in ${clazz?.simpleName}")
                         }
                     }
                 }
@@ -218,20 +242,26 @@ class MethodHookHelper(
             methodNames?.forEach { methodName ->
                 if (isPattern) {
                     val pattern = Pattern.compile(methodName)
-                    clazz?.declaredMethods?.forEach { method ->
+                    clazz?.declaredMethods?.toList()?.union(clazz.methods.toList())
+                        ?.forEach { method ->
                         if (pattern.matcher(method.name).matches()) {
                             hookMethodReplace(method, callback)
                         }
                     }
                 } else {
-                    clazz?.declaredMethods?.find { it.name == methodName }?.let { method ->
+                    clazz?.declaredMethods?.toList()?.union(clazz.methods.toList())
+                        ?.find { it.name == methodName }?.let { method ->
                         hookMethodReplace(method, callback)
                     } ?: run {
-                        if (printError && methodNames!!.size == 1) {
-                            log(
-                                XposedHook,
-                                "Method not found: $methodName${if (clazz?.simpleName != null) " in ${clazz.simpleName}" else ""}"
-                            )
+                        if (printError) {
+                            if (clazz != null && methodNames!!.size == 1) {
+                                log(
+                                    XposedHook,
+                                    "Method not found: $methodName in ${clazz.simpleName}"
+                                )
+                            }
+                        } else if (throwError) {
+                            throw Throwable("Method not found: $methodName in ${clazz?.simpleName}")
                         }
                     }
                 }
@@ -411,6 +441,15 @@ class MethodHookHelper(
         printError = false
         return this
     }
+
+    /*
+     * Call before running any hook
+     */
+    fun throwError(): MethodHookHelper {
+        suppressError()
+        throwError = true
+        return this
+    }
 }
 
 fun Method.run(callback: XC_MethodHook): MethodHookHelper {
@@ -443,6 +482,7 @@ class LayoutHookHelper(private val xResources: XResources) {
     private var resourceType: String? = null
     private var resourceName: String? = null
     private var printError: Boolean = true
+    private var throwError: Boolean = false
 
     fun packageName(packageName: String): LayoutHookHelper {
         this.packageName = packageName
@@ -477,6 +517,8 @@ class LayoutHookHelper(private val xResources: XResources) {
         } catch (throwable: Throwable) {
             if (printError) {
                 log(XposedHook, throwable)
+            } else if (throwError) {
+                throw throwable
             }
         }
 
@@ -489,6 +531,129 @@ class LayoutHookHelper(private val xResources: XResources) {
     fun suppressError(): LayoutHookHelper {
         printError = false
         return this
+    }
+
+    /*
+     * Call before running any hook
+     */
+    fun throwError(): LayoutHookHelper {
+        throwError = true
+        return this
+    }
+}
+
+object ResourceHookManager {
+
+    private val hookedResources = mutableListOf<HookData>()
+    private var contextRef: WeakReference<Context>? = null
+
+    fun init(context: Context) {
+        contextRef = WeakReference(context)
+
+        applyHooks()
+    }
+
+    fun hookDimen(): HookBuilder {
+        return HookBuilder(HookType.DIMENSION)
+    }
+
+    fun hookBoolean(): HookBuilder {
+        return HookBuilder(HookType.BOOLEAN)
+    }
+
+    fun hookInteger(): HookBuilder {
+        return HookBuilder(HookType.INTEGER)
+    }
+
+    private fun applyHooks() {
+        val context = contextRef!!.get() ?: throw IllegalStateException("Context is null")
+
+        HookType.entries.forEach { hookType ->
+            hookType.methods.forEach { method ->
+                Resources::class.java
+                    .hookMethod(method)
+                    .runBefore { param ->
+                        val hookData = hookedResources.find {
+                            it.method == method && it.resId == param.args[0]
+                        } ?: return@runBefore
+
+                        if (hookData.condition.invoke()) {
+                            if (method == "getDimensionPixelSize") {
+                                param.result = context.toPx(hookData.value.invoke() as Int)
+                            } else {
+                                param.result = hookData.value.invoke()
+                            }
+                        }
+                    }
+            }
+        }
+    }
+
+    class HookBuilder(private val hookType: HookType) {
+
+        private var packageName: String? = null
+        private var condition: () -> Boolean = { true }
+        private val resourcesToHook = mutableListOf<HookData>()
+
+        fun whenCondition(condition: () -> Boolean): HookBuilder {
+            this.condition = condition
+            return this
+        }
+
+        fun forPackageName(packageName: String): HookBuilder {
+            this.packageName = packageName
+            return this
+        }
+
+        @SuppressLint("DiscouragedApi")
+        fun addResource(name: String, value: () -> Any): HookBuilder {
+            val context = contextRef?.get() ?: return this
+            if (packageName == null) throw IllegalArgumentException("packageName must be set")
+
+            val resId = context.resources.getIdentifier(
+                name,
+                hookType.resourceType,
+                packageName
+            )
+
+            if (resId != 0) {
+                hookType.methods.forEach { method ->
+                    resourcesToHook.add(HookData(resId, method, value, condition))
+                }
+            }
+
+            return this
+        }
+
+        fun apply() {
+            resourcesToHook.forEach { resource ->
+                if (!hookedResources.contains(resource)) {
+                    hookedResources.add(resource)
+                }
+            }
+        }
+    }
+
+    data class HookData(
+        val resId: Int,
+        val method: String,
+        val value: () -> Any,
+        val condition: () -> Boolean
+    )
+
+    enum class HookType(val resourceType: String, val methods: List<String>) {
+        BOOLEAN(
+            "bool",
+            listOf("getBoolean")
+        ),
+        INTEGER(
+            "integer",
+            listOf("getInteger")
+        ),
+        DIMENSION(
+            "dimen",
+            listOf("getDimension", "getDimensionPixelOffset", "getDimensionPixelSize")
+        )
     }
 }
 

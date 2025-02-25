@@ -5,7 +5,6 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.location.Criteria
 import android.location.Location
 import android.location.LocationManager
 import android.text.TextUtils
@@ -272,11 +271,11 @@ class WeatherWork(val mContext: Context, workerParams: WorkerParameters) :
         private val executor: ExecutorService = Executors.newSingleThreadExecutor()
         private val dayFormat = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.US)
 
-        private val sLocationCriteria = Criteria()
+        private val sLocationCriteria = android.location.Criteria()
 
         init {
-            sLocationCriteria.powerRequirement = Criteria.POWER_LOW
-            sLocationCriteria.accuracy = Criteria.ACCURACY_COARSE
+            sLocationCriteria.powerRequirement = android.location.Criteria.POWER_LOW
+            sLocationCriteria.accuracy = android.location.Criteria.ACCURACY_COARSE
             sLocationCriteria.isCostAllowed = false
         }
     }

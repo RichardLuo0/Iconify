@@ -20,8 +20,8 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import com.drdisagree.iconify.Iconify.Companion.appContext
 import com.drdisagree.iconify.R
-import com.drdisagree.iconify.common.Const.FRAGMENT_BACK_BUTTON_DELAY
-import com.drdisagree.iconify.common.Preferences.BATTERY_STYLE_DOTTED_CIRCLE
+import com.drdisagree.iconify.data.common.Const.FRAGMENT_BACK_BUTTON_DELAY
+import com.drdisagree.iconify.data.common.Preferences.BATTERY_STYLE_DOTTED_CIRCLE
 import com.drdisagree.iconify.xposed.modules.batterystyles.BatteryDrawable
 import com.drdisagree.iconify.xposed.modules.batterystyles.CircleBattery
 import com.drdisagree.iconify.xposed.modules.batterystyles.CircleFilledBattery

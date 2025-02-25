@@ -6,8 +6,8 @@ import android.content.SharedPreferences
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import com.crossbowffs.remotepreferences.RemotePreferences
 import com.drdisagree.iconify.BuildConfig
-import com.drdisagree.iconify.common.Const.PREF_UPDATE_EXCLUSIONS
-import com.drdisagree.iconify.common.Resources.SHARED_XPREFERENCES
+import com.drdisagree.iconify.data.common.Const.PREF_UPDATE_EXCLUSIONS
+import com.drdisagree.iconify.data.common.Resources.SHARED_XPREFERENCES
 import com.drdisagree.iconify.xposed.HookEntry
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.log
 

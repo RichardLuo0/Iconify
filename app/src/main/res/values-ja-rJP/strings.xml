@@ -94,6 +94,7 @@
     <string name="activity_desc_xposed_menu">これらのオプションには LSPosed が必要です</string>
     <string name="activity_title_extras">エクストラ</string>
     <string name="activity_desc_extras">追加のカスタマイズやオプション</string>
+    <string name="activity_title_dual_statusbar">Dual Statusbar</string>
     <!-- Settings -->
     <string name="settings_section_title_general">一般</string>
     <string name="settings_app_language">言語</string>
@@ -127,6 +128,8 @@
     <string name="settings_show_home_page_card_desc">ホームページに素晴らしいカードを表示します。</string>
     <string name="settings_vibrate_ui_card_title">触覚フィードバック</string>
     <string name="settings_vibrate_ui_page_card_desc">インタラクティブ ハプティクスでタッチのフィードバックを強化する</string>
+    <string name="settings_slider_controller_title">Slider Controller</string>
+    <string name="settings_slider_controller_desc">Enable to display plus and minus buttons with sliders.</string>
     <string name="settings_clear_app_cache_title">アプリのキャッシュをクリア</string>
     <string name="settings_clear_app_cache_desc">カスタムフォント、画像、GIF の作成に必要なキャッシュをクリアします。</string>
     <string name="activity_title_experimental">実験的</string>
@@ -296,12 +299,17 @@
     <string name="section_title_qs_text_color">クイック設定 文字色</string>
     <string name="qs_text_color_normal">ノーマル</string>
     <string name="qs_text_color_pixel">Pixel</string>
+    <string name="custom_qs_tile_text_color_title">Custom Text Color</string>
+    <string name="custom_qs_tile_text_color_desc">Enable custom QS tile text color</string>
+    <string name="custom_qs_tile_text_color_list_title">Text Color Options</string>
     <string name="label_always_white_title">常に白</string>
     <string name="label_always_white_desc">タイトルホワイト、サブタイトルホワイト</string>
     <string name="label_always_white_v2_title">常に白 v2</string>
     <string name="label_always_white_v2_desc">タイトルホワイト、サブタイトルアクセント</string>
     <string name="label_follow_system_title">システムに従う</string>
     <string name="label_follow_system_desc">タイトルシステム、サブタイトルシステム</string>
+    <string name="label_follow_system_inverse_title">Follow System Inverse</string>
+    <!--<string name="label_follow_system_inverse_desc">Title system, subtitle system</string>-->
     <string name="label_follow_system_v2_title">システムに従う v2</string>
     <string name="label_follow_system_v2_desc">タイトルシステム、サブタイトルアクセント</string>
     <string name="label_fix_text_color_title">文字色を修正</string>
@@ -316,6 +324,7 @@
     <!-- QS Panel Margin -->
     <string name="qqs_panel_top_margin_title">クイッククイック設定パネルの上部マージン</string>
     <string name="qs_panel_top_margin_title">クイック設定パネルの上部マージン</string>
+    <string name="qs_panel_top_margin_info">Rotate device to see changes. If that doesn\'t work, restart SystemUI.</string>
     <!-- Statusbar -->
     <string name="section_title_spacing">スペーシング</string>
     <string name="sb_left_padding">左パディング</string>
@@ -369,20 +378,16 @@
     <string name="vp_thick_background_desc">音量のスライダーを太くします</string>
     <string name="vp_no_background_title">背景なし</string>
     <string name="vp_no_background_desc">音量スライダーのトラックを削除します</string>
-    <string name="section_title_custom_magisk_module">カスタム Magisk モジュール</string>
+    <string name="read_carefully">よく読んでください！</string>
+    <!-- Volume Panel Style -->
     <string name="volume_style">音量のスタイル</string>
-    <string name="volume_module_desc">このスタイルのフラッシュ可能な Magisk モジュールを作成します</string>
+    <string name="volume_style_default">Default</string>
     <string name="volume_style_gradient">グラデーション</string>
     <string name="volume_style_doublelayer">二重レイヤー</string>
     <string name="volume_style_shadedlayer">影付きレイヤー</string>
     <string name="volume_style_neumorph">ニューモーフィズム</string>
     <string name="volume_style_outline">アウトライン</string>
     <string name="volume_style_neumorphoutline">ニューモーフィズム アウトライン</string>
-    <string name="btn_create_module">モジュールを作成</string>
-    <string name="toast_module_created">モジュールの作成に成功しました</string>
-    <string name="read_carefully">よく読んでください！</string>
-    <string name="volume_module_installation_guide">このオプションは内部ストレージのダウンロードフォルダに Magisk モジュールを作成します。Magisk で IconifyCompanion.zip という名前のモジュールをフラッシュしてください。新しいモジュールをインストール前に、毎回以前の Iconify Companion モジュール (もしインストールされていたら) をアンインストールして再起動して下さい。\n\n<b>注意:</b>\n• ROM をアップデートする前にモジュールをアンインストールしてください。\n• ROM を変更またはアップデートしたらモジュールを再度作成してください。\n• お使いの ROM 用に作成されてないモジュールをフラッシュしないでください。</string>
-    <string name="volume_module_unstable_desc">Currently volume module is unstable on Android 14 and above. Try at your own risk.</string>
     <!-- Media Player -->
     <string name="cont_desc_media_player">メディアプレーヤー プレビュー</string>
     <string name="media_player_preview_music_title">音楽のタイトル</string>
@@ -406,7 +411,6 @@
     <string name="section_title_privacy_chip">プライバシー チップ</string>
     <string name="accent_privacy_chip_title">アクセント プライバシー チップ</string>
     <string name="accent_privacy_chip_desc">プライバシー チップにアクセントカラーを適用する</string>
-    <string name="section_title_media_player">メディアプレーヤー</string>
     <string name="disable_progress_wave_title">プログレス ウェーブを無効化</string>
     <string name="disable_progress_wave_desc">プログレスバーの波アニメーションを無効化します</string>
     <!-- Xposed Menu -->
@@ -444,6 +448,9 @@
     <string name="activity_title_xposed_others">その他</string>
     <string name="activity_desc_xposed_others">その他の Xposed での調整</string>
     <string name="activity_title_xposed_weather_settings">Weather Settings</string>
+    <string name="activity_title_xposed_launcher">Launcher</string>
+    <string name="activity_desc_xposed_launcher">Launcher related modifications</string>
+    <string name="activity_title_lockscreen_album_art">Media Album Art</string>
     <!-- Oneplus QS Header -->
     <string name="oneplus_qs_header_title">OnePlus クイック設定ヘッダー</string>
     <string name="oneplus_qs_header_desc">クイック設定で OOS スタイルのメディアプレーヤーとタイルを有効にする</string>
@@ -455,6 +462,7 @@
     <string name="oneplus_qs_header_fade_level">Fade Level</string>
     <string name="oneplus_qs_header_top_margin">上部マージン</string>
     <string name="oneplus_qs_header_expansion_y">Expansion Amount</string>
+    <string name="oneplus_qs_header_gap">Expanded Gap</string>
     <!-- Lockscreen Widgets -->
     <string name="lockscreen_widgets_title">Lockscreen Widgets</string>
     <string name="lockscreen_widgets_enabled_title">Enable Lockscreen Widgets</string>
@@ -486,6 +494,9 @@
     <string name="mini_widget_icon_inactive">Mini Widget Icon Inactive Color</string>
     <string name="weather_settings">Weather Settings</string>
     <string name="lockscreen_widgets_scale">Widgets Scale</string>
+    <string name="lockscreen_device_widget_style_title">Device Widget Style</string>
+    <string name="lockscreen_device_widget_style_classic">Bar with Two Arcs</string>
+    <string name="lockscreen_device_widget_style_arcs">Four Arcs</string>
     <!-- LS Widgets Actions -->
     <string name="camera">Camera</string>
     <string name="clock_timer">Clock/Timer</string>
@@ -554,6 +565,9 @@
     <string name="colored_qs_notification_title">Colored Notification Icon</string>
     <string name="colored_qs_notification_desc">Show app icon as notification icon</string>
     <string name="section_title_qs_margin">クイック設定マージン</string>
+    <string name="section_title_media_player">メディアプレーヤー</string>
+    <string name="compact_media_player_title">Compact Media Player</string>
+    <string name="compact_media_player_desc">Make media player compact</string>
     <string name="section_title_qs_elements">クイック設定の要素</string>
     <string name="hide_qs_on_lockscreen_title">Hide QS on Lockscreen</string>
     <string name="hide_qs_on_lockscreen_desc">Disable quick settings panel on secured lockscreen</string>
@@ -691,6 +705,8 @@
     <string name="lockscreen_clock_auto_hide_clock_title">自動的に時計を非表示</string>
     <string name="lockscreen_clock_auto_hide_clock_desc">通知が来たとき時計を隠します</string>
     <string name="custom_lockscreen_clock_style_title">時計スタイル</string>
+    <string name="lockscreen_clock_move_notification_icon_title">AOD Icons Below Clock</string>
+    <string name="lockscreen_clock_move_notification_icon_desc">Move AOD icons below custom clock, might be buggy on older ROMs</string>
     <string name="lockscreen_clock_font_title">時計フォント</string>
     <string name="lockscreen_clock_font_desc">Use custom font for lockscreen clock</string>
     <string name="lsclock_custom_color_title">カスタム時計色</string>
@@ -804,6 +820,36 @@
     <string name="hide_ls_carrier_desc">ロック画面のキャリア名を非表示にします</string>
     <string name="hide_ls_statusbar_title">ロック画面のステータスバーを非表示</string>
     <string name="hide_ls_statusbar_desc">ロック画面のステータスバーを非表示にします</string>
+    <string name="sb_swap_wifi_cellular_title">Swap Wifi and Cellular</string>
+    <string name="sb_swap_wifi_cellular_desc">Swap wifi and cellular icons</string>
+    <string name="sb_swap_cellular_network_type_title">Swap Cellular and Network Type</string>
+    <string name="sb_swap_cellular_network_type_desc">Swap cellular and network type (3G 4G LTE etc.) icons</string>
+    <string name="sb_clock_on_right_side_title">Clock on End Side</string>
+    <string name="sb_clock_on_right_side_desc">Show clock on end side of statusbar</string>
+    <string name="sb_show_4g_icon_title">4G Icon</string>
+    <string name="sb_show_4g_icon_desc">Display 4G icon in statusbar instead of LTE</string>
+    <string name="sb_max_notification_icons_title">Notification Icons Limit</string>
+    <string name="dual_status_bar_title">Dual Statusbar</string>
+    <string name="dual_status_bar_desc">Display statusbar elements in two rows</string>
+    <!-- Xposed Dual Statusbar -->
+    <string name="dsb_title">Dual Row Statusbar</string>
+    <string name="dsb_portrait_only_title">Portrait Only</string>
+    <string name="dsb_single_line_start_side_title">Single-Line Start Side</string>
+    <string name="dsb_single_line_start_side_desc">Show one row on start side of statusbar</string>
+    <string name="dsb_single_line_end_side_title">Single-Line End Side</string>
+    <string name="dsb_single_line_end_side_desc">Show one row on end side of statusbar</string>
+    <string name="dsb_swap_start_side_title">Swap Start Side</string>
+    <string name="dsb_swap_start_side_desc">Swap the position of clock and notification icons</string>
+    <string name="dsb_swap_end_side_title">Swap End Side</string>
+    <string name="dsb_swap_end_side_desc">Swap the position of battery and status icons</string>
+    <string name="dsb_statusbar_height_title">Statusbar Height</string>
+    <string name="dsb_start_padding_title">Start Padding</string>
+    <string name="dsb_end_padding_title">End Padding</string>
+    <string name="dsb_top_padding_title">Top Padding</string>
+    <string name="dsb_start_top_margin_title">Start Top Margin</string>
+    <string name="dsb_start_bottom_margin_title">Start Bottom Margin</string>
+    <string name="dsb_end_top_margin_title">End Top Margin</string>
+    <string name="dsb_end_bottom_margin_title">End Bottom Margin</string>
     <!-- Xposed Others -->
     <string name="qs_header">クイック設定ヘッダー</string>
     <string name="hide_carrier_group_title">キャリア名を非表示</string>
@@ -830,6 +876,7 @@
     <string name="view_changelog">変更履歴を見る</string>
     <string name="hide_changelog">変更履歴を隠す</string>
     <string name="already_up_to_date">すでに最新版です。</string>
+    <string name="auto_update_disabled">Auto update is disabled for debug build.</string>
     <string name="current_version">現在のバージョン:</string>
     <string name="latest_version">最新のバージョン:</string>
     <string name="update_checking_failed">アップデートのチェックに失敗しました！</string>
@@ -1075,6 +1122,9 @@
     <string name="accent_tertiary">Accent Tertiary</string>
     <string name="text_color_primary">Text Color Primary</string>
     <string name="text_color_inverse">Text Color Inverse</string>
+    <string name="learn_more">Learn more</string>
+    <string name="custom_tiles_footer_info">To ensure custom tiles work properly, first use the default internet and bluetooth tiles once before using the custom ones.</string>
+    <string name="hig_res_image_footer_info">Avoid using high-resolution images, as they may cause your system UI to crash.</string>
     <!-- Weather -->
     <!-- Omni Jaws Strings -->
     <string name="units_title">単位</string>
@@ -1182,6 +1232,40 @@
     <string name="lockscreen_weather_selection_str_gradient">Gradient</string>
     <string name="lockscreen_weather_selection_str_border_accent">Dark with accented borders</string>
     <string name="lockscreen_weather_selection_str_border_gradient">Dark with gradient borders</string>
+    <string name="lockscreen_weather_font_title">Weather Font</string>
+    <string name="lockscreen_weather_font_desc">Use custom font for weather text</string>
+    <!-- Media art -->
+    <string name="media_art_title">Show Media Album Art</string>
+    <string name="media_art_summary">Display media album art when available</string>
+    <string name="media_art_blur_level_title">Blur Level</string>
+    <!-- Album art filter -->
+    <string name="albumart_filter_title">Media Album Art Filter</string>
+    <string name="albumart_filter_none">None</string>
+    <string name="albumart_filter_grayscale">Grayscale</string>
+    <string name="albumart_filter_tint">Accent Tinted</string>
+    <string name="albumart_filter_blur">Blur</string>
+    <string name="albumart_filter_grayblur">Grayscale and Blurred</string>
+    <!-- Launcher mods -->
+    <string name="section_title_icons">Icons</string>
+    <string name="section_title_home_screen">Home Screen</string>
+    <string name="section_title_app_drawer">App Drawer</string>
+    <string name="section_title_recents">Recents</string>
+    <string name="force_themed_icons_title">Force Themed Icons</string>
+    <string name="force_themed_icons_desc">Generate monochromatic icons if not provided by the app</string>
+    <string name="app_drawer_themed_icons_title">App Drawer Themed Icons</string>
+    <string name="app_drawer_themed_icons_desc">Enable themed icons on app drawer</string>
+    <string name="double_tap_to_sleep_title">Double Tap to Sleep</string>
+    <string name="double_tap_to_sleep_desc">Double tap on home screen empty space to turn off the screen</string>
+    <string name="desktop_icon_labels_title">Icon Labels on Desktop</string>
+    <string name="app_drawer_icon_labels_title">Icon Labels in App Drawer</string>
+    <string name="disable_recents_blur_title">Disable Recents Blur</string>
+    <string name="disable_recents_blur_desc">Disable blur if recents screen is buggy</string>
+    <string name="hide_desktop_search_bar_title">Hide Desktop Search Bar</string>
+    <string name="hide_desktop_search_bar_desc">Hide search bar from desktop dock</string>
+    <string name="dock_spacing_title">Dock Spacing</string>
+    <string name="app_drawer_background_opacity_title">App Drawer Background Opacity</string>
+    <string name="recents_background_opacity_title">Recents Background Opacity</string>
+    <string name="launcher_mod_footer_info">Currently, only Pixel Launcher and Launcher3 are supported.</string>
     <!-- Alert Dialogs -->
     <string name="systemui_restart_required_title">SystemUI Restart Needed</string>
     <string name="systemui_restart_required_desc">A SystemUI restart is needed for this change to take effect.</string>

@@ -1,7 +1,7 @@
 <div align="center">
   <img src="https://raw.githubusercontent.com/Mahmud0808/Iconify/beta/.github/resources/banner.png" width="100%" alt="Banner">
 
-# v7.0.0 is out!
+# v7.1.0 is out!
 </div>
 <p align="center">
   <a href="https://github.com/Mahmud0808/Iconify/releases"><img src="https://img.shields.io/github/downloads/Mahmud0808/Iconify/total?color=%233DDC84&logo=android&logoColor=%23fff&style=for-the-badge" alt="Downloads"></a>
@@ -64,6 +64,7 @@ Furthermore, the open-source nature of Iconify encourages community contribution
 > [!TIP]
 >
 > KernelSU doesn't show root prompt. You will have to manually enable root access for Iconify from the KernelSU app itself.
+> In some cases, you may need to disable the `Umount modules by default` option from KernelSU settings if Iconify changes are not reflecting.
 
 # 🤫 Roadmap
 
@@ -129,6 +130,12 @@ You can help translate Iconify [on Crowdin](https://crowdin.com/project/iconify)
   <summary>What is the difference between Release build and Debug build?</summary>
 
 - [Release build](https://github.com/Mahmud0808/Iconify/releases/latest) is an optimized version intended for distribution to end-users, while [Debug build](https://github.com/Mahmud0808/Iconify/actions) includes additional features and information for debugging and development purposes.
+</details>
+
+<details>
+  <summary>What is the difference between FOSS build and Standard build?</summary>
+
+- FOSS does not include [ML Kit](https://developers.google.com/ml-kit/vision/subject-segmentation/android), which is essential for automatically extracting subjects from depth wallpapers using AI. Everything else remains the same.
 </details>
 
 <details>

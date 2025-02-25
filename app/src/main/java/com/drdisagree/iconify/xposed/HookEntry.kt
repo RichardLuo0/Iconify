@@ -12,7 +12,8 @@ import android.os.UserManager
 import com.drdisagree.iconify.BuildConfig
 import com.drdisagree.iconify.IRootProviderProxy
 import com.drdisagree.iconify.R
-import com.drdisagree.iconify.common.Const.FRAMEWORK_PACKAGE
+import com.drdisagree.iconify.data.common.Const.FRAMEWORK_PACKAGE
+import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.ResourceHookManager
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.XposedHook.Companion.findClass
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.hookMethod
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.log
@@ -20,6 +21,7 @@ import com.drdisagree.iconify.xposed.utils.BootLoopProtector
 import com.drdisagree.iconify.xposed.utils.SystemUtils
 import com.drdisagree.iconify.xposed.utils.XPrefs
 import com.drdisagree.iconify.xposed.utils.XPrefs.Xprefs
+import com.drdisagree.iconify.xposed.utils.XPrefs.XprefsIsInitialized
 import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -64,6 +66,7 @@ class HookEntry : ServiceConnection {
                                 ).resources
 
                                 XPrefs.init(mContext)
+                                ResourceHookManager.init(mContext)
 
                                 CompletableFuture.runAsync { waitForXprefsLoad(loadPackageParam) }
                             }
@@ -93,6 +96,7 @@ class HookEntry : ServiceConnection {
                                     ).resources
 
                                     XPrefs.init(mContext)
+                                    ResourceHookManager.init(mContext)
 
                                     waitForXprefsLoad(loadPackageParam)
                                 }
@@ -129,11 +133,13 @@ class HookEntry : ServiceConnection {
             try {
                 val instance = mod.getConstructor(Context::class.java).newInstance(mContext)
 
-                try {
-                    instance.updatePrefs()
-                } catch (throwable: Throwable) {
-                    log(this@HookEntry, "Failed to update prefs in ${mod.name}")
-                    log(this@HookEntry, throwable)
+                if (XprefsIsInitialized) {
+                    try {
+                        instance.updatePrefs()
+                    } catch (throwable: Throwable) {
+                        log(this@HookEntry, "Failed to update prefs in ${mod.name}")
+                        log(this@HookEntry, throwable)
+                    }
                 }
 
                 instance.handleLoadPackage(loadPackageParam)
@@ -189,10 +195,9 @@ class HookEntry : ServiceConnection {
                 component = ComponentName(
                     BuildConfig.APPLICATION_ID,
                     "${
-                        BuildConfig.APPLICATION_ID.replace(
-                            ".debug",
-                            ""
-                        )
+                        BuildConfig.APPLICATION_ID
+                            .replace(".debug", "")
+                            .replace(".foss", "")
                     }.services.RootProviderProxy"
                 )
             }

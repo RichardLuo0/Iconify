@@ -6,9 +6,9 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Build
-import com.drdisagree.iconify.common.Const.ACTION_HOOK_CHECK_REQUEST
-import com.drdisagree.iconify.common.Const.ACTION_HOOK_CHECK_RESULT
-import com.drdisagree.iconify.common.Const.SYSTEMUI_PACKAGE
+import com.drdisagree.iconify.data.common.Const.ACTION_HOOK_CHECK_REQUEST
+import com.drdisagree.iconify.data.common.Const.ACTION_HOOK_CHECK_RESULT
+import com.drdisagree.iconify.data.common.Const.SYSTEMUI_PACKAGE
 import com.drdisagree.iconify.xposed.ModPack
 import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam
 

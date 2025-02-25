@@ -19,6 +19,13 @@
         search:ignore="true" />
 
     <com.drdisagree.iconify.ui.preferences.SwitchPreference
+        android:defaultValue="true"
+        android:key="xposed_lockscreenclockmovenotificationicons"
+        android:summary="@string/lockscreen_clock_move_notification_icon_desc"
+        android:title="@string/lockscreen_clock_move_notification_icon_title"
+        app:iconSpaceReserved="false" />
+
+    <com.drdisagree.iconify.ui.preferences.SwitchPreference
         android:key="xposed_lockscreenclockcolor"
         android:summary="@string/lsclock_custom_color_desc"
         android:title="@string/lsclock_custom_color_title"

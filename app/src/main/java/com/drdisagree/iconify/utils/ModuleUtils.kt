@@ -5,22 +5,22 @@ import android.util.Log
 import com.drdisagree.iconify.BuildConfig
 import com.drdisagree.iconify.Iconify.Companion.appContext
 import com.drdisagree.iconify.R
-import com.drdisagree.iconify.common.Const.MAGISK_UPDATE_BINARY
-import com.drdisagree.iconify.common.Const.POST_FS_DATA
-import com.drdisagree.iconify.common.Const.SYSTEMUI_PACKAGE
-import com.drdisagree.iconify.common.Dynamic.skippedInstallation
-import com.drdisagree.iconify.common.Preferences.COLOR_ACCENT_PRIMARY
-import com.drdisagree.iconify.common.Preferences.COLOR_ACCENT_SECONDARY
-import com.drdisagree.iconify.common.Preferences.FIRST_INSTALL
-import com.drdisagree.iconify.common.Preferences.RESTART_SYSUI_AFTER_BOOT
-import com.drdisagree.iconify.common.References.ICONIFY_COLOR_ACCENT_PRIMARY
-import com.drdisagree.iconify.common.References.ICONIFY_COLOR_ACCENT_SECONDARY
-import com.drdisagree.iconify.common.Resources
-import com.drdisagree.iconify.common.Resources.MODULE_DIR
-import com.drdisagree.iconify.common.Resources.TEMP_DIR
-import com.drdisagree.iconify.common.Resources.TEMP_MODULE_DIR
-import com.drdisagree.iconify.config.RPrefs.getBoolean
-import com.drdisagree.iconify.config.RPrefs.getString
+import com.drdisagree.iconify.data.common.Const.MAGISK_UPDATE_BINARY
+import com.drdisagree.iconify.data.common.Const.POST_FS_DATA
+import com.drdisagree.iconify.data.common.Const.SYSTEMUI_PACKAGE
+import com.drdisagree.iconify.data.common.Dynamic.skippedInstallation
+import com.drdisagree.iconify.data.common.Preferences.COLOR_ACCENT_PRIMARY
+import com.drdisagree.iconify.data.common.Preferences.COLOR_ACCENT_SECONDARY
+import com.drdisagree.iconify.data.common.Preferences.FIRST_INSTALL
+import com.drdisagree.iconify.data.common.Preferences.RESTART_SYSUI_AFTER_BOOT
+import com.drdisagree.iconify.data.common.References.ICONIFY_COLOR_ACCENT_PRIMARY
+import com.drdisagree.iconify.data.common.References.ICONIFY_COLOR_ACCENT_SECONDARY
+import com.drdisagree.iconify.data.common.Resources
+import com.drdisagree.iconify.data.common.Resources.MODULE_DIR
+import com.drdisagree.iconify.data.common.Resources.TEMP_DIR
+import com.drdisagree.iconify.data.common.Resources.TEMP_MODULE_DIR
+import com.drdisagree.iconify.data.config.RPrefs.getBoolean
+import com.drdisagree.iconify.data.config.RPrefs.getString
 import com.drdisagree.iconify.utils.RootUtils.setPermissions
 import com.drdisagree.iconify.utils.helper.BackupRestore.backupFiles
 import com.drdisagree.iconify.utils.helper.BinaryInstaller.symLinkBinaries
@@ -117,7 +117,6 @@ object ModuleUtils {
 
         Shell.cmd("touch $TEMP_MODULE_DIR/system.prop").exec()
         Shell.cmd("touch $TEMP_MODULE_DIR/auto_mount").exec()
-        if (RootUtils.isKSUInstalled) Shell.cmd("touch $TEMP_MODULE_DIR/skip_mount").exec()
         Shell.cmd("mkdir -p $TEMP_MODULE_DIR/system").exec()
         Shell.cmd("mkdir -p $TEMP_MODULE_DIR/system/product").exec()
         Shell.cmd("mkdir -p $TEMP_MODULE_DIR/system/product/overlay").exec()

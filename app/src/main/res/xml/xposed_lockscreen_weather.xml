@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:search="http://schemas.android.com/apk/com.drdisagree.iconify.ui.preferences.preferencesearch"
     android:title="@string/weather_config_title">
 
     <com.drdisagree.iconify.ui.preferences.MasterSwitchPreference
@@ -193,5 +194,21 @@
         android:title="@string/lockscreen_weather_selection_title"
         app:iconSpaceReserved="false"
         app:useSimpleSummaryProvider="true" />
+
+    <com.drdisagree.iconify.ui.preferences.SwitchPreference
+        android:dependency="weather_switch"
+        android:key="lockscreen_weather_font"
+        android:summary="@string/lockscreen_weather_font_desc"
+        android:title="@string/lockscreen_weather_font_title"
+        app:iconSpaceReserved="false" />
+
+    <com.drdisagree.iconify.ui.preferences.FilePickerPreference
+        android:dependency="lockscreen_weather_font"
+        android:key="xposed_lockscreenweatherfontpicker"
+        android:summary="@string/file_picker_desc"
+        android:title="@string/btn_pick_font"
+        app:buttonText="@string/btn_pick_font"
+        app:iconSpaceReserved="false"
+        search:ignore="true" />
 
 </PreferenceScreen>

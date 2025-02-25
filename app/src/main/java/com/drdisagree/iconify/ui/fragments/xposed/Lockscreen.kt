@@ -1,12 +1,12 @@
 package com.drdisagree.iconify.ui.fragments.xposed
 
 import com.drdisagree.iconify.R
-import com.drdisagree.iconify.common.Preferences.HIDE_LOCKSCREEN_CARRIER
-import com.drdisagree.iconify.common.Preferences.HIDE_LOCKSCREEN_LOCK_ICON
-import com.drdisagree.iconify.common.Preferences.HIDE_LOCKSCREEN_STATUSBAR
-import com.drdisagree.iconify.common.Preferences.HIDE_QS_ON_LOCKSCREEN
-import com.drdisagree.iconify.common.Preferences.LOCKSCREEN_WALLPAPER_BLUR
-import com.drdisagree.iconify.common.Preferences.LOCKSCREEN_WALLPAPER_BLUR_RADIUS
+import com.drdisagree.iconify.data.common.Preferences.HIDE_LOCKSCREEN_CARRIER
+import com.drdisagree.iconify.data.common.Preferences.HIDE_LOCKSCREEN_LOCK_ICON
+import com.drdisagree.iconify.data.common.Preferences.HIDE_LOCKSCREEN_STATUSBAR
+import com.drdisagree.iconify.data.common.Preferences.HIDE_QS_ON_LOCKSCREEN
+import com.drdisagree.iconify.data.common.Preferences.LOCKSCREEN_WALLPAPER_BLUR
+import com.drdisagree.iconify.data.common.Preferences.LOCKSCREEN_WALLPAPER_BLUR_RADIUS
 import com.drdisagree.iconify.ui.activities.MainActivity
 import com.drdisagree.iconify.ui.base.ControlledPreferenceFragmentCompat
 

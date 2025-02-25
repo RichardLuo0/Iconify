@@ -44,7 +44,6 @@ object StatusBarClock {
                         null
                     }
                 } catch (throwable4: Throwable) {
-                    log(this@StatusBarClock, throwable4)
                     null
                 }
             }

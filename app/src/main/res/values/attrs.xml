@@ -18,6 +18,7 @@
     <declare-styleable name="SliderPreference">
         <attr name="valueCount" format="integer" />
         <attr name="updatesContinuously" format="boolean" />
+        <attr name="tickVisible" format="boolean" />
         <attr name="tickInterval" format="float" />
         <attr name="minVal" format="float" />
         <attr name="maxVal" format="float" />
@@ -28,7 +29,8 @@
         <attr name="decimalFormat" format="string" />
         <attr name="valueFormat" format="string" />
         <attr name="outputScale" format="float" />
-        <attr name="showDefault" format="boolean" />
+        <attr name="showDefaultIndicator" format="boolean" />
+        <attr name="showController" format="boolean" />
     </declare-styleable>
 
     <declare-styleable name="footerPreferenceStyle">
@@ -103,7 +105,9 @@
         <attr name="isDecimalFormat" />
         <attr name="decimalFormat" />
         <attr name="outputScale" />
-        <attr name="hasResetButton" format="boolean" />
+        <attr name="tickVisible" />
+        <attr name="showResetButton" />
+        <attr name="showController" />
     </declare-styleable>
 
     <declare-styleable name="ColorPickerWidget">

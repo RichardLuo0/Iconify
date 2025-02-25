@@ -132,11 +132,6 @@
 
                 </com.google.android.material.button.MaterialButtonToggleGroup>
             </RelativeLayout>
-
-            <include
-                android:id="@+id/volume_style"
-                layout="@layout/view_volume_style" />
-
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 

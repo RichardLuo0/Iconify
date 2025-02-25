@@ -5,9 +5,9 @@ import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.Color
 import androidx.core.graphics.ColorUtils
-import com.drdisagree.iconify.common.Const.SYSTEMUI_PACKAGE
-import com.drdisagree.iconify.common.Preferences.DUALTONE_QSPANEL
-import com.drdisagree.iconify.common.Preferences.LIGHT_QSPANEL
+import com.drdisagree.iconify.data.common.Const.SYSTEMUI_PACKAGE
+import com.drdisagree.iconify.data.common.Preferences.DUALTONE_QSPANEL
+import com.drdisagree.iconify.data.common.Preferences.LIGHT_QSPANEL
 import com.drdisagree.iconify.xposed.ModPack
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.XposedHook.Companion.findClass
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.callMethod
@@ -18,7 +18,6 @@ import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.log
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.setField
 import com.drdisagree.iconify.xposed.utils.SystemUtils
 import com.drdisagree.iconify.xposed.utils.XPrefs.Xprefs
-import com.drdisagree.iconify.xposed.utils.XPrefs.XprefsIsInitialized
 import de.robv.android.xposed.XposedHelpers.callStaticMethod
 import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam
 
@@ -35,8 +34,6 @@ class QSLightThemeA12(context: Context) : ModPack(context) {
     }
 
     override fun updatePrefs(vararg key: String) {
-        if (!XprefsIsInitialized) return
-
         Xprefs.apply {
             lightQSHeaderEnabled = getBoolean(LIGHT_QSPANEL, false)
             dualToneQSEnabled = lightQSHeaderEnabled && getBoolean(DUALTONE_QSPANEL, false)

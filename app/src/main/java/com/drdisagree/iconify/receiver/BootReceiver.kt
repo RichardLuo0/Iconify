@@ -4,8 +4,8 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.util.Log
-import com.drdisagree.iconify.common.Const.ACTION_BOOT_COMPLETED
-import com.drdisagree.iconify.common.Const.SYSTEMUI_PACKAGE
+import com.drdisagree.iconify.data.common.Const.ACTION_BOOT_COMPLETED
+import com.drdisagree.iconify.data.common.Const.SYSTEMUI_PACKAGE
 import com.drdisagree.iconify.services.UpdateScheduler
 import com.drdisagree.iconify.services.WeatherScheduler
 

@@ -3,8 +3,8 @@ package com.drdisagree.iconify.ui.fragments.xposed
 import android.os.Build
 import android.os.Bundle
 import com.drdisagree.iconify.R
-import com.drdisagree.iconify.common.Preferences.FIXED_STATUS_ICONS_SWITCH
-import com.drdisagree.iconify.common.Preferences.FIXED_STATUS_ICONS_TOPMARGIN
+import com.drdisagree.iconify.data.common.Preferences.FIXED_STATUS_ICONS_SWITCH
+import com.drdisagree.iconify.data.common.Preferences.FIXED_STATUS_ICONS_TOPMARGIN
 import com.drdisagree.iconify.ui.activities.MainActivity
 import com.drdisagree.iconify.ui.base.ControlledPreferenceFragmentCompat
 import com.drdisagree.iconify.ui.preferences.SliderPreference

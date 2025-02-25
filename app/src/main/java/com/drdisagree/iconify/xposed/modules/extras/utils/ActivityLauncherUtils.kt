@@ -105,7 +105,9 @@ class ActivityLauncherUtils(private val mContext: Context, private val mActivity
         launchIntent.setComponent(
             ComponentName(
                 BuildConfig.APPLICATION_ID,
-                BuildConfig.APPLICATION_ID.replace(".debug", "") + ".ui.activities.WeatherActivity"
+                BuildConfig.APPLICATION_ID
+                    .replace(".debug", "")
+                    .replace(".foss", "") + ".ui.activities.WeatherActivity"
             )
         )
         if (mActivityStarter == null) {

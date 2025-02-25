@@ -29,31 +29,30 @@ import android.widget.ProgressBar
 import android.widget.TextClock
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintSet
-import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import com.drdisagree.iconify.BuildConfig
 import com.drdisagree.iconify.R
-import com.drdisagree.iconify.common.Const.ACTION_LS_CLOCK_INFLATED
-import com.drdisagree.iconify.common.Const.RESET_LOCKSCREEN_CLOCK_COMMAND
-import com.drdisagree.iconify.common.Const.SYSTEMUI_PACKAGE
-import com.drdisagree.iconify.common.Preferences.DEPTH_WALLPAPER_SWITCH
-import com.drdisagree.iconify.common.Preferences.ICONIFY_LOCKSCREEN_CLOCK_TAG
-import com.drdisagree.iconify.common.Preferences.LSCLOCK_BOTTOMMARGIN
-import com.drdisagree.iconify.common.Preferences.LSCLOCK_COLOR_CODE_ACCENT1
-import com.drdisagree.iconify.common.Preferences.LSCLOCK_COLOR_CODE_ACCENT2
-import com.drdisagree.iconify.common.Preferences.LSCLOCK_COLOR_CODE_ACCENT3
-import com.drdisagree.iconify.common.Preferences.LSCLOCK_COLOR_CODE_TEXT1
-import com.drdisagree.iconify.common.Preferences.LSCLOCK_COLOR_CODE_TEXT2
-import com.drdisagree.iconify.common.Preferences.LSCLOCK_COLOR_SWITCH
-import com.drdisagree.iconify.common.Preferences.LSCLOCK_DEVICENAME
-import com.drdisagree.iconify.common.Preferences.LSCLOCK_FONT_LINEHEIGHT
-import com.drdisagree.iconify.common.Preferences.LSCLOCK_FONT_SWITCH
-import com.drdisagree.iconify.common.Preferences.LSCLOCK_FONT_TEXT_SCALING
-import com.drdisagree.iconify.common.Preferences.LSCLOCK_STYLE
-import com.drdisagree.iconify.common.Preferences.LSCLOCK_SWITCH
-import com.drdisagree.iconify.common.Preferences.LSCLOCK_TOPMARGIN
-import com.drdisagree.iconify.common.Preferences.LSCLOCK_USERNAME
-import com.drdisagree.iconify.common.Resources.LOCKSCREEN_CLOCK_LAYOUT
+import com.drdisagree.iconify.data.common.Const.ACTION_LS_CLOCK_INFLATED
+import com.drdisagree.iconify.data.common.Const.RESET_LOCKSCREEN_CLOCK_COMMAND
+import com.drdisagree.iconify.data.common.Const.SYSTEMUI_PACKAGE
+import com.drdisagree.iconify.data.common.Preferences.DEPTH_WALLPAPER_SWITCH
+import com.drdisagree.iconify.data.common.Preferences.ICONIFY_LOCKSCREEN_CLOCK_TAG
+import com.drdisagree.iconify.data.common.Preferences.LSCLOCK_BOTTOMMARGIN
+import com.drdisagree.iconify.data.common.Preferences.LSCLOCK_COLOR_CODE_ACCENT1
+import com.drdisagree.iconify.data.common.Preferences.LSCLOCK_COLOR_CODE_ACCENT2
+import com.drdisagree.iconify.data.common.Preferences.LSCLOCK_COLOR_CODE_ACCENT3
+import com.drdisagree.iconify.data.common.Preferences.LSCLOCK_COLOR_CODE_TEXT1
+import com.drdisagree.iconify.data.common.Preferences.LSCLOCK_COLOR_CODE_TEXT2
+import com.drdisagree.iconify.data.common.Preferences.LSCLOCK_COLOR_SWITCH
+import com.drdisagree.iconify.data.common.Preferences.LSCLOCK_DEVICENAME
+import com.drdisagree.iconify.data.common.Preferences.LSCLOCK_FONT_LINEHEIGHT
+import com.drdisagree.iconify.data.common.Preferences.LSCLOCK_FONT_SWITCH
+import com.drdisagree.iconify.data.common.Preferences.LSCLOCK_FONT_TEXT_SCALING
+import com.drdisagree.iconify.data.common.Preferences.LSCLOCK_STYLE
+import com.drdisagree.iconify.data.common.Preferences.LSCLOCK_SWITCH
+import com.drdisagree.iconify.data.common.Preferences.LSCLOCK_TOPMARGIN
+import com.drdisagree.iconify.data.common.Preferences.LSCLOCK_USERNAME
+import com.drdisagree.iconify.data.common.Resources.LOCKSCREEN_CLOCK_LAYOUT
 import com.drdisagree.iconify.utils.TextUtils
 import com.drdisagree.iconify.xposed.HookEntry.Companion.enqueueProxyCommand
 import com.drdisagree.iconify.xposed.ModPack
@@ -75,16 +74,25 @@ import com.drdisagree.iconify.xposed.modules.extras.utils.ViewHelper.findViewCon
 import com.drdisagree.iconify.xposed.modules.extras.utils.ViewHelper.findViewWithTagAndChangeColor
 import com.drdisagree.iconify.xposed.modules.extras.utils.ViewHelper.getLsItemsContainer
 import com.drdisagree.iconify.xposed.modules.extras.utils.ViewHelper.hideView
+import com.drdisagree.iconify.xposed.modules.extras.utils.ViewHelper.reAddView
 import com.drdisagree.iconify.xposed.modules.extras.utils.ViewHelper.setMargins
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.XposedHook.Companion.findClass
+import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.getFieldSilently
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.hookConstructor
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.hookMethod
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.log
-import com.drdisagree.iconify.xposed.modules.extras.views.ArcProgressWidget.generateBitmap
+import com.drdisagree.iconify.xposed.modules.extras.views.AodBurnInProtection
+import com.drdisagree.iconify.xposed.modules.extras.views.ArcProgressImageView
 import com.drdisagree.iconify.xposed.modules.lockscreen.Lockscreen.Companion.isComposeLockscreen
 import com.drdisagree.iconify.xposed.utils.XPrefs.Xprefs
 import com.drdisagree.iconify.xposed.utils.XPrefs.XprefsIsInitialized
+import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.io.File
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -106,17 +114,21 @@ class LockscreenClockA15(context: Context) : ModPack(context) {
     private var mVolumeProgress: ProgressBar? = null
     private var mBatteryStatus = 1
     private var mBatteryPercentage = 1
-    private var mVolumeLevelArcProgress: ImageView? = null
-    private var mRamUsageArcProgress: ImageView? = null
+    private var mVolumeLevelArcProgress: ArcProgressImageView? = null
+    private var mRamUsageArcProgress: ArcProgressImageView? = null
+    private var mBatteryLevelArcProgress: ArcProgressImageView? = null
+    private var mTemperatureArcProgress: ArcProgressImageView? = null
     private var mAccentColor1 = 0
     private var mAccentColor2 = 0
     private var mAccentColor3 = 0
-    private var mTextColor1 = 0
-    private var mTextColor2 = 0
+    private var mTextColor1 = Color.WHITE
+    private var mTextColor2 = Color.BLACK
+    private var mSystemAccent = 0
     private var clockStyle = 0
     private var topMargin = 100
     private var bottomMargin = 40
     private var textScaleFactor = 1f
+    private var reduceFactor = 1f
     private var lineHeight = 0
     private var customColorEnabled = false
     private var customUserName = ""
@@ -125,6 +137,8 @@ class LockscreenClockA15(context: Context) : ModPack(context) {
     private var customTypeface: Typeface? = null
     private val customFontDirectory =
         "${Environment.getExternalStorageDirectory()}/.iconify_files/lsclock_font.ttf"
+    private val coroutineScope = CoroutineScope(Dispatchers.Main + Job())
+    private var aodBurnInProtection: AodBurnInProtection? = null
 
     private val mBatteryReceiver: BroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -171,13 +185,16 @@ class LockscreenClockA15(context: Context) : ModPack(context) {
             topMargin = getSliderInt(LSCLOCK_TOPMARGIN, 100)
             bottomMargin = getSliderInt(LSCLOCK_BOTTOMMARGIN, 40)
             textScaleFactor = getSliderInt(LSCLOCK_FONT_TEXT_SCALING, 10) / 10.0f
+            reduceFactor = if (textScaleFactor > 1f) 0.91f else 1f
             lineHeight = getSliderInt(LSCLOCK_FONT_LINEHEIGHT, 0)
             customColorEnabled = getBoolean(LSCLOCK_COLOR_SWITCH, false)
             customUserName = getString(LSCLOCK_USERNAME, "")!!
             customDeviceName = getString(LSCLOCK_DEVICENAME, "")!!
             customFontEnabled = getBoolean(LSCLOCK_FONT_SWITCH, false)
-            if (customFontEnabled && File(customFontDirectory).exists()) {
-                customTypeface = Typeface.createFromFile(File(customFontDirectory))
+            customTypeface = if (customFontEnabled && File(customFontDirectory).exists()) {
+                Typeface.createFromFile(File(customFontDirectory))
+            } else {
+                null
             }
         }
 
@@ -221,55 +238,95 @@ class LockscreenClockA15(context: Context) : ModPack(context) {
 
         val aodBurnInLayerClass =
             findClass("$SYSTEMUI_PACKAGE.keyguard.ui.view.layout.sections.AodBurnInLayer")
+        var aodBurnInLayerHooked = false
+
+        // Apparently ROMs like CrDroid doesn't even use AodBurnInLayer class
+        // So we hook which ever is available
+        val keyguardStatusViewClass = findClass("com.android.keyguard.KeyguardStatusView")
+        var keyguardStatusViewHooked = false
+
+        fun initializeLockscreenLayout(param: XC_MethodHook.MethodHookParam) {
+            val entryV = param.thisObject as View
+
+            // If both are already hooked, return. We only want to hook one
+            if (aodBurnInLayerHooked && keyguardStatusViewHooked) return
+
+            entryV.addOnAttachStateChangeListener(object : OnAttachStateChangeListener {
+                override fun onViewAttachedToWindow(v: View) {
+                    Handler(Looper.getMainLooper()).postDelayed({
+                        if (!showLockscreenClock) return@postDelayed
+
+                        val rootView = v.parent as? ViewGroup ?: return@postDelayed
+
+                        // If rootView is not R.id.keyguard_root_view, detach and return
+                        if (rootView.id != mContext.resources.getIdentifier(
+                                "keyguard_root_view",
+                                "id",
+                                mContext.packageName
+                            )
+                        ) {
+                            entryV.removeOnAttachStateChangeListener(this)
+                            return@postDelayed
+                        }
+
+                        mLockscreenRootView = rootView
+
+                        mLsItemsContainer = rootView.getLsItemsContainer()
+                        aodBurnInProtection =
+                            AodBurnInProtection.registerForView(mLsItemsContainer!!)
+                        aodBurnInProtection!!.setMovementEnabled(true)
+                        applyLayoutConstraints(mLsItemsContainer!!)
+
+                        // Hide stock clock
+                        listOf(
+                            "bc_smartspace_view",
+                            "date_smartspace_view",
+                            "lockscreen_clock_view",
+                            "lockscreen_clock_view_large",
+                            "keyguard_slice_view"
+                        ).map { resourceName ->
+                            val resourceId = mContext.resources.getIdentifier(
+                                resourceName,
+                                "id",
+                                mContext.packageName
+                            )
+                            if (resourceId != -1) {
+                                rootView.findViewById<View?>(resourceId)
+                            } else {
+                                null
+                            }
+                        }.forEach { view ->
+                            view.hideView()
+                        }
+
+                        registerClockUpdater()
+                    }, 1000)
+                }
+
+                override fun onViewDetachedFromWindow(v: View) {
+                    unregisterClockUpdater()
+                }
+            })
+        }
 
         aodBurnInLayerClass
             .hookConstructor()
             .runAfter { param ->
                 if (!showLockscreenClock) return@runAfter
 
-                val entryV = param.thisObject as View
+                aodBurnInLayerHooked = true
 
-                entryV.addOnAttachStateChangeListener(object : OnAttachStateChangeListener {
-                    override fun onViewAttachedToWindow(v: View) {
-                        Handler(Looper.getMainLooper()).postDelayed({
-                            if (!showLockscreenClock) return@postDelayed
+                initializeLockscreenLayout(param)
+            }
 
-                            val rootView = entryV.parent as ViewGroup
-                            mLockscreenRootView = rootView
+        keyguardStatusViewClass
+            .hookConstructor()
+            .runAfter { param ->
+                if (!showLockscreenClock) return@runAfter
 
-                            mLsItemsContainer = rootView.getLsItemsContainer()
-                            applyLayoutConstraints(mLsItemsContainer!!)
+                keyguardStatusViewHooked = true
 
-                            // Hide stock clock
-                            listOf(
-                                "bc_smartspace_view",
-                                "date_smartspace_view",
-                                "lockscreen_clock_view",
-                                "lockscreen_clock_view_large",
-                                "keyguard_slice_view"
-                            ).map { resourceName ->
-                                val resourceId = mContext.resources.getIdentifier(
-                                    resourceName,
-                                    "id",
-                                    mContext.packageName
-                                )
-                                if (resourceId != -1) {
-                                    rootView.findViewById<View?>(resourceId)
-                                } else {
-                                    null
-                                }
-                            }.forEach { view ->
-                                view.hideView()
-                            }
-
-                            registerClockUpdater()
-                        }, 1000)
-                    }
-
-                    override fun onViewDetachedFromWindow(v: View) {
-                        unregisterClockUpdater()
-                    }
-                })
+                initializeLockscreenLayout(param)
             }
 
         val defaultNotificationStackScrollLayoutSectionClass =
@@ -311,6 +368,14 @@ class LockscreenClockA15(context: Context) : ModPack(context) {
             mContext.packageName
         )
 
+        val keyguardStatusViewBottomMarginId = mContext.resources.getDimensionPixelSize(
+            mContext.resources.getIdentifier(
+                "keyguard_status_view_bottom_margin",
+                "dimen",
+                mContext.packageName
+            )
+        )
+
         aodNotificationIconsSectionClass
             .hookMethod("applyConstraints")
             .runAfter { param ->
@@ -328,13 +393,7 @@ class LockscreenClockA15(context: Context) : ModPack(context) {
                         ConstraintSet.TOP,
                         mLsItemsContainer!!.id,
                         ConstraintSet.BOTTOM,
-                        mContext.resources.getDimensionPixelSize(
-                            mContext.resources.getIdentifier(
-                                "keyguard_status_view_bottom_margin",
-                                "dimen",
-                                mContext.packageName
-                            )
-                        )
+                        keyguardStatusViewBottomMarginId
                     )
                 }
             }
@@ -342,42 +401,33 @@ class LockscreenClockA15(context: Context) : ModPack(context) {
         val smartspaceSectionClass =
             findClass("$SYSTEMUI_PACKAGE.keyguard.ui.view.layout.sections.SmartspaceSection")
 
+        val bcSmartSpaceViewId = mContext.resources.getIdentifier(
+            "bc_smartspace_view",
+            "id",
+            mContext.packageName
+        )
+        val dateSmartSpaceViewId = mContext.resources.getIdentifier(
+            "date_smartspace_view",
+            "id",
+            mContext.packageName
+        )
+        val keyguardSliceViewId = mContext.resources.getIdentifier(
+            "keyguard_slice_view",
+            "id",
+            mContext.packageName
+        )
+        val smartspaceViewIds = listOf(
+            bcSmartSpaceViewId,
+            dateSmartSpaceViewId,
+            keyguardSliceViewId
+        ).filter { it != -1 }
+
         smartspaceSectionClass
             .hookMethod("applyConstraints")
             .runAfter { param ->
                 if (!showLockscreenClock) return@runAfter
 
                 val constraintSet = param.args[0]
-
-                val smartspaceViewIdNames = listOf(
-                    "bc_smartspace_view",
-                    "date_smartspace_view",
-                    "keyguard_slice_view"
-                )
-
-                val bcSmartSpaceViewId = mContext.resources.getIdentifier(
-                    smartspaceViewIdNames[0],
-                    "id",
-                    mContext.packageName
-                )
-
-                val dateSmartSpaceViewId = mContext.resources.getIdentifier(
-                    smartspaceViewIdNames[1],
-                    "id",
-                    mContext.packageName
-                )
-
-                val keyguardSliceViewId = mContext.resources.getIdentifier(
-                    smartspaceViewIdNames[2],
-                    "id",
-                    mContext.packageName
-                )
-
-                val smartspaceViewIds = listOf(
-                    bcSmartSpaceViewId,
-                    dateSmartSpaceViewId,
-                    keyguardSliceViewId
-                ).filter { it != -1 }
 
                 // Connect bc smartspace to bottom of date smartspace
                 constraintSet.clear(
@@ -416,6 +466,103 @@ class LockscreenClockA15(context: Context) : ModPack(context) {
                     mLockscreenRootView?.findViewById<View?>(resourceId)
                 }.forEach { view ->
                     view.hideView()
+                }
+            }
+
+        val keyguardUpdateMonitor = findClass("com.android.keyguard.KeyguardUpdateMonitor")
+
+        keyguardUpdateMonitor
+            .hookMethod("registerCallback")
+            .parameters("com.android.keyguard.KeyguardUpdateMonitorCallback")
+            .runAfter { param ->
+                if (!showLockscreenClock) return@runAfter
+
+                val callback = param.args[0]
+
+                callback.javaClass
+                    .hookMethod(
+                        "onTimeChanged",
+                        "onTimeFormatChanged",
+                        "onTimeZoneChanged"
+                    )
+                    .runAfter runAfter2@{
+                        if (!showLockscreenClock) return@runAfter2
+
+                        Handler(Looper.getMainLooper()).post { updateClockView() }
+                    }
+            }
+
+        fun onDozingChanged(isDozing: Boolean) {
+            aodBurnInProtection?.setMovementEnabled(isDozing)
+        }
+
+        val collapsedStatusBarFragment = findClass(
+            "$SYSTEMUI_PACKAGE.statusbar.phone.CollapsedStatusBarFragment",
+            "$SYSTEMUI_PACKAGE.statusbar.phone.fragment.CollapsedStatusBarFragment"
+        )
+
+        collapsedStatusBarFragment
+            .hookMethod("onDozingChanged")
+            .runAfter { param -> onDozingChanged(param.args[0] as Boolean) }
+
+        val dozeScrimControllerClass =
+            findClass("$SYSTEMUI_PACKAGE.statusbar.phone.DozeScrimController")
+
+        dozeScrimControllerClass
+            .hookMethod("onDozingChanged")
+            .runAfter { param -> onDozingChanged(param.args[0] as Boolean) }
+
+        // For unknown reason, rotating device makes the height of view to 0
+        // This is a workaround to make sure the view is visible
+        fun updateLayoutParams() {
+            if (!showLockscreenClock) return
+
+            mLsItemsContainer?.layoutParams?.apply {
+                width = ViewGroup.LayoutParams.MATCH_PARENT
+                height = ViewGroup.LayoutParams.WRAP_CONTENT
+            }
+        }
+
+        val statusBarKeyguardViewManagerClass =
+            findClass("$SYSTEMUI_PACKAGE.statusbar.phone.StatusBarKeyguardViewManager")
+
+        statusBarKeyguardViewManagerClass
+            .hookMethod("onStartedWakingUp")
+            .suppressError()
+            .runAfter { updateLayoutParams() }
+
+        val centralSurfacesImplClass = findClass(
+            "$SYSTEMUI_PACKAGE.statusbar.phone.CentralSurfacesImpl",
+            suppressError = true
+        )
+
+        centralSurfacesImplClass
+            .hookMethod("onStartedWakingUp")
+            .suppressError()
+            .runAfter { updateLayoutParams() }
+
+        centralSurfacesImplClass
+            .hookConstructor()
+            .runAfter { param ->
+                if (!showLockscreenClock) return@runAfter
+
+                val mWakefulnessObserver = param.thisObject.getFieldSilently("mWakefulnessObserver")
+
+                mWakefulnessObserver?.javaClass
+                    .hookMethod("onStartedWakingUp")
+                    .runAfter { updateLayoutParams() }
+            }
+
+        val dozeServiceClass = findClass("$SYSTEMUI_PACKAGE.doze.DozeService")
+
+        dozeServiceClass
+            .hookMethod("onDreamingStarted")
+            .runAfter {
+                coroutineScope.launch {
+                    repeat(5) {
+                        updateLayoutParams()
+                        delay(500L)
+                    }
                 }
             }
 
@@ -534,6 +681,14 @@ class LockscreenClockA15(context: Context) : ModPack(context) {
             )
         }
 
+    private val allArcProgressImageViews: List<ArcProgressImageView?>
+        get() = listOf(
+            mVolumeLevelArcProgress,
+            mRamUsageArcProgress,
+            mBatteryLevelArcProgress,
+            mTemperatureArcProgress
+        )
+
     private fun modifyClockView(clockView: View) {
         if (!XprefsIsInitialized || mLsItemsContainer == null) return
 
@@ -559,40 +714,70 @@ class LockscreenClockA15(context: Context) : ModPack(context) {
             TextUtils.convertTextViewsToTitleCase(clockView)
         }
 
-        when (clockStyle) {
-            5 -> {
-                mBatteryStatusView = clockView.findViewContainsTag("battery_status") as TextView?
-                mBatteryLevelView = clockView.findViewContainsTag("battery_percentage") as TextView?
-                mVolumeLevelView = clockView.findViewContainsTag("volume_level") as TextView?
-                mBatteryProgress =
-                    clockView.findViewContainsTag("battery_progressbar") as ProgressBar?
-                mVolumeProgress =
-                    clockView.findViewContainsTag("volume_progressbar") as ProgressBar?
+        mBatteryLevelView = null
+        mBatteryProgress = null
+        mBatteryStatusView = null
+        mVolumeLevelView = null
+        mVolumeProgress = null
+        mVolumeLevelArcProgress = null
+        mRamUsageArcProgress = null
+
+        clockView.apply {
+            when (clockStyle) {
+                2, 20 -> {
+                    val tickIndicator = findViewContainsTag("tickIndicator") as TextClock
+                    val hourView = findViewContainsTag("hours") as TextView
+
+                    tickIndicator.setTextColor(Color.TRANSPARENT)
+                    hourView.visibility = View.VISIBLE
+
+                    TimeUtils.setCurrentTimeTextClockRed(
+                        tickIndicator,
+                        hourView,
+                        if (customColorEnabled) mAccentColor1 else mSystemAccent
+                    )
+                }
+
+                5 -> {
+                    mBatteryStatusView = findViewContainsTag("battery_status") as TextView?
+                    mBatteryLevelView = findViewContainsTag("battery_percentage") as TextView?
+                    mVolumeLevelView = findViewContainsTag("volume_level") as TextView?
+                    mBatteryProgress = findViewContainsTag("battery_progressbar") as ProgressBar?
+                    mVolumeProgress = findViewContainsTag("volume_progressbar") as ProgressBar?
+                }
+
+                19 -> {
+                    mBatteryLevelView = findViewContainsTag("battery_percentage") as TextView?
+                    mBatteryProgress = findViewContainsTag("battery_progressbar") as ProgressBar?
+                    addArcProgressView("volume_progress")
+                    addArcProgressView("ram_usage_info")
+                }
+
+                22 -> {
+                    val hourView = findViewContainsTag("textHour") as TextView
+                    val minuteView = findViewContainsTag("textMinute") as TextView
+                    val tickIndicator = findViewContainsTag("tickIndicator") as TextClock
+
+                    TimeUtils.setCurrentTimeTextClock(mContext, tickIndicator, hourView, minuteView)
+                }
+
+                56 -> {
+                    addArcProgressView("volume_progress")
+                    addArcProgressView("ram_usage_info")
+                    addArcProgressView("battery_progress_arc")
+                    addArcProgressView("temperature_progress")
+                }
+
+                else -> {}
             }
+        }
 
-            19 -> {
-                mBatteryLevelView = clockView.findViewContainsTag("battery_percentage") as TextView?
-                mBatteryProgress =
-                    clockView.findViewContainsTag("battery_progressbar") as ProgressBar?
-                mVolumeLevelArcProgress =
-                    clockView.findViewContainsTag("volume_progress") as ImageView?
-                mRamUsageArcProgress = clockView.findViewContainsTag("ram_usage_info") as ImageView?
-            }
-
-            22 -> {
-                val hourView = clockView.findViewContainsTag("textHour") as TextView
-                val minuteView = clockView.findViewContainsTag("textMinute") as TextView
-                val tickIndicator = clockView.findViewContainsTag("tickIndicator") as TextClock
-
-                TimeUtils.setCurrentTimeTextClock(mContext, tickIndicator, hourView, minuteView)
-            }
-
-            else -> {
-                mBatteryStatusView = null
-                mBatteryLevelView = null
-                mVolumeLevelView = null
-                mBatteryProgress = null
-                mVolumeProgress = null
+        allArcProgressImageViews.forEach { arcProgressImageView ->
+            arcProgressImageView?.apply {
+                if (customColorEnabled) {
+                    setColors(mTextColor1, mTextColor1)
+                }
+                customTypeface?.let { setTypeFace(it) }
             }
         }
 
@@ -608,16 +793,11 @@ class LockscreenClockA15(context: Context) : ModPack(context) {
         if (textScaleFactor != 1f) {
             applyTextScalingRecursively(clockView, textScaleFactor)
 
-            val reduceFactor = if (textScaleFactor > 1f) 0.91f else 1f
-
-            mVolumeLevelArcProgress?.layoutParams?.apply {
-                width = (width * textScaleFactor * reduceFactor).toInt()
-                height = (height * textScaleFactor * reduceFactor).toInt()
-            }
-
-            mRamUsageArcProgress?.layoutParams?.apply {
-                width = (width * textScaleFactor * reduceFactor).toInt()
-                height = (height * textScaleFactor * reduceFactor).toInt()
+            allArcProgressImageViews.forEach { arcProgressImageView ->
+                (arcProgressImageView?.parent as? ViewGroup)?.layoutParams?.apply {
+                    width = (width * textScaleFactor * reduceFactor).toInt()
+                    height = (height * textScaleFactor * reduceFactor).toInt()
+                }
             }
 
             (mBatteryProgress?.parent as ViewGroup?)?.apply {
@@ -629,7 +809,60 @@ class LockscreenClockA15(context: Context) : ModPack(context) {
         }
     }
 
+    private fun View.addArcProgressView(parentTag: String) {
+        val container = findViewContainsTag(parentTag) as LinearLayout?
+        container?.setBackgroundResource(0)
+        container?.removeAllViews()
+
+        fun newArcProgress() = ArcProgressImageView(mContext).apply {
+            layoutParams = LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+            )
+        }
+
+        when (parentTag) {
+            "volume_progress" -> {
+                if (mVolumeLevelArcProgress == null) {
+                    mVolumeLevelArcProgress = newArcProgress().apply {
+                        setProgressType(ArcProgressImageView.ProgressType.VOLUME)
+                    }
+                }
+                container?.reAddView(mVolumeLevelArcProgress)
+            }
+
+            "ram_usage_info" -> {
+                if (mRamUsageArcProgress == null) {
+                    mRamUsageArcProgress = newArcProgress().apply {
+                        setProgressType(ArcProgressImageView.ProgressType.MEMORY)
+                    }
+                }
+                container?.reAddView(mRamUsageArcProgress)
+            }
+
+            "battery_progress_arc" -> {
+                if (mBatteryLevelArcProgress == null) {
+                    mBatteryLevelArcProgress = newArcProgress().apply {
+                        setProgressType(ArcProgressImageView.ProgressType.BATTERY)
+                    }
+                }
+                container?.reAddView(mBatteryLevelArcProgress)
+            }
+
+            "temperature_progress" -> {
+                if (mTemperatureArcProgress == null) {
+                    mTemperatureArcProgress = newArcProgress().apply {
+                        setProgressType(ArcProgressImageView.ProgressType.TEMPERATURE)
+                    }
+                }
+                container?.reAddView(mTemperatureArcProgress)
+            }
+        }
+    }
+
     private fun applyLayoutConstraints(containerView: ViewGroup) {
+        if (mLockscreenRootView == null) return
+
         mLockscreenRootView.assignIdsToViews()
 
         val notificationContainerId = mContext.resources.getIdentifier(
@@ -740,6 +973,13 @@ class LockscreenClockA15(context: Context) : ModPack(context) {
                 LSCLOCK_COLOR_CODE_TEXT2,
                 Color.BLACK
             )
+            mSystemAccent = mContext.resources.getColor(
+                mContext.resources.getIdentifier(
+                    "android:color/system_accent1_300",
+                    "color",
+                    mContext.packageName
+                ), mContext.theme
+            )
         }
     }
 
@@ -764,83 +1004,28 @@ class LockscreenClockA15(context: Context) : ModPack(context) {
             }
         }
 
-        if (mBatteryProgress != null) {
-            mBatteryProgress!!.progress = mBatteryPercentage
-        }
+        mBatteryProgress?.progress = mBatteryPercentage
 
-        if (mBatteryLevelView != null) {
-            mBatteryLevelView!!.text =
-                appContext.resources.getString(R.string.percentage_text, mBatteryPercentage)
-        }
-
-        initRamUsage()
+        mBatteryLevelView?.text = appContext.resources.getString(
+            R.string.percentage_text,
+            mBatteryPercentage
+        )
     }
 
     private fun initSoundManager() {
         val volLevel = mAudioManager!!.getStreamVolume(AudioManager.STREAM_MUSIC)
         val maxVolLevel = mAudioManager!!.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
         val volPercent = (volLevel.toFloat() / maxVolLevel * 100).toInt()
-        val textScaleFactor: Float =
-            (Xprefs.getSliderInt(LSCLOCK_FONT_TEXT_SCALING, 10) / 10.0).toFloat()
-        val reduceFactor = if (textScaleFactor > 1f) 0.91f else 1f
 
-        mVolumeProgress?.progress = volPercent
-
-        mVolumeLevelView?.text =
-            appContext.resources.getString(R.string.percentage_text, volPercent)
-
-        mVolumeLevelArcProgress?.setImageBitmap(
-            generateBitmap(
-                context = mContext,
-                percentage = volPercent,
-                textInside = appContext.resources.getString(
-                    R.string.percentage_text,
-                    volPercent
-                ),
-                textInsideSizePx = (40 * textScaleFactor * reduceFactor).toInt(),
-                iconDrawable = ContextCompat.getDrawable(
-                    appContext,
-                    R.drawable.ic_volume_up
-                ),
-                iconSizePx = 38,
-                typeface = if (customFontEnabled && File(customFontDirectory).exists()) {
-                    Typeface.createFromFile(File(customFontDirectory))
-                } else {
-                    Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
-                }
+        mVolumeProgress?.post {
+            mVolumeProgress?.progress = volPercent
+        }
+        mVolumeLevelView?.post {
+            mVolumeLevelView?.text = appContext.resources.getString(
+                R.string.percentage_text,
+                volPercent
             )
-        )
-    }
-
-    private fun initRamUsage() {
-        if (mActivityManager == null) return
-
-        val memoryInfo = ActivityManager.MemoryInfo()
-        mActivityManager!!.getMemoryInfo(memoryInfo)
-        val usedMemory = memoryInfo.totalMem - memoryInfo.availMem
-        val usedMemoryPercentage = (usedMemory * 100 / memoryInfo.totalMem).toInt()
-        val textScaleFactor: Float =
-            (Xprefs.getSliderInt(LSCLOCK_FONT_TEXT_SCALING, 10) / 10.0).toFloat()
-        val reduceFactor = if (textScaleFactor > 1f) 0.91f else 1f
-
-        mRamUsageArcProgress?.setImageBitmap(
-            generateBitmap(
-                context = mContext,
-                percentage = usedMemoryPercentage,
-                textInside = appContext.resources.getString(
-                    R.string.percentage_text,
-                    usedMemoryPercentage
-                ),
-                textInsideSizePx = (40 * textScaleFactor * reduceFactor).toInt(),
-                textBottom = "RAM",
-                textBottomSizePx = 28,
-                typeface = if (customFontEnabled && File(customFontDirectory).exists()) {
-                    Typeface.createFromFile(File(customFontDirectory))
-                } else {
-                    Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
-                }
-            )
-        )
+        }
     }
 
     private val userName: String

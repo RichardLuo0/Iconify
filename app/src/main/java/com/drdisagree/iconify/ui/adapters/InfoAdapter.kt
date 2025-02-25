@@ -13,7 +13,7 @@ import android.widget.RelativeLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.drdisagree.iconify.R
-import com.drdisagree.iconify.ui.models.InfoModel
+import com.drdisagree.iconify.data.models.InfoModel
 import com.drdisagree.iconify.ui.utils.ViewBindingHelpers.setRoundImageUrl
 
 class InfoAdapter(

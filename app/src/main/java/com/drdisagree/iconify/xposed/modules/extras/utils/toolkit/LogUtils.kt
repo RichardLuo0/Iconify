@@ -1,7 +1,6 @@
 package com.drdisagree.iconify.xposed.modules.extras.utils.toolkit
 
 
-import android.content.Context
 import android.view.View
 import android.view.ViewGroup
 import de.robv.android.xposed.XposedBridge
@@ -10,6 +9,10 @@ import de.robv.android.xposed.XposedHelpers.findClassIfExists
 
 fun log(message: String?) {
     XposedBridge.log(message)
+}
+
+fun log(message: Any?) {
+    XposedBridge.log(message.toString())
 }
 
 fun log(tag: String, message: Any?) {
@@ -61,69 +64,93 @@ fun findAndDumpClassIfExists(className: String, classLoader: ClassLoader?): Clas
     return findClassIfExists(className, classLoader)
 }
 
-fun dumpClassObj(classObj: Class<*>?) {
-    if (classObj == null) {
-        XposedBridge.log("Class: null not found")
-        return
-    }
-    dumpClass(classObj)
-}
-
 private fun dumpClass(className: String, classLoader: ClassLoader?) {
     val ourClass = findClassIfExists(className, classLoader)
     if (ourClass == null) {
-        XposedBridge.log("Class: $className not found")
+        XposedBridge.log("DumpClass: Class is null")
         return
     }
-    dumpClass(ourClass)
+    ourClass.dumpClass()
 }
 
-private fun dumpClass(ourClass: Class<*>) {
-    val ms = ourClass.declaredMethods
-    XposedBridge.log("\n\nClass: ${ourClass.name}")
-    XposedBridge.log("extends: ${ourClass.superclass.name}")
+fun Class<*>?.dumpClass() {
+    if (this == null) {
+        XposedBridge.log("DumpClass: Class is null")
+        return
+    }
+
+    XposedBridge.log("\n\nClass: $name")
+    XposedBridge.log("extends: ${superclass.name}")
 
     XposedBridge.log("Subclasses:")
-    val scs = ourClass.classes
+    val scs = classes
     for (c in scs) {
-        XposedBridge.log(c.name)
+        XposedBridge.log("\t" + c.name)
+    }
+    if (scs.isEmpty()) {
+        XposedBridge.log("\tNone")
+    }
+
+    XposedBridge.log("Constructors:")
+    val cons = declaredConstructors
+    for (m in cons) {
+        XposedBridge.log("\t" + m.name + " - " + this::class.java.simpleName + " - " + m.parameterCount)
+        val cs = m.parameterTypes
+        for (c in cs) {
+            XposedBridge.log("\t\t" + c.typeName)
+        }
+    }
+    if (cons.isEmpty()) {
+        XposedBridge.log("\tNone")
     }
 
     XposedBridge.log("Methods:")
-    val cons = ourClass.declaredConstructors
-    for (m in cons) {
-        XposedBridge.log(m.name + " - " + " - " + m.parameterCount)
+    val ms = declaredMethods.toList().union(methods.toList())
+    for (m in ms) {
+        XposedBridge.log("\t" + m.name + " - " + m.returnType + " - " + m.parameterCount)
         val cs = m.parameterTypes
         for (c in cs) {
             XposedBridge.log("\t\t" + c.typeName)
         }
     }
-    for (m in ms) {
-        XposedBridge.log(m.name + " - " + m.returnType + " - " + m.parameterCount)
-        val cs = m.parameterTypes
-        for (c in cs) {
-            XposedBridge.log("\t\t" + c.typeName)
-        }
+    if (ms.isEmpty()) {
+        XposedBridge.log("\tNone")
     }
 
     XposedBridge.log("Fields:")
-    val fs = ourClass.declaredFields
+    val fs = declaredFields
     for (f in fs) {
-        XposedBridge.log("\t\t" + f.name + "-" + f.type.name)
+        XposedBridge.log("\t" + f.name + " - " + f.type.name)
+    }
+    if (fs.isEmpty()) {
+        XposedBridge.log("\tNone")
     }
     XposedBridge.log("End dump\n\n")
 }
 
-fun dumpChildViews(context: Context, view: View) {
-    if (view is ViewGroup) {
-        logViewInfo(context, view, 0)
-        dumpChildViewsRecursive(context, view, 0)
+fun View.dumpChildViews() {
+    if (this is ViewGroup) {
+        logViewInfo(this, 0)
+        dumpChildViewsRecursive(this, 0)
     } else {
-        logViewInfo(context, view, 0)
+        logViewInfo(this, 0)
     }
 }
 
-private fun logViewInfo(context: Context, view: View, indentationLevel: Int) {
+private fun dumpChildViewsRecursive(
+    viewGroup: ViewGroup,
+    indentationLevel: Int
+) {
+    for (i in 0 until viewGroup.childCount) {
+        val childView = viewGroup.getChildAt(i)
+        logViewInfo(childView, indentationLevel + 1)
+        if (childView is ViewGroup) {
+            dumpChildViewsRecursive(childView, indentationLevel + 1)
+        }
+    }
+}
+
+private fun logViewInfo(view: View, indentationLevel: Int) {
     val indentation = repeatString("\t", indentationLevel)
     val viewName = view.javaClass.simpleName
     val superclassName = view.javaClass.superclass?.simpleName ?: "None"
@@ -132,7 +159,7 @@ private fun logViewInfo(context: Context, view: View, indentationLevel: Int) {
     var resourceIdName = "none"
     try {
         val viewId = view.id
-        resourceIdName = context.resources.getResourceName(viewId)
+        resourceIdName = view.context.resources.getResourceName(viewId)
     } catch (ignored: Throwable) {
     }
     var logMessage = "$indentation$viewName (Extends: $superclassName) - ID: $resourceIdName"
@@ -145,20 +172,6 @@ private fun logViewInfo(context: Context, view: View, indentationLevel: Int) {
     XposedBridge.log(logMessage)
 }
 
-private fun dumpChildViewsRecursive(
-    context: Context,
-    viewGroup: ViewGroup,
-    indentationLevel: Int
-) {
-    for (i in 0 until viewGroup.childCount) {
-        val childView = viewGroup.getChildAt(i)
-        logViewInfo(context, childView, indentationLevel + 1)
-        if (childView is ViewGroup) {
-            dumpChildViewsRecursive(context, childView, indentationLevel + 1)
-        }
-    }
-}
-
 @Suppress("SameParameterValue")
 private fun repeatString(str: String, times: Int): String {
     val result = StringBuilder()
@@ -166,4 +179,16 @@ private fun repeatString(str: String, times: Int): String {
         result.append(str)
     }
     return result.toString()
+}
+
+fun Any.dumpPreferenceKeys() {
+    for (i in 0 until callMethod("getPreferenceCount") as Int) {
+        val preference = callMethod("getPreference", i)!!
+
+        log("${preference::class.java.simpleName} -> Key: ${preference.callMethod("getKey")}")
+
+        if (preference::class.java.simpleName == "PreferenceCategory") {
+            preference.dumpPreferenceKeys()
+        }
+    }
 }

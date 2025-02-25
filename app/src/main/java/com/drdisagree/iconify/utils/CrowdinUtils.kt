@@ -1,6 +1,6 @@
 package com.drdisagree.iconify.utils
 
-import com.drdisagree.iconify.ui.models.InfoModel
+import com.drdisagree.iconify.data.models.InfoModel
 import com.drdisagree.iconify.utils.FileUtils.readJsonFileFromAssets
 import org.json.JSONArray
 

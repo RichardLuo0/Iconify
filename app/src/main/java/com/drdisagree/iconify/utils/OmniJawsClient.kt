@@ -99,7 +99,9 @@ class OmniJawsClient(private val mContext: Context) {
         launchIntent.setComponent(
             ComponentName(
                 BuildConfig.APPLICATION_ID,
-                BuildConfig.APPLICATION_ID.replace(".debug", "") + ".ui.activities.MainActivity"
+                BuildConfig.APPLICATION_ID
+                    .replace(".debug", "")
+                    .replace(".foss", "") + ".ui.activities.MainActivity"
             )
         )
         launchIntent.putExtra("openWeatherSettings", true)

@@ -2,17 +2,17 @@ package com.drdisagree.iconify.xposed.modules.quicksettings
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.content.res.Resources
 import android.graphics.Color
 import android.widget.LinearLayout
-import com.drdisagree.iconify.common.Const.SYSTEMUI_PACKAGE
-import com.drdisagree.iconify.common.Preferences.BLUR_RADIUS_VALUE
-import com.drdisagree.iconify.common.Preferences.LOCKSCREEN_SHADE_SWITCH
-import com.drdisagree.iconify.common.Preferences.NOTIF_TRANSPARENCY_SWITCH
-import com.drdisagree.iconify.common.Preferences.QSALPHA_LEVEL
-import com.drdisagree.iconify.common.Preferences.QSPANEL_BLUR_SWITCH
-import com.drdisagree.iconify.common.Preferences.QS_TRANSPARENCY_SWITCH
+import com.drdisagree.iconify.data.common.Const.SYSTEMUI_PACKAGE
+import com.drdisagree.iconify.data.common.Preferences.BLUR_RADIUS_VALUE
+import com.drdisagree.iconify.data.common.Preferences.LOCKSCREEN_SHADE_SWITCH
+import com.drdisagree.iconify.data.common.Preferences.NOTIF_TRANSPARENCY_SWITCH
+import com.drdisagree.iconify.data.common.Preferences.QSALPHA_LEVEL
+import com.drdisagree.iconify.data.common.Preferences.QSPANEL_BLUR_SWITCH
+import com.drdisagree.iconify.data.common.Preferences.QS_TRANSPARENCY_SWITCH
 import com.drdisagree.iconify.xposed.ModPack
+import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.ResourceHookManager
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.XposedHook.Companion.findClass
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.callMethod
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.getField
@@ -21,7 +21,6 @@ import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.hookMethod
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.log
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.setField
 import com.drdisagree.iconify.xposed.utils.XPrefs.Xprefs
-import com.drdisagree.iconify.xposed.utils.XPrefs.XprefsIsInitialized
 import de.robv.android.xposed.XposedHelpers.findField
 import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam
 
@@ -38,8 +37,6 @@ class QSTransparency(context: Context) : ModPack(context) {
     private var quickSettingsController: Any? = null
 
     override fun updatePrefs(vararg key: String) {
-        if (!XprefsIsInitialized) return
-
         Xprefs.apply {
             qsTransparencyActive = getBoolean(QS_TRANSPARENCY_SWITCH, false)
             onlyNotifTransparencyActive = getBoolean(NOTIF_TRANSPARENCY_SWITCH, false)
@@ -173,32 +170,21 @@ class QSTransparency(context: Context) : ModPack(context) {
                 }
             }
 
-        val quickSettingsControllerClass =
-            findClass("$SYSTEMUI_PACKAGE.shade.QuickSettingsController")
+        val quickSettingsControllerClass = findClass(
+            "$SYSTEMUI_PACKAGE.shade.QuickSettingsControllerImpl",
+            "$SYSTEMUI_PACKAGE.shade.QuickSettingsController"
+        )
 
         quickSettingsControllerClass
             .hookConstructor()
             .runAfter { param -> quickSettingsController = param.thisObject }
 
-        Resources::class.java
-            .hookMethod("getDimensionPixelSize")
-            .suppressError()
-            .runBefore { param ->
-                if (!qsTransparencyActive || onlyNotifTransparencyActive || (alpha * 100).toInt() != 0) return@runBefore
-
-                try {
-                    val resId = mContext.resources.getIdentifier(
-                        "notification_scrim_corner_radius",
-                        "dimen",
-                        mContext.packageName
-                    )
-
-                    if (param.args[0] == resId) {
-                        param.result = 0
-                    }
-                } catch (ignored: Throwable) {
-                }
-            }
+        ResourceHookManager
+            .hookDimen()
+            .whenCondition { qsTransparencyActive && !onlyNotifTransparencyActive && alpha == 0f }
+            .forPackageName(SYSTEMUI_PACKAGE)
+            .addResource("notification_scrim_corner_radius") { 0 }
+            .apply()
     }
 
     private fun updateQsScrimRadius() {
@@ -218,27 +204,12 @@ class QSTransparency(context: Context) : ModPack(context) {
         quickSettingsController.callMethod("setClippingBounds")
     }
 
-    @SuppressLint("DiscouragedApi")
     private fun setBlurRadius() {
-        Resources::class.java
-            .hookMethod("getDimensionPixelSize")
-            .suppressError()
-            .runBefore { param ->
-                if (!blurEnabled) return@runBefore
-
-                try {
-                    val resId = mContext.resources.getIdentifier(
-                        "max_window_blur_radius",
-                        "dimen",
-                        mContext.packageName
-                    )
-
-                    if (param.args[0] == resId) {
-                        param.result = blurRadius
-                    }
-                } catch (throwable: Throwable) {
-                    log(this@QSTransparency, throwable)
-                }
-            }
+        ResourceHookManager
+            .hookDimen()
+            .whenCondition { blurEnabled }
+            .forPackageName(SYSTEMUI_PACKAGE)
+            .addResource("max_window_blur_radius") { blurRadius }
+            .apply()
     }
 }

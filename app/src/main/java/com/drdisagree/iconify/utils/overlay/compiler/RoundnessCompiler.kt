@@ -1,9 +1,9 @@
 package com.drdisagree.iconify.utils.overlay.compiler
 
 import android.util.Log
-import com.drdisagree.iconify.common.Const.FRAMEWORK_PACKAGE
-import com.drdisagree.iconify.common.Const.SYSTEMUI_PACKAGE
-import com.drdisagree.iconify.common.Resources
+import com.drdisagree.iconify.data.common.Const.FRAMEWORK_PACKAGE
+import com.drdisagree.iconify.data.common.Const.SYSTEMUI_PACKAGE
+import com.drdisagree.iconify.data.common.Resources
 import com.drdisagree.iconify.utils.FileUtils.copyAssets
 import com.drdisagree.iconify.utils.RootUtils.setPermissions
 import com.drdisagree.iconify.utils.SystemUtils.mountRO

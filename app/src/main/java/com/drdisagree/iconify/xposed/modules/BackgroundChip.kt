@@ -18,56 +18,56 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.ConstraintSet
-import com.drdisagree.iconify.common.Const.SYSTEMUI_PACKAGE
-import com.drdisagree.iconify.common.Preferences.CHIP_STATUSBAR_CLOCK_ACCENT
-import com.drdisagree.iconify.common.Preferences.CHIP_STATUSBAR_CLOCK_END_COLOR
-import com.drdisagree.iconify.common.Preferences.CHIP_STATUSBAR_CLOCK_GRADIENT_DIRECTION
-import com.drdisagree.iconify.common.Preferences.CHIP_STATUSBAR_CLOCK_PADDING_BOTTOM
-import com.drdisagree.iconify.common.Preferences.CHIP_STATUSBAR_CLOCK_PADDING_LEFT
-import com.drdisagree.iconify.common.Preferences.CHIP_STATUSBAR_CLOCK_PADDING_RIGHT
-import com.drdisagree.iconify.common.Preferences.CHIP_STATUSBAR_CLOCK_PADDING_TOP
-import com.drdisagree.iconify.common.Preferences.CHIP_STATUSBAR_CLOCK_RADIUS_BOTTOM_LEFT
-import com.drdisagree.iconify.common.Preferences.CHIP_STATUSBAR_CLOCK_RADIUS_BOTTOM_RIGHT
-import com.drdisagree.iconify.common.Preferences.CHIP_STATUSBAR_CLOCK_RADIUS_TOP_LEFT
-import com.drdisagree.iconify.common.Preferences.CHIP_STATUSBAR_CLOCK_RADIUS_TOP_RIGHT
-import com.drdisagree.iconify.common.Preferences.CHIP_STATUSBAR_CLOCK_START_COLOR
-import com.drdisagree.iconify.common.Preferences.CHIP_STATUSBAR_CLOCK_STROKE_ACCENT
-import com.drdisagree.iconify.common.Preferences.CHIP_STATUSBAR_CLOCK_STROKE_COLOR
-import com.drdisagree.iconify.common.Preferences.CHIP_STATUSBAR_CLOCK_STROKE_DASH
-import com.drdisagree.iconify.common.Preferences.CHIP_STATUSBAR_CLOCK_STROKE_DASH_GAP
-import com.drdisagree.iconify.common.Preferences.CHIP_STATUSBAR_CLOCK_STROKE_DASH_WIDTH
-import com.drdisagree.iconify.common.Preferences.CHIP_STATUSBAR_CLOCK_STROKE_SWITCH
-import com.drdisagree.iconify.common.Preferences.CHIP_STATUSBAR_CLOCK_STROKE_WIDTH
-import com.drdisagree.iconify.common.Preferences.CHIP_STATUSBAR_CLOCK_STYLE_CHANGED
-import com.drdisagree.iconify.common.Preferences.CHIP_STATUSBAR_CLOCK_SWITCH
-import com.drdisagree.iconify.common.Preferences.CHIP_STATUSBAR_CLOCK_TEXT_COLOR_CODE
-import com.drdisagree.iconify.common.Preferences.CHIP_STATUSBAR_CLOCK_TEXT_COLOR_OPTION
-import com.drdisagree.iconify.common.Preferences.CHIP_STATUS_ICONS_ACCENT
-import com.drdisagree.iconify.common.Preferences.CHIP_STATUS_ICONS_END_COLOR
-import com.drdisagree.iconify.common.Preferences.CHIP_STATUS_ICONS_GRADIENT_DIRECTION
-import com.drdisagree.iconify.common.Preferences.CHIP_STATUS_ICONS_PADDING_BOTTOM
-import com.drdisagree.iconify.common.Preferences.CHIP_STATUS_ICONS_PADDING_LEFT
-import com.drdisagree.iconify.common.Preferences.CHIP_STATUS_ICONS_PADDING_RIGHT
-import com.drdisagree.iconify.common.Preferences.CHIP_STATUS_ICONS_PADDING_TOP
-import com.drdisagree.iconify.common.Preferences.CHIP_STATUS_ICONS_RADIUS_BOTTOM_LEFT
-import com.drdisagree.iconify.common.Preferences.CHIP_STATUS_ICONS_RADIUS_BOTTOM_RIGHT
-import com.drdisagree.iconify.common.Preferences.CHIP_STATUS_ICONS_RADIUS_TOP_LEFT
-import com.drdisagree.iconify.common.Preferences.CHIP_STATUS_ICONS_RADIUS_TOP_RIGHT
-import com.drdisagree.iconify.common.Preferences.CHIP_STATUS_ICONS_START_COLOR
-import com.drdisagree.iconify.common.Preferences.CHIP_STATUS_ICONS_STROKE_ACCENT
-import com.drdisagree.iconify.common.Preferences.CHIP_STATUS_ICONS_STROKE_COLOR
-import com.drdisagree.iconify.common.Preferences.CHIP_STATUS_ICONS_STROKE_DASH
-import com.drdisagree.iconify.common.Preferences.CHIP_STATUS_ICONS_STROKE_DASH_GAP
-import com.drdisagree.iconify.common.Preferences.CHIP_STATUS_ICONS_STROKE_DASH_WIDTH
-import com.drdisagree.iconify.common.Preferences.CHIP_STATUS_ICONS_STROKE_SWITCH
-import com.drdisagree.iconify.common.Preferences.CHIP_STATUS_ICONS_STROKE_WIDTH
-import com.drdisagree.iconify.common.Preferences.CHIP_STATUS_ICONS_STYLE_CHANGED
-import com.drdisagree.iconify.common.Preferences.CHIP_STATUS_ICONS_SWITCH
-import com.drdisagree.iconify.common.Preferences.FIXED_STATUS_ICONS_SIDEMARGIN
-import com.drdisagree.iconify.common.Preferences.FIXED_STATUS_ICONS_SWITCH
-import com.drdisagree.iconify.common.Preferences.FIXED_STATUS_ICONS_TOPMARGIN
-import com.drdisagree.iconify.common.Preferences.HEADER_CLOCK_SWITCH
-import com.drdisagree.iconify.common.Preferences.HIDE_STATUS_ICONS_SWITCH
+import com.drdisagree.iconify.data.common.Const.SYSTEMUI_PACKAGE
+import com.drdisagree.iconify.data.common.Preferences.CHIP_STATUSBAR_CLOCK_ACCENT
+import com.drdisagree.iconify.data.common.Preferences.CHIP_STATUSBAR_CLOCK_END_COLOR
+import com.drdisagree.iconify.data.common.Preferences.CHIP_STATUSBAR_CLOCK_GRADIENT_DIRECTION
+import com.drdisagree.iconify.data.common.Preferences.CHIP_STATUSBAR_CLOCK_PADDING_BOTTOM
+import com.drdisagree.iconify.data.common.Preferences.CHIP_STATUSBAR_CLOCK_PADDING_LEFT
+import com.drdisagree.iconify.data.common.Preferences.CHIP_STATUSBAR_CLOCK_PADDING_RIGHT
+import com.drdisagree.iconify.data.common.Preferences.CHIP_STATUSBAR_CLOCK_PADDING_TOP
+import com.drdisagree.iconify.data.common.Preferences.CHIP_STATUSBAR_CLOCK_RADIUS_BOTTOM_LEFT
+import com.drdisagree.iconify.data.common.Preferences.CHIP_STATUSBAR_CLOCK_RADIUS_BOTTOM_RIGHT
+import com.drdisagree.iconify.data.common.Preferences.CHIP_STATUSBAR_CLOCK_RADIUS_TOP_LEFT
+import com.drdisagree.iconify.data.common.Preferences.CHIP_STATUSBAR_CLOCK_RADIUS_TOP_RIGHT
+import com.drdisagree.iconify.data.common.Preferences.CHIP_STATUSBAR_CLOCK_START_COLOR
+import com.drdisagree.iconify.data.common.Preferences.CHIP_STATUSBAR_CLOCK_STROKE_ACCENT
+import com.drdisagree.iconify.data.common.Preferences.CHIP_STATUSBAR_CLOCK_STROKE_COLOR
+import com.drdisagree.iconify.data.common.Preferences.CHIP_STATUSBAR_CLOCK_STROKE_DASH
+import com.drdisagree.iconify.data.common.Preferences.CHIP_STATUSBAR_CLOCK_STROKE_DASH_GAP
+import com.drdisagree.iconify.data.common.Preferences.CHIP_STATUSBAR_CLOCK_STROKE_DASH_WIDTH
+import com.drdisagree.iconify.data.common.Preferences.CHIP_STATUSBAR_CLOCK_STROKE_SWITCH
+import com.drdisagree.iconify.data.common.Preferences.CHIP_STATUSBAR_CLOCK_STROKE_WIDTH
+import com.drdisagree.iconify.data.common.Preferences.CHIP_STATUSBAR_CLOCK_STYLE_CHANGED
+import com.drdisagree.iconify.data.common.Preferences.CHIP_STATUSBAR_CLOCK_SWITCH
+import com.drdisagree.iconify.data.common.Preferences.CHIP_STATUSBAR_CLOCK_TEXT_COLOR_CODE
+import com.drdisagree.iconify.data.common.Preferences.CHIP_STATUSBAR_CLOCK_TEXT_COLOR_OPTION
+import com.drdisagree.iconify.data.common.Preferences.CHIP_STATUS_ICONS_ACCENT
+import com.drdisagree.iconify.data.common.Preferences.CHIP_STATUS_ICONS_END_COLOR
+import com.drdisagree.iconify.data.common.Preferences.CHIP_STATUS_ICONS_GRADIENT_DIRECTION
+import com.drdisagree.iconify.data.common.Preferences.CHIP_STATUS_ICONS_PADDING_BOTTOM
+import com.drdisagree.iconify.data.common.Preferences.CHIP_STATUS_ICONS_PADDING_LEFT
+import com.drdisagree.iconify.data.common.Preferences.CHIP_STATUS_ICONS_PADDING_RIGHT
+import com.drdisagree.iconify.data.common.Preferences.CHIP_STATUS_ICONS_PADDING_TOP
+import com.drdisagree.iconify.data.common.Preferences.CHIP_STATUS_ICONS_RADIUS_BOTTOM_LEFT
+import com.drdisagree.iconify.data.common.Preferences.CHIP_STATUS_ICONS_RADIUS_BOTTOM_RIGHT
+import com.drdisagree.iconify.data.common.Preferences.CHIP_STATUS_ICONS_RADIUS_TOP_LEFT
+import com.drdisagree.iconify.data.common.Preferences.CHIP_STATUS_ICONS_RADIUS_TOP_RIGHT
+import com.drdisagree.iconify.data.common.Preferences.CHIP_STATUS_ICONS_START_COLOR
+import com.drdisagree.iconify.data.common.Preferences.CHIP_STATUS_ICONS_STROKE_ACCENT
+import com.drdisagree.iconify.data.common.Preferences.CHIP_STATUS_ICONS_STROKE_COLOR
+import com.drdisagree.iconify.data.common.Preferences.CHIP_STATUS_ICONS_STROKE_DASH
+import com.drdisagree.iconify.data.common.Preferences.CHIP_STATUS_ICONS_STROKE_DASH_GAP
+import com.drdisagree.iconify.data.common.Preferences.CHIP_STATUS_ICONS_STROKE_DASH_WIDTH
+import com.drdisagree.iconify.data.common.Preferences.CHIP_STATUS_ICONS_STROKE_SWITCH
+import com.drdisagree.iconify.data.common.Preferences.CHIP_STATUS_ICONS_STROKE_WIDTH
+import com.drdisagree.iconify.data.common.Preferences.CHIP_STATUS_ICONS_STYLE_CHANGED
+import com.drdisagree.iconify.data.common.Preferences.CHIP_STATUS_ICONS_SWITCH
+import com.drdisagree.iconify.data.common.Preferences.FIXED_STATUS_ICONS_SIDEMARGIN
+import com.drdisagree.iconify.data.common.Preferences.FIXED_STATUS_ICONS_SWITCH
+import com.drdisagree.iconify.data.common.Preferences.FIXED_STATUS_ICONS_TOPMARGIN
+import com.drdisagree.iconify.data.common.Preferences.HEADER_CLOCK_SWITCH
+import com.drdisagree.iconify.data.common.Preferences.HIDE_STATUS_ICONS_SWITCH
 import com.drdisagree.iconify.xposed.HookRes.Companion.resParams
 import com.drdisagree.iconify.xposed.ModPack
 import com.drdisagree.iconify.xposed.modules.extras.utils.MyConstraintSet.Companion.applyTo
@@ -79,6 +79,7 @@ import com.drdisagree.iconify.xposed.modules.extras.utils.StatusBarClock.setCloc
 import com.drdisagree.iconify.xposed.modules.extras.utils.ViewHelper.toPx
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.XposedHook.Companion.findClass
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.callMethod
+import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.callStaticMethod
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.getField
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.getStaticField
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.hookLayout
@@ -87,8 +88,6 @@ import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.log
 import com.drdisagree.iconify.xposed.modules.extras.views.ChipDrawable
 import com.drdisagree.iconify.xposed.modules.extras.views.ChipDrawable.GradientDirection.Companion.toIndex
 import com.drdisagree.iconify.xposed.utils.XPrefs.Xprefs
-import com.drdisagree.iconify.xposed.utils.XPrefs.XprefsIsInitialized
-import de.robv.android.xposed.XposedHelpers.callStaticMethod
 import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam
 
 @SuppressLint("DiscouragedApi")
@@ -141,8 +140,6 @@ class BackgroundChip(context: Context) : ModPack(context) {
     private var cornerRadii2: FloatArray = floatArrayOf(28f, 28f, 28f, 28f, 28f, 28f, 28f, 28f)
 
     override fun updatePrefs(vararg key: String) {
-        if (!XprefsIsInitialized) return
-
         Xprefs.apply {
             // Status bar clock chip
             mShowSBClockBg = getBoolean(CHIP_STATUSBAR_CLOCK_SWITCH, false)
@@ -267,6 +264,8 @@ class BackgroundChip(context: Context) : ModPack(context) {
             "$SYSTEMUI_PACKAGE.statusbar.phone.CollapsedStatusBarFragment",
             "$SYSTEMUI_PACKAGE.statusbar.phone.fragment.CollapsedStatusBarFragment"
         )
+        val shadeHeaderControllerClass =
+            findClass("$SYSTEMUI_PACKAGE.shade.ShadeHeaderController")
         dependencyClass = findClass("$SYSTEMUI_PACKAGE.Dependency")
         darkIconDispatcherClass = findClass("$SYSTEMUI_PACKAGE.plugins.DarkIconDispatcher")
 
@@ -327,6 +326,11 @@ class BackgroundChip(context: Context) : ModPack(context) {
                     }
                 }
             }
+
+        shadeHeaderControllerClass
+            .hookMethod("updateQQSPaddings")
+            .suppressError()
+            .runAfter { updateStatusBarClock(true) }
     }
 
     private fun statusIconsChip() {
@@ -518,7 +522,8 @@ class BackgroundChip(context: Context) : ModPack(context) {
             0 -> {
                 (clockView as TextView).paint.setXfermode(null)
                 try {
-                    callStaticMethod(dependencyClass, "get", darkIconDispatcherClass)
+                    dependencyClass
+                        .callStaticMethod("get", darkIconDispatcherClass)
                         .callMethod("addDarkReceiver", clockView)
                 } catch (ignored: Throwable) {
                     dependencyClass
@@ -535,7 +540,8 @@ class BackgroundChip(context: Context) : ModPack(context) {
             2 -> {
                 (clockView as TextView).paint.setXfermode(null)
                 try {
-                    callStaticMethod(dependencyClass, "get", darkIconDispatcherClass)
+                    dependencyClass
+                        .callStaticMethod("get", darkIconDispatcherClass)
                         .callMethod("removeDarkReceiver", clockView)
                 } catch (ignored: Throwable) {
                     dependencyClass

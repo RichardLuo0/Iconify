@@ -9,7 +9,6 @@ import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
-import androidx.core.content.ContextCompat
 import androidx.preference.Preference
 import androidx.preference.PreferenceViewHolder
 import com.drdisagree.iconify.R
@@ -23,6 +22,7 @@ import java.math.BigDecimal
 import java.text.DecimalFormat
 import java.util.Locale
 import java.util.Scanner
+import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 
@@ -39,12 +39,16 @@ class SliderPreference(
 
     private var valueFrom: Float
     private var valueTo: Float
+    private val tickVisible: Boolean
     private val tickInterval: Float
     private val showResetButton: Boolean
+    private val showController: Boolean
     private val defaultValue: MutableList<Float> = ArrayList()
-    private var slider: RangeSlider? = null
-    private var titleView: TextView? = null
-    private var summaryView: TextView? = null
+    private var mSlider: RangeSlider? = null
+    private var mTitleView: TextView? = null
+    private var mSummaryView: TextView? = null
+    private var mMinusButton: MaterialButton? = null
+    private var mPlusButton: MaterialButton? = null
     private var mResetButton: MaterialButton? = null
 
     @Suppress("unused")
@@ -53,7 +57,7 @@ class SliderPreference(
     private var valueFormat: String? = null
     private val outputScale: Float
     private val isDecimalFormat: Boolean
-    private val showDefault: Boolean
+    private val showDefaultIndicator: Boolean
     private var decimalFormat: String? = "#.#"
 
     var updateConstantly: Boolean
@@ -76,13 +80,19 @@ class SliderPreference(
             showValueLabel = getBoolean(R.styleable.SliderPreference_showValueLabel, true)
             valueFormat = getString(R.styleable.SliderPreference_valueFormat)
             isDecimalFormat = getBoolean(R.styleable.SliderPreference_isDecimalFormat, false)
+            tickVisible = getBoolean(
+                R.styleable.SliderPreference_tickVisible,
+                abs(valueTo - valueFrom) <= 25
+            )
+            showController = getBoolean(R.styleable.SliderPreference_showController, false)
             decimalFormat = if (hasValue(R.styleable.SliderPreference_decimalFormat)) {
                 getString(R.styleable.SliderPreference_decimalFormat)
             } else {
                 "#.#" // Default decimal format
             }
             outputScale = getFloat(R.styleable.SliderPreference_outputScale, 1f)
-            showDefault = getBoolean(R.styleable.SliderPreference_showDefault, false)
+            showDefaultIndicator =
+                getBoolean(R.styleable.SliderPreference_showDefaultIndicator, false)
             val defaultValStr = getString(androidx.preference.R.styleable.Preference_defaultValue)
 
             if (valueFormat == null) valueFormat = ""
@@ -113,40 +123,37 @@ class SliderPreference(
     override fun onBindViewHolder(holder: PreferenceViewHolder) {
         super.onBindViewHolder(holder)
 
-        titleView = holder.itemView.findViewById(android.R.id.title)
-        summaryView = holder.itemView.findViewById(android.R.id.summary)
+        mTitleView = holder.itemView.findViewById(android.R.id.title)
+        mSummaryView = holder.itemView.findViewById(android.R.id.summary)
+        mSlider = holder.itemView.findViewById(R.id.slider)
 
-        if (isEnabled) {
-            titleView!!.setTextColor(ContextCompat.getColor(context, R.color.textColorPrimary))
-            summaryView!!.setTextColor(ContextCompat.getColor(context, R.color.textColorSecondary))
-        }
+        mSlider!!.tag = key
+        mSlider!!.addOnSliderTouchListener(sliderTouchListener)
+        mSlider!!.addOnChangeListener(changeListener)
+        mSlider!!.setLabelFormatter(labelFormatter)
 
-        slider = holder.itemView.findViewById(R.id.slider)
-        slider!!.tag = key
-
-        slider!!.addOnSliderTouchListener(sliderTouchListener)
-        slider!!.addOnChangeListener(changeListener)
-
-        slider!!.setLabelFormatter(labelFormatter)
-
+        mMinusButton = holder.itemView.findViewById(R.id.minus_button)
+        mPlusButton = holder.itemView.findViewById(R.id.plus_button)
         mResetButton = holder.itemView.findViewById(R.id.reset_button)
 
         if (showResetButton && defaultValue.isNotEmpty()) {
             mResetButton!!.visibility = View.VISIBLE
-            mResetButton!!.isEnabled = isEnabled && !defaultValue.containsAll(slider!!.values)
+            mResetButton!!.isEnabled = isEnabled && !defaultValue.containsAll(mSlider!!.values)
 
             mResetButton!!.setOnClickListener { v: View ->
                 handleResetButton()
                 v.weakVibrate()
 
-                slider!!.values = defaultValue
+                mSlider!!.values = defaultValue
                 mResetButton!!.isEnabled = false
 
-                summaryView!!.apply {
-                    text = slider!!.values.joinToString(separator = " - ") { sliderValue ->
+                mSummaryView!!.apply {
+                    text = mSlider!!.values.joinToString(separator = " - ") { sliderValue ->
                         labelFormatter.getFormattedValue(sliderValue)
                     }
                 }
+
+                if (showController) updateControllerButtons()
 
                 savePrefs()
             }
@@ -154,38 +161,83 @@ class SliderPreference(
             mResetButton!!.visibility = View.GONE
         }
 
+        if (showController) {
+            mMinusButton!!.visibility = View.VISIBLE
+            mPlusButton!!.visibility = View.VISIBLE
+
+            mMinusButton!!.setOnClickListener { v: View ->
+                v.weakVibrate()
+                val currentValue = mSlider?.values?.get(0) ?: return@setOnClickListener
+                if (currentValue <= valueFrom) return@setOnClickListener
+
+                val newValue = (currentValue - tickInterval).coerceAtLeast(valueFrom)
+                mSlider!!.values = listOf(newValue)
+                mSummaryView!!.text =
+                    mSlider!!.values.joinToString(separator = " - ") { sliderValue ->
+                        labelFormatter.getFormattedValue(sliderValue)
+                    }
+
+                updateControllerButtons()
+                handleResetButton()
+                savePrefs()
+            }
+
+            mPlusButton!!.setOnClickListener { v: View ->
+                v.weakVibrate()
+                val currentValue = mSlider?.values?.get(0) ?: return@setOnClickListener
+                if (currentValue >= valueTo) return@setOnClickListener
+
+                val newValue = (currentValue + tickInterval).coerceAtMost(valueTo)
+                mSlider!!.values = listOf(newValue)
+                mSummaryView!!.text =
+                    mSlider!!.values.joinToString(separator = " - ") { sliderValue ->
+                        labelFormatter.getFormattedValue(sliderValue)
+                    }
+
+                updateControllerButtons()
+                handleResetButton()
+                savePrefs()
+            }
+        } else {
+            mMinusButton!!.visibility = View.GONE
+            mPlusButton!!.visibility = View.GONE
+        }
+
         sliderValue = holder.itemView.findViewById(androidx.preference.R.id.seekbar_value)
 
-        slider!!.valueFrom = valueFrom
-        slider!!.valueTo = valueTo
-        slider!!.stepSize = tickInterval
+        mSlider!!.valueFrom = valueFrom
+        mSlider!!.valueTo = valueTo
+        mSlider!!.stepSize = tickInterval
+        mSlider!!.isTickVisible = tickVisible
 
         syncState()
 
-        summaryView!!.apply {
-            text = slider!!.values.joinToString(separator = " - ") { sliderValue ->
+        mSummaryView!!.apply {
+            text = mSlider!!.values.joinToString(separator = " - ") { sliderValue ->
                 labelFormatter.getFormattedValue(sliderValue)
             }
             visibility = if (showValueLabel) View.VISIBLE else View.GONE
         }
+
+        if (showController) updateControllerButtons()
 
         handleResetButton()
     }
 
     fun setMin(value: Float) {
         valueFrom = value
-        if (slider != null) slider!!.valueFrom = value
+        if (mSlider != null) mSlider!!.valueFrom = value
     }
 
     fun setMax(value: Float) {
         valueTo = value
-        if (slider != null) slider!!.valueTo = value
+        if (mSlider != null) mSlider!!.valueTo = value
     }
 
     fun setValues(values: List<Float>) {
         defaultValue.clear()
         defaultValue.addAll(values)
-        if (slider != null) slider!!.values = values
+        if (mSlider != null) mSlider!!.values = values
     }
 
     private fun handleResetButton() {
@@ -194,8 +246,8 @@ class SliderPreference(
         if (showResetButton) {
             mResetButton!!.visibility = View.VISIBLE
 
-            if (slider!!.values.isNotEmpty()) {
-                mResetButton!!.isEnabled = isEnabled && !defaultValue.containsAll(slider!!.values)
+            if (mSlider!!.values.isNotEmpty()) {
+                mResetButton!!.isEnabled = isEnabled && !defaultValue.containsAll(mSlider!!.values)
             }
         } else {
             mResetButton!!.visibility = View.GONE
@@ -208,13 +260,13 @@ class SliderPreference(
         var values: MutableList<Float> = getValues(sharedPreferences!!, key, valueFrom)
 
         // float and double are not accurate when it comes to decimal points
-        val step = BigDecimal(slider!!.stepSize.toString())
+        val step = BigDecimal(mSlider!!.stepSize.toString())
 
         for (i in values.indices) {
-            val round = BigDecimal(Math.round(values[i] / slider!!.stepSize))
+            val round = BigDecimal(Math.round(values[i] / mSlider!!.stepSize))
             val value = min(
-                max(step.multiply(round).toDouble(), slider!!.valueFrom.toDouble()),
-                slider!!.valueTo.toDouble()
+                max(step.multiply(round).toDouble(), mSlider!!.valueFrom.toDouble()),
+                mSlider!!.valueTo.toDouble()
             )
             if (value != values[i].toDouble()) {
                 values[i] = value.toFloat()
@@ -236,14 +288,20 @@ class SliderPreference(
         }
 
         try {
-            slider!!.values = values
+            mSlider!!.values = values
             if (needsCommit) savePrefs()
         } catch (_: Throwable) {
         }
     }
 
+    private fun updateControllerButtons() {
+        val currentValue = mSlider?.values?.get(0) ?: valueFrom
+        mMinusButton?.isEnabled = isEnabled && currentValue > valueFrom
+        mPlusButton?.isEnabled = isEnabled && currentValue < valueTo
+    }
+
     var labelFormatter: LabelFormatter = LabelFormatter {
-        val formattedValues = slider!!.values.joinToString(separator = " - ") { sliderValue ->
+        val formattedValues = mSlider!!.values.joinToString(separator = " - ") { sliderValue ->
             if (valueFormat != null && (valueFormat!!.isBlank() || valueFormat!!.isEmpty())) {
                 if (!isDecimalFormat) {
                     (sliderValue / outputScale).toInt().toString()
@@ -259,9 +317,9 @@ class SliderPreference(
             }
         }
 
-        if (showDefault &&
+        if (showDefaultIndicator &&
             defaultValue.isNotEmpty() &&
-            defaultValue.containsAll(slider!!.values)
+            defaultValue.containsAll(mSlider!!.values)
         ) {
             getContext().getString(
                 R.string.opt_selected3,
@@ -279,7 +337,7 @@ class SliderPreference(
     }
 
     private var changeListener: RangeSlider.OnChangeListener =
-        RangeSlider.OnChangeListener { slider: RangeSlider, value: Float, fromUser: Boolean ->
+        RangeSlider.OnChangeListener { slider: RangeSlider, _: Float, fromUser: Boolean ->
             if (key != slider.tag) return@OnChangeListener
             if (updateConstantly && fromUser) {
                 savePrefs()
@@ -301,6 +359,8 @@ class SliderPreference(
                 summary.visibility =
                     if (showValueLabel) View.VISIBLE else View.GONE
 
+                if (showController) updateControllerButtons()
+
                 handleResetButton()
 
                 if (!updateConstantly) {
@@ -310,8 +370,8 @@ class SliderPreference(
         }
 
     fun savePrefs() {
-        setValues(sharedPreferences!!, key, slider!!.values)
-        setValues(sharedPreferences!!, key, slider!!.values)
+        setValues(sharedPreferences!!, key, mSlider!!.values)
+        setValues(sharedPreferences!!, key, mSlider!!.values)
     }
 
     companion object {

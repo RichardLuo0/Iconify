@@ -4,16 +4,18 @@ import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.ColorMatrix
+import android.graphics.ColorMatrixColorFilter
+import android.graphics.Matrix
+import android.graphics.Paint
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffColorFilter
+import android.graphics.Rect
 import android.graphics.Typeface
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
-import android.renderscript.Allocation
-import android.renderscript.Element
-import android.renderscript.RenderScript
-import android.renderscript.ScriptIntrinsicBlur
 import android.util.TypedValue
 import android.view.View
 import android.view.ViewGroup
@@ -25,9 +27,14 @@ import android.widget.ProgressBar
 import android.widget.RelativeLayout
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
-import com.drdisagree.iconify.common.Preferences.DEPTH_WALLPAPER_SWITCH
-import com.drdisagree.iconify.common.Preferences.ICONIFY_DEPTH_WALLPAPER_FOREGROUND_TAG
-import com.drdisagree.iconify.common.Preferences.ICONIFY_LOCKSCREEN_CONTAINER_TAG
+import androidx.core.graphics.ColorUtils
+import com.drdisagree.iconify.data.common.Const.SYSTEMUI_PACKAGE
+import com.drdisagree.iconify.data.common.Preferences.DEPTH_WALLPAPER_SWITCH
+import com.drdisagree.iconify.data.common.Preferences.ICONIFY_DEPTH_WALLPAPER_FOREGROUND_TAG
+import com.drdisagree.iconify.data.common.Preferences.ICONIFY_LOCKSCREEN_CONTAINER_TAG
+import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.XposedHook.Companion.findClass
+import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.callStaticMethod
+import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.isMethodAvailable
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.log
 import com.drdisagree.iconify.xposed.utils.XPrefs.Xprefs
 
@@ -362,6 +369,17 @@ object ViewHelper {
         return -1
     }
 
+    fun View.findChildIndexContainsTag(tag: String): Int {
+        if (this is ViewGroup) {
+            for (i in 0 until childCount) {
+                if (getChildAt(i).tag?.toString()?.let { isTagMatch(tag, it) } == true) {
+                    return i
+                }
+            }
+        }
+        return -1
+    }
+
     private fun isTagMatch(tagToCheck: String, targetTag: String): Boolean {
         val parts = targetTag.split("|")
         return parts.any { it.trim() == tagToCheck }
@@ -372,27 +390,25 @@ object ViewHelper {
             return this
         }
 
-        val bitmap = drawableToBitmap(this)
-
-        val blurredBitmap = bitmap.applyBlur(context, radius.coerceIn(1f, 25f))
+        val blurredBitmap = drawableToBitmap().applyBlur(context, radius.coerceIn(1f, 25f))
 
         return BitmapDrawable(context.resources, blurredBitmap)
     }
 
-    private fun drawableToBitmap(drawable: Drawable): Bitmap {
-        if (drawable is BitmapDrawable) {
-            return drawable.bitmap
+    private fun Drawable.drawableToBitmap(): Bitmap {
+        if (this is BitmapDrawable) {
+            return bitmap
         }
 
         val bitmap = Bitmap.createBitmap(
-            drawable.intrinsicWidth,
-            drawable.intrinsicHeight,
+            intrinsicWidth,
+            intrinsicHeight,
             Bitmap.Config.ARGB_8888
         )
 
         val canvas = Canvas(bitmap)
-        drawable.setBounds(0, 0, canvas.width, canvas.height)
-        drawable.draw(canvas)
+        setBounds(0, 0, canvas.width, canvas.height)
+        draw(canvas)
 
         return bitmap
     }
@@ -415,13 +431,13 @@ object ViewHelper {
             tempImage.width, tempImage.height,
             Bitmap.Config.ARGB_8888
         )
-        val renderScript = RenderScript.create(context)
-        val blurInput = Allocation.createFromBitmap(renderScript, tempImage)
-        val blurOutput = Allocation.createFromBitmap(renderScript, bitmap)
+        val renderScript = android.renderscript.RenderScript.create(context)
+        val blurInput = android.renderscript.Allocation.createFromBitmap(renderScript, tempImage)
+        val blurOutput = android.renderscript.Allocation.createFromBitmap(renderScript, bitmap)
 
-        ScriptIntrinsicBlur.create(
+        android.renderscript.ScriptIntrinsicBlur.create(
             renderScript,
-            Element.U8_4(renderScript)
+            android.renderscript.Element.U8_4(renderScript)
         ).apply {
             setInput(blurInput)
             setRadius(radius.coerceIn(0.0001f, 25f))
@@ -453,20 +469,32 @@ object ViewHelper {
     fun View?.hideView() {
         if (this == null) return
 
-        fun hide() {
+        fun makeInvisible() {
             apply {
-                layoutParams.height = 0
-                layoutParams.width = 0
-                visibility = View.INVISIBLE
+                if (visibility == View.VISIBLE) {
+                    visibility = View.INVISIBLE
+                }
             }
         }
 
-        hide()
+        fun makeSizeZero() {
+            apply {
+                layoutParams.apply {
+                    if (height != 0) height = 0
+                    if (width != 0) width = 0
+                }
+            }
+        }
+
+        makeSizeZero()
+        makeInvisible()
+
         viewTreeObserver?.addOnGlobalLayoutListener {
-            hide()
+            makeSizeZero()
+            makeInvisible()
         }
         viewTreeObserver?.addOnDrawListener {
-            hide()
+            makeInvisible()
         }
     }
 
@@ -497,15 +525,15 @@ object ViewHelper {
 
         var layout: LinearLayout? = findViewWithTag(ICONIFY_LOCKSCREEN_CONTAINER_TAG)
 
-        if (layout == null) {
-            val showDepthWallpaper = Xprefs.getBoolean(DEPTH_WALLPAPER_SWITCH, false)
-            val idx = if (showDepthWallpaper) {
-                val tempIdx = rootView.findViewIdContainsTag(ICONIFY_DEPTH_WALLPAPER_FOREGROUND_TAG)
-                if (tempIdx == -1) 0 else tempIdx
-            } else {
-                0
-            }
+        val showDepthWallpaper = Xprefs.getBoolean(DEPTH_WALLPAPER_SWITCH, false)
+        val idx = if (showDepthWallpaper) {
+            val tempIdx = findChildIndexContainsTag(ICONIFY_DEPTH_WALLPAPER_FOREGROUND_TAG)
+            if (tempIdx == -1) 0 else tempIdx
+        } else {
+            0
+        }
 
+        if (layout == null) {
             layout = LinearLayout(this.context).apply {
                 id = View.generateViewId()
                 tag = ICONIFY_LOCKSCREEN_CONTAINER_TAG
@@ -516,15 +544,159 @@ object ViewHelper {
                 orientation = LinearLayout.VERTICAL
             }
             addView(layout, idx)
+        } else {
+            if (indexOfChild(layout) != idx) {
+                reAddView(layout, idx)
+            }
         }
 
         return layout
     }
 
+    fun ViewGroup.reAddView(childView: View?) {
+        reAddView(childView, -1)
+    }
+
     fun ViewGroup.reAddView(childView: View?, index: Int) {
         childView?.let { view ->
-            (view.parent as? ViewGroup)?.removeView(childView)
-            addView(view, index)
+            val currentIndex = indexOfChild(view)
+
+            if (currentIndex != -1) {
+                val tempChildCount = childCount
+                val adjustedIndex = if (index >= tempChildCount) tempChildCount - 1 else index
+
+                if ((index != -1 && currentIndex == adjustedIndex) ||
+                    (index == -1 && currentIndex == tempChildCount - 1)
+                ) return
+            }
+
+            (view.parent as? ViewGroup)?.removeView(view)
+            addView(view, index.coerceAtMost(childCount))
         }
     }
+
+    fun View?.getExpandableView(): Any? {
+        if (this == null) {
+            log("getExpandableView", "View is null")
+            return null
+        }
+
+        val expandableClass = findClass("$SYSTEMUI_PACKAGE.animation.Expandable")
+        val expandableCompanionFromViewClass = findClass(
+            "$SYSTEMUI_PACKAGE.animation.Expandable\$Companion\$fromView",
+            "$SYSTEMUI_PACKAGE.animation.Expandable\$Companion\$fromView\$1",
+            "$SYSTEMUI_PACKAGE.animation.Expandable\$Companion\$fromView\$2",
+            "$SYSTEMUI_PACKAGE.animation.Expandable\$Companion\$fromView\$3",
+            suppressError = true
+        )
+
+        return if (expandableClass.isMethodAvailable("fromView", View::class.java)) {
+            expandableClass!!.callStaticMethod("fromView", this)
+        } else {
+            expandableCompanionFromViewClass!!.getConstructor(View::class.java).newInstance(this)
+        }
+    }
+
+    fun Drawable.getColored(context: Context, color: Int): Drawable {
+
+        val colorDrawable = this.getColoredBitmap(color)
+
+        return BitmapDrawable(context.resources, colorDrawable)
+    }
+
+    private fun Drawable?.getColoredBitmap(color: Int): Bitmap? {
+        if (this == null) return null
+
+        val colorBitmap = (this as BitmapDrawable).bitmap
+        val grayscaleBitmap = colorBitmap.toGrayscale()
+        val paint = Paint().apply {
+            isAntiAlias = true
+            colorFilter = PorterDuffColorFilter(color, PorterDuff.Mode.MULTIPLY)
+        }
+        val canvas = Canvas(grayscaleBitmap)
+        val rect = Rect(0, 0, grayscaleBitmap.width, grayscaleBitmap.height)
+        canvas.drawBitmap(grayscaleBitmap, rect, rect, paint)
+
+        return grayscaleBitmap
+    }
+
+    fun Drawable?.getColoredBitmap(color: Int, intensity: Int): Bitmap? {
+        if (this == null) return null
+
+        val colorBitmap = (this as BitmapDrawable).bitmap
+        val filteredBitmap = Bitmap.createBitmap(
+            colorBitmap.width,
+            colorBitmap.height,
+            colorBitmap.config ?: Bitmap.Config.ARGB_8888
+        )
+        val canvas = Canvas(filteredBitmap)
+        val paint = Paint()
+        val fadeFilter = ColorUtils.blendARGB(Color.TRANSPARENT, color, intensity / 100f)
+        paint.colorFilter = PorterDuffColorFilter(fadeFilter, PorterDuff.Mode.SRC_ATOP)
+        canvas.drawBitmap(colorBitmap, 0f, 0f, paint)
+
+        return filteredBitmap
+    }
+
+    fun Bitmap.toGrayscale(): Bitmap {
+        val grayscaleBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(grayscaleBitmap)
+        val paint = Paint().apply {
+            isAntiAlias = true
+            colorFilter = ColorMatrixColorFilter(ColorMatrix().apply { setSaturation(0f) })
+        }
+        val rect = Rect(0, 0, width, height)
+        canvas.drawBitmap(this, rect, rect, paint)
+        return grayscaleBitmap
+    }
+
+    fun Drawable.toGrayscale(context: Context): Drawable {
+        val grayscaleBitmap = drawableToBitmap().toGrayscale()
+        return BitmapDrawable(context.resources, grayscaleBitmap)
+    }
+
+    fun Drawable.getGrayscaleBlurredImage(context: Context, radius: Float): Drawable {
+        val grayscaleBitmap = drawableToBitmap().getGrayscaleBlurredImage(context, radius)
+        return BitmapDrawable(context.resources, grayscaleBitmap)
+    }
+
+    fun Bitmap.getGrayscaleBlurredImage(context: Context, radius: Float): Bitmap {
+        return applyBlur(context, radius).toGrayscale()
+    }
+
+    fun Bitmap?.centerCropBitmap(targetWidth: Int, targetHeight: Int): Bitmap? {
+        if (this == null) return null
+
+        val srcAspectRatio = width.toFloat() / height.toFloat()
+        val targetAspectRatio = targetWidth.toFloat() / targetHeight.toFloat()
+
+        val scale: Float
+        val dx: Float
+        val dy: Float
+
+        if (srcAspectRatio > targetAspectRatio) {
+            scale = targetHeight.toFloat() / height.toFloat()
+            dx = (targetWidth - width * scale) / 2
+            dy = 0f
+        } else {
+            scale = targetWidth.toFloat() / width.toFloat()
+            dx = 0f
+            dy = (targetHeight - height * scale) / 2
+        }
+
+        val matrix = Matrix()
+        matrix.setScale(scale, scale)
+        matrix.postTranslate(dx, dy)
+
+        val resultBitmap = Bitmap.createBitmap(
+            targetWidth,
+            targetHeight,
+            config ?: Bitmap.Config.ARGB_8888
+        )
+        val canvas = Canvas(resultBitmap)
+        canvas.drawBitmap(this, matrix, Paint(Paint.FILTER_BITMAP_FLAG))
+
+        return resultBitmap
+    }
+
 }

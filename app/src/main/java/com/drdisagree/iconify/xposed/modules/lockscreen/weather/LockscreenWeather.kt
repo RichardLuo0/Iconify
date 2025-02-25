@@ -1,39 +1,47 @@
 package com.drdisagree.iconify.xposed.modules.lockscreen.weather
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
+import android.graphics.Typeface
+import android.os.Environment
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import androidx.core.view.children
-import com.drdisagree.iconify.common.Const.ACTION_WEATHER_INFLATED
-import com.drdisagree.iconify.common.Preferences.LSCLOCK_SWITCH
-import com.drdisagree.iconify.common.Preferences.WEATHER_CENTER_VIEW
-import com.drdisagree.iconify.common.Preferences.WEATHER_CUSTOM_MARGINS_BOTTOM
-import com.drdisagree.iconify.common.Preferences.WEATHER_CUSTOM_MARGINS_SIDE
-import com.drdisagree.iconify.common.Preferences.WEATHER_CUSTOM_MARGINS_TOP
-import com.drdisagree.iconify.common.Preferences.WEATHER_ICON_SIZE
-import com.drdisagree.iconify.common.Preferences.WEATHER_SHOW_CONDITION
-import com.drdisagree.iconify.common.Preferences.WEATHER_SHOW_HUMIDITY
-import com.drdisagree.iconify.common.Preferences.WEATHER_SHOW_LOCATION
-import com.drdisagree.iconify.common.Preferences.WEATHER_SHOW_WIND
-import com.drdisagree.iconify.common.Preferences.WEATHER_STYLE
-import com.drdisagree.iconify.common.Preferences.WEATHER_SWITCH
-import com.drdisagree.iconify.common.Preferences.WEATHER_TEXT_COLOR
-import com.drdisagree.iconify.common.Preferences.WEATHER_TEXT_COLOR_SWITCH
-import com.drdisagree.iconify.common.Preferences.WEATHER_TEXT_SIZE
+import com.drdisagree.iconify.data.common.Const.ACTION_WEATHER_INFLATED
+import com.drdisagree.iconify.data.common.Preferences.LSCLOCK_SWITCH
+import com.drdisagree.iconify.data.common.Preferences.WEATHER_CENTER_VIEW
+import com.drdisagree.iconify.data.common.Preferences.WEATHER_CUSTOM_MARGINS_BOTTOM
+import com.drdisagree.iconify.data.common.Preferences.WEATHER_CUSTOM_MARGINS_SIDE
+import com.drdisagree.iconify.data.common.Preferences.WEATHER_CUSTOM_MARGINS_TOP
+import com.drdisagree.iconify.data.common.Preferences.WEATHER_FONT_SWITCH
+import com.drdisagree.iconify.data.common.Preferences.WEATHER_ICON_SIZE
+import com.drdisagree.iconify.data.common.Preferences.WEATHER_SHOW_CONDITION
+import com.drdisagree.iconify.data.common.Preferences.WEATHER_SHOW_HUMIDITY
+import com.drdisagree.iconify.data.common.Preferences.WEATHER_SHOW_LOCATION
+import com.drdisagree.iconify.data.common.Preferences.WEATHER_SHOW_WIND
+import com.drdisagree.iconify.data.common.Preferences.WEATHER_STYLE
+import com.drdisagree.iconify.data.common.Preferences.WEATHER_SWITCH
+import com.drdisagree.iconify.data.common.Preferences.WEATHER_TEXT_COLOR
+import com.drdisagree.iconify.data.common.Preferences.WEATHER_TEXT_COLOR_SWITCH
+import com.drdisagree.iconify.data.common.Preferences.WEATHER_TEXT_SIZE
+import com.drdisagree.iconify.data.common.Preferences.WEATHER_TRIGGER_UPDATE
 import com.drdisagree.iconify.xposed.ModPack
+import com.drdisagree.iconify.xposed.modules.extras.utils.ViewHelper.applyFontRecursively
 import com.drdisagree.iconify.xposed.modules.extras.utils.ViewHelper.setMargins
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.XposedHook.Companion.findClass
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.getField
+import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.getFieldSilently
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.hookMethod
 import com.drdisagree.iconify.xposed.modules.extras.views.CurrentWeatherView
 import com.drdisagree.iconify.xposed.modules.lockscreen.Lockscreen.Companion.isComposeLockscreen
 import com.drdisagree.iconify.xposed.utils.XPrefs.Xprefs
 import com.drdisagree.iconify.xposed.utils.XPrefs.XprefsIsInitialized
 import de.robv.android.xposed.callbacks.XC_LoadPackage
+import java.io.File
 
 class LockscreenWeather(context: Context) : ModPack(context) {
 
@@ -55,6 +63,9 @@ class LockscreenWeather(context: Context) : ModPack(context) {
     private lateinit var mWeatherContainer: LinearLayout
     private var mStatusViewContainer: ViewGroup? = null
     private var mStatusArea: ViewGroup? = null
+    private var mCustomFontEnabled = false
+    private val mCustomFontLocation = Environment.getExternalStorageDirectory().toString() +
+            "/.iconify_files/lockscreen_weather_font.ttf"
 
     override fun updatePrefs(vararg key: String) {
         if (!XprefsIsInitialized || isComposeLockscreen) return
@@ -75,10 +86,12 @@ class LockscreenWeather(context: Context) : ModPack(context) {
             mBottomMargin = getSliderInt(WEATHER_CUSTOM_MARGINS_BOTTOM, 20)
             mWeatherBackground = Integer.parseInt(getString(WEATHER_STYLE, "0")!!)
             mCenterWeather = getBoolean(WEATHER_CENTER_VIEW, false)
+            mCustomFontEnabled = Xprefs.getBoolean(WEATHER_FONT_SWITCH, false)
         }
 
         when (key.firstOrNull()) {
             in setOf(
+                WEATHER_TRIGGER_UPDATE,
                 WEATHER_SHOW_LOCATION,
                 WEATHER_SHOW_CONDITION,
                 WEATHER_SHOW_HUMIDITY,
@@ -91,11 +104,13 @@ class LockscreenWeather(context: Context) : ModPack(context) {
                 WEATHER_CUSTOM_MARGINS_BOTTOM,
                 WEATHER_CUSTOM_MARGINS_SIDE,
                 WEATHER_CUSTOM_MARGINS_TOP,
-                WEATHER_CENTER_VIEW
+                WEATHER_CENTER_VIEW,
+                WEATHER_FONT_SWITCH
             ) -> updateWeatherView()
         }
     }
 
+    @SuppressLint("DiscouragedApi")
     override fun handleLoadPackage(loadPackageParam: XC_LoadPackage.LoadPackageParam) {
         if (isComposeLockscreen) return
 
@@ -113,7 +128,14 @@ class LockscreenWeather(context: Context) : ModPack(context) {
                 if (!weatherEnabled) return@runAfter
 
                 mStatusViewContainer =
-                    param.thisObject.getField("mStatusViewContainer") as ViewGroup
+                    param.thisObject.getFieldSilently("mStatusViewContainer") as? ViewGroup
+                        ?: (param.thisObject as ViewGroup).findViewById(
+                            mContext.resources.getIdentifier(
+                                "status_view_container",
+                                "id",
+                                mContext.packageName
+                            )
+                        )
 
                 placeWeatherView()
             }
@@ -191,6 +213,7 @@ class LockscreenWeather(context: Context) : ModPack(context) {
         }
 
         updateMargins()
+        updateFont()
     }
 
     private fun updateMargins() {
@@ -214,6 +237,16 @@ class LockscreenWeather(context: Context) : ModPack(context) {
             } else {
                 Gravity.START or Gravity.CENTER_VERTICAL
             }
+        }
+    }
+
+    private fun updateFont() {
+        if (mCustomFontEnabled && File(mCustomFontLocation).exists()) {
+            Typeface.createFromFile(File(mCustomFontLocation))
+        } else {
+            Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
+        }.also { typeface ->
+            applyFontRecursively(mWeatherContainer, typeface)
         }
     }
 

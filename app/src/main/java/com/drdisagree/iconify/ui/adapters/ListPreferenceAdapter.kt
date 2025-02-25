@@ -9,7 +9,7 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.drdisagree.iconify.Iconify.Companion.appContext
 import com.drdisagree.iconify.R
-import com.drdisagree.iconify.config.RPrefs
+import com.drdisagree.iconify.data.config.RPrefs
 import com.drdisagree.iconify.databinding.PreferenceListItemBinding
 import com.drdisagree.iconify.databinding.ViewListIconItemBinding
 

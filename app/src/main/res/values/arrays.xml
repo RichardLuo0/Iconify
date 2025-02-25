@@ -4,11 +4,15 @@
     <string-array name="module_scope" translatable="false">
         <item>android</item>
         <item>com.android.systemui</item>
+        <item>com.android.settings</item>
         <item>com.google.android.apps.nexuslauncher</item>
+        <item>com.android.launcher3</item>
     </string-array>
 
     <string-array name="root_requirement" translatable="false">
         <item>com.android.systemui</item>
+        <item>com.google.android.apps.nexuslauncher</item>
+        <item>com.android.launcher3</item>
     </string-array>
 
     <string-array name="locale_name">
@@ -275,6 +279,16 @@
         <item>hotspot</item>
     </string-array>
 
+    <!-- Lockscreen Device Widget style -->
+    <string-array name="lockscreen_device_widget_entries">
+        <item>@string/lockscreen_device_widget_style_classic</item>
+        <item>@string/lockscreen_device_widget_style_arcs</item>
+    </string-array>
+    <string-array name="lockscreen_device_widget_values">
+        <item>0</item>
+        <item>1</item>
+    </string-array>
+
     <string-array name="gradient_direction">
         <item>Left to Right</item>
         <item>Right to Left</item>
@@ -294,6 +308,58 @@
     <string-array name="depth_wallpaper_mode_values" translatable="false">
         <item>0</item>
         <item>1</item>
+    </string-array>
+
+    <string-array name="qs_text_color_entries" translatable="false">
+        <item>@string/label_always_white_title</item>
+        <item>@string/label_follow_accent_title</item>
+        <item>@string/label_follow_system_title</item>
+        <item>@string/label_follow_system_inverse_title</item>
+    </string-array>
+
+    <string-array name="qs_text_color_values" translatable="false">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+    </string-array>
+
+    <!-- Lockscreen Album Art Filters -->
+    <string-array name="lockscreen_albumart_filter_entries" translatable="false">
+        <item>@string/albumart_filter_none</item>
+        <item>@string/albumart_filter_grayscale</item>
+        <item>@string/albumart_filter_tint</item>
+        <item>@string/albumart_filter_blur</item>
+        <item>@string/albumart_filter_grayblur</item>
+    </string-array>
+
+    <string-array name="lockscreen_albumart_filter_values" translatable="false">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+    </string-array>
+
+    <!-- Volume Panel Styles -->
+    <string-array name="volume_panel_style_entries" translatable="false">
+        <item>@string/volume_style_default</item>
+        <item>@string/volume_style_gradient</item>
+        <item>@string/volume_style_doublelayer</item>
+        <item>@string/volume_style_shadedlayer</item>
+        <item>@string/volume_style_neumorph</item>
+        <item>@string/volume_style_outline</item>
+        <item>@string/volume_style_neumorphoutline</item>
+    </string-array>
+
+    <string-array name="volume_panel_style_values" translatable="false">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+        <item>6</item>
     </string-array>
 
 </resources>

@@ -10,20 +10,71 @@ import android.graphics.Paint
 import android.graphics.RectF
 import android.graphics.Typeface
 import android.graphics.drawable.Drawable
+import androidx.annotation.ColorInt
 import com.drdisagree.iconify.xposed.modules.extras.utils.ViewHelper.toPx
 
 object ArcProgressWidget {
 
     fun generateBitmap(
         context: Context,
+        percentage: Int,
+        textInside: String,
+        textInsideSizePx: Int,
+        textBottom: String = "...",
+        textBottomSizePx: Int,
+        typeface: Typeface
+    ): Bitmap {
+        return generateBitmap(
+            context,
+            percentage,
+            textInside,
+            textInsideSizePx,
+            null,
+            28,
+            textBottom,
+            textBottomSizePx,
+            typeface
+        )
+    }
+
+    fun generateBitmap(
+        context: Context,
+        percentage: Int,
+        textInside: String,
+        textInsideSizePx: Int,
+        iconDrawable: Drawable?,
+        iconSizePx: Int,
+        typeface: Typeface,
+        @ColorInt progressColor: Int,
+        @ColorInt textColor: Int
+    ): Bitmap {
+        return generateBitmap(
+            context,
+            percentage,
+            textInside,
+            textInsideSizePx,
+            iconDrawable,
+            iconSizePx,
+            "Usage",
+            28,
+            typeface,
+            progressColor,
+            textColor
+        )
+    }
+
+    fun generateBitmap(
+        context: Context,
         percentage: Int = 100,
-        textInside: String = "",
+        textInside: String = "☺",
         textInsideSizePx: Int,
         iconDrawable: Drawable? = null,
-        iconSizePx: Int = 28,
+        iconSizePx: Int,
         textBottom: String = "...",
         textBottomSizePx: Int = 28,
-        typeface: Typeface? = Typeface.create("sans-serif", Typeface.BOLD)
+        typeface: Typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD),
+        @ColorInt progressColor: Int = Color.WHITE,
+        @ColorInt textColor: Int = Color.WHITE
     ): Bitmap {
         val width = 400
         val height = 400
@@ -32,54 +83,70 @@ object ArcProgressWidget {
         val minAngle = 135
         val maxAngle = 275
 
-        val paint = Paint(Paint.FILTER_BITMAP_FLAG or Paint.DITHER_FLAG or Paint.ANTI_ALIAS_FLAG)
-        paint.strokeWidth = stroke.toFloat()
-        paint.style = Paint.Style.STROKE
-        paint.strokeCap = Paint.Cap.ROUND
+        val paint =
+            Paint(Paint.FILTER_BITMAP_FLAG or Paint.DITHER_FLAG or Paint.ANTI_ALIAS_FLAG).apply {
+                strokeWidth = stroke.toFloat()
+                style = Paint.Style.STROKE
+                strokeCap = Paint.Cap.ROUND
+            }
 
         val mTextPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             textSize = context.toPx(textInsideSizePx).toFloat()
-            color = Color.WHITE
+            color = textColor
             textAlign = Paint.Align.CENTER
-            this.typeface = typeface
         }
 
         val arc = RectF()
-        arc[stroke.toFloat() / 2 + padding, stroke.toFloat() / 2 + padding, width - padding - stroke.toFloat() / 2] =
-            height - padding - stroke.toFloat() / 2
+        arc[(stroke.toFloat() / 2) + padding,
+            (stroke.toFloat() / 2) + padding,
+            width - padding - (stroke.toFloat() / 2)] = height - padding - (stroke.toFloat() / 2)
 
         val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
 
-        paint.color = Color.argb(75, 255, 255, 255)
+        paint.color = Color.argb(
+            75,
+            Color.red(progressColor),
+            Color.green(progressColor),
+            Color.blue(progressColor)
+        )
         canvas.drawArc(arc, minAngle.toFloat(), maxAngle.toFloat(), false, paint)
 
-        paint.color = Color.WHITE
-        canvas.drawArc(arc, minAngle.toFloat(), maxAngle.toFloat() / 100 * percentage, false, paint)
+        paint.color = progressColor
+        canvas.drawArc(
+            arc,
+            minAngle.toFloat(),
+            (maxAngle.toFloat() / 100) * percentage,
+            false,
+            paint
+        )
+
+        mTextPaint.setTypeface(typeface)
 
         canvas.drawText(
             textInside,
-            bitmap.getWidth().toFloat() / 2,
-            (bitmap.getHeight() - mTextPaint.ascent() * 0.7f) / 2,
+            bitmap.width.toFloat() / 2,
+            (bitmap.height - mTextPaint.ascent() * 0.7f) / 2,
             mTextPaint
         )
 
         iconDrawable?.apply {
-            val size = context.toPx(iconSizePx)
-            val left = (bitmap.getWidth() - size) / 2
-            val top = bitmap.getHeight() - (size / 1.3).toInt() - (stroke + padding)
+            val size: Int = context.toPx(iconSizePx)
+            val left = (bitmap.width - size) / 2
+            val top: Int =
+                bitmap.height - (size / 1.3).toInt() - (stroke + padding) - context.toPx(4)
             val right = left + size
             val bottom = top + size
 
             setBounds(left, top, right, bottom)
-            colorFilter = BlendModeColorFilter(Color.WHITE, BlendMode.SRC_IN)
+            colorFilter = BlendModeColorFilter(textColor, BlendMode.SRC_IN)
             draw(canvas)
         } ?: run {
             mTextPaint.textSize = context.toPx(textBottomSizePx).toFloat()
             canvas.drawText(
                 textBottom,
-                bitmap.getWidth().toFloat() / 2,
-                (bitmap.getHeight() - (stroke + padding)).toFloat(),
+                bitmap.width.toFloat() / 2,
+                (bitmap.height - (stroke + padding)).toFloat(),
                 mTextPaint
             )
         }

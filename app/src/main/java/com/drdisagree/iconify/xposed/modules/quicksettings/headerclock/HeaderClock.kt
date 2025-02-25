@@ -31,24 +31,24 @@ import androidx.core.content.res.ResourcesCompat
 import androidx.core.text.TextUtilsCompat
 import com.drdisagree.iconify.BuildConfig
 import com.drdisagree.iconify.R
-import com.drdisagree.iconify.common.Const.ACTION_BOOT_COMPLETED
-import com.drdisagree.iconify.common.Const.SYSTEMUI_PACKAGE
-import com.drdisagree.iconify.common.Preferences.HEADER_CLOCK_CENTERED
-import com.drdisagree.iconify.common.Preferences.HEADER_CLOCK_COLOR_CODE_ACCENT1
-import com.drdisagree.iconify.common.Preferences.HEADER_CLOCK_COLOR_CODE_ACCENT2
-import com.drdisagree.iconify.common.Preferences.HEADER_CLOCK_COLOR_CODE_ACCENT3
-import com.drdisagree.iconify.common.Preferences.HEADER_CLOCK_COLOR_CODE_TEXT1
-import com.drdisagree.iconify.common.Preferences.HEADER_CLOCK_COLOR_CODE_TEXT2
-import com.drdisagree.iconify.common.Preferences.HEADER_CLOCK_COLOR_SWITCH
-import com.drdisagree.iconify.common.Preferences.HEADER_CLOCK_FONT_SWITCH
-import com.drdisagree.iconify.common.Preferences.HEADER_CLOCK_FONT_TEXT_SCALING
-import com.drdisagree.iconify.common.Preferences.HEADER_CLOCK_LANDSCAPE_SWITCH
-import com.drdisagree.iconify.common.Preferences.HEADER_CLOCK_SIDEMARGIN
-import com.drdisagree.iconify.common.Preferences.HEADER_CLOCK_STYLE
-import com.drdisagree.iconify.common.Preferences.HEADER_CLOCK_SWITCH
-import com.drdisagree.iconify.common.Preferences.HEADER_CLOCK_TOPMARGIN
-import com.drdisagree.iconify.common.Preferences.ICONIFY_HEADER_CLOCK_TAG
-import com.drdisagree.iconify.common.Resources
+import com.drdisagree.iconify.data.common.Const.ACTION_BOOT_COMPLETED
+import com.drdisagree.iconify.data.common.Const.SYSTEMUI_PACKAGE
+import com.drdisagree.iconify.data.common.Preferences.HEADER_CLOCK_CENTERED
+import com.drdisagree.iconify.data.common.Preferences.HEADER_CLOCK_COLOR_CODE_ACCENT1
+import com.drdisagree.iconify.data.common.Preferences.HEADER_CLOCK_COLOR_CODE_ACCENT2
+import com.drdisagree.iconify.data.common.Preferences.HEADER_CLOCK_COLOR_CODE_ACCENT3
+import com.drdisagree.iconify.data.common.Preferences.HEADER_CLOCK_COLOR_CODE_TEXT1
+import com.drdisagree.iconify.data.common.Preferences.HEADER_CLOCK_COLOR_CODE_TEXT2
+import com.drdisagree.iconify.data.common.Preferences.HEADER_CLOCK_COLOR_SWITCH
+import com.drdisagree.iconify.data.common.Preferences.HEADER_CLOCK_FONT_SWITCH
+import com.drdisagree.iconify.data.common.Preferences.HEADER_CLOCK_FONT_TEXT_SCALING
+import com.drdisagree.iconify.data.common.Preferences.HEADER_CLOCK_LANDSCAPE_SWITCH
+import com.drdisagree.iconify.data.common.Preferences.HEADER_CLOCK_SIDEMARGIN
+import com.drdisagree.iconify.data.common.Preferences.HEADER_CLOCK_STYLE
+import com.drdisagree.iconify.data.common.Preferences.HEADER_CLOCK_SWITCH
+import com.drdisagree.iconify.data.common.Preferences.HEADER_CLOCK_TOPMARGIN
+import com.drdisagree.iconify.data.common.Preferences.ICONIFY_HEADER_CLOCK_TAG
+import com.drdisagree.iconify.data.common.Resources
 import com.drdisagree.iconify.utils.TextUtils
 import com.drdisagree.iconify.utils.color.ColorUtils.getColorResCompat
 import com.drdisagree.iconify.xposed.HookRes.Companion.resParams
@@ -63,13 +63,12 @@ import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.callMethod
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.getField
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.getFieldSilently
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.hookConstructor
+import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.hookLayout
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.hookMethod
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.log
 import com.drdisagree.iconify.xposed.utils.XPrefs.Xprefs
 import com.drdisagree.iconify.xposed.utils.XPrefs.XprefsIsInitialized
 import de.robv.android.xposed.XposedHelpers.callStaticMethod
-import de.robv.android.xposed.callbacks.XC_InitPackageResources.InitPackageResourcesParam
-import de.robv.android.xposed.callbacks.XC_LayoutInflated
 import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam
 import java.io.File
 import java.util.Locale
@@ -106,8 +105,6 @@ class HeaderClock(context: Context) : ModPack(context) {
     }
 
     override fun updatePrefs(vararg key: String) {
-        if (!XprefsIsInitialized) return
-
         Xprefs.apply {
             showHeaderClock = getBoolean(HEADER_CLOCK_SWITCH, false)
             centeredClockView = getBoolean(HEADER_CLOCK_CENTERED, false)
@@ -299,105 +296,105 @@ class HeaderClock(context: Context) : ModPack(context) {
     }
 
     private fun hideStockClockDate() {
-        val resParam: InitPackageResourcesParam = resParams[SYSTEMUI_PACKAGE] ?: return
+        val xResources: XResources = resParams[SYSTEMUI_PACKAGE]?.res ?: return
 
-        try {
-            resParam.res.hookLayout(
-                SYSTEMUI_PACKAGE,
-                "layout",
-                "quick_qs_status_icons",
-                object : XC_LayoutInflated() {
-                    override fun handleLayoutInflated(liparam: LayoutInflatedParam) {
-                        if (!showHeaderClock) return
+        xResources
+            .hookLayout()
+            .packageName(SYSTEMUI_PACKAGE)
+            .resource("layout", "quick_qs_status_icons")
+            .suppressError()
+            .run { liparam ->
+                liparam.view.findViewById<View>(
+                    liparam.res.getIdentifier(
+                        "lock_icon_view",
+                        "id",
+                        mContext.packageName
+                    )
+                ).apply {
+                    if (!showHeaderClock) return@apply
 
-                        // Ricedroid date
-                        try {
-                            val date =
-                                liparam.view.findViewById<TextView>(
-                                    liparam.res.getIdentifier(
-                                        "date",
-                                        "id",
-                                        mContext.packageName
-                                    )
+                    // Ricedroid date
+                    try {
+                        val date =
+                            liparam.view.findViewById<TextView>(
+                                liparam.res.getIdentifier(
+                                    "date",
+                                    "id",
+                                    mContext.packageName
                                 )
-                            date.layoutParams.height = 0
-                            date.layoutParams.width = 0
-                            date.setTextAppearance(0)
-                            date.setTextColor(0)
-                            date.visibility = View.GONE
-                        } catch (ignored: Throwable) {
-                        }
-
-                        // Nusantara clock
-                        try {
-                            val jrClock =
-                                liparam.view.findViewById<TextView>(
-                                    liparam.res.getIdentifier(
-                                        "jr_clock",
-                                        "id",
-                                        mContext.packageName
-                                    )
-                                )
-                            jrClock.layoutParams.height = 0
-                            jrClock.layoutParams.width = 0
-                            jrClock.setTextAppearance(0)
-                            jrClock.setTextColor(0)
-                            jrClock.visibility = View.GONE
-                        } catch (ignored: Throwable) {
-                        }
-
-                        // Nusantara date
-                        try {
-                            val jrDateContainer =
-                                liparam.view.findViewById<LinearLayout>(
-                                    liparam.res.getIdentifier(
-                                        "jr_date_container",
-                                        "id",
-                                        mContext.packageName
-                                    )
-                                )
-                            val jrDate = jrDateContainer.getChildAt(0) as TextView
-                            jrDate.layoutParams.height = 0
-                            jrDate.layoutParams.width = 0
-                            jrDate.setTextAppearance(0)
-                            jrDate.setTextColor(0)
-                            jrDate.visibility = View.GONE
-                        } catch (ignored: Throwable) {
-                        }
+                            )
+                        date.layoutParams.height = 0
+                        date.layoutParams.width = 0
+                        date.setTextAppearance(0)
+                        date.setTextColor(0)
+                        date.visibility = View.GONE
+                    } catch (ignored: Throwable) {
                     }
-                })
-        } catch (ignored: Throwable) {
-        }
 
-        try {
-            resParam.res.hookLayout(
-                SYSTEMUI_PACKAGE,
-                "layout",
-                "quick_status_bar_header_date_privacy",
-                object : XC_LayoutInflated() {
-                    override fun handleLayoutInflated(liparam: LayoutInflatedParam) {
-                        if (!showHeaderClock) return
-
-                        try {
-                            val date =
-                                liparam.view.findViewById<TextView>(
-                                    liparam.res.getIdentifier(
-                                        "date",
-                                        "id",
-                                        mContext.packageName
-                                    )
+                    // Nusantara clock
+                    try {
+                        val jrClock =
+                            liparam.view.findViewById<TextView>(
+                                liparam.res.getIdentifier(
+                                    "jr_clock",
+                                    "id",
+                                    mContext.packageName
                                 )
-                            date.layoutParams.height = 0
-                            date.layoutParams.width = 0
-                            date.setTextAppearance(0)
-                            date.setTextColor(0)
-                            date.visibility = View.GONE
-                        } catch (ignored: Throwable) {
-                        }
+                            )
+                        jrClock.layoutParams.height = 0
+                        jrClock.layoutParams.width = 0
+                        jrClock.setTextAppearance(0)
+                        jrClock.setTextColor(0)
+                        jrClock.visibility = View.GONE
+                    } catch (ignored: Throwable) {
                     }
-                })
-        } catch (ignored: Throwable) {
-        }
+
+                    // Nusantara date
+                    try {
+                        val jrDateContainer =
+                            liparam.view.findViewById<LinearLayout>(
+                                liparam.res.getIdentifier(
+                                    "jr_date_container",
+                                    "id",
+                                    mContext.packageName
+                                )
+                            )
+                        val jrDate = jrDateContainer.getChildAt(0) as TextView
+                        jrDate.layoutParams.height = 0
+                        jrDate.layoutParams.width = 0
+                        jrDate.setTextAppearance(0)
+                        jrDate.setTextColor(0)
+                        jrDate.visibility = View.GONE
+                    } catch (ignored: Throwable) {
+                    }
+                }
+            }
+
+        xResources
+            .hookLayout()
+            .packageName(SYSTEMUI_PACKAGE)
+            .resource("layout", "quick_status_bar_header_date_privacy")
+            .suppressError()
+            .run { liparam ->
+                if (!showHeaderClock) return@run
+
+                try {
+                    val date =
+                        liparam.view.findViewById<TextView>(
+                            liparam.res.getIdentifier(
+                                "date",
+                                "id",
+                                mContext.packageName
+                            )
+                        )
+                    date.layoutParams.height = 0
+                    date.layoutParams.width = 0
+                    date.setTextAppearance(0)
+                    date.setTextColor(0)
+                    date.visibility = View.GONE
+                } catch (ignored: Throwable) {
+                }
+            }
     }
 
     private fun updateClockView() {
@@ -463,8 +460,6 @@ class HeaderClock(context: Context) : ModPack(context) {
         }
 
     private fun modifyClockView(clockView: View) {
-        if (!XprefsIsInitialized) return
-
         val clockStyle: Int = Xprefs.getInt(HEADER_CLOCK_STYLE, 0)
         val customFontEnabled: Boolean = Xprefs.getBoolean(HEADER_CLOCK_FONT_SWITCH, false)
         val clockScale: Float =

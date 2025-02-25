@@ -111,4 +111,9 @@
         android:title="@string/unzoom_depth_wallpaper_title"
         app:iconSpaceReserved="false" />
 
+    <com.drdisagree.iconify.ui.preferences.FooterPreference
+        android:key="header_image_footer_info"
+        android:title="@string/hig_res_image_footer_info"
+        search:ignore="true" />
+
 </PreferenceScreen>

@@ -153,6 +153,13 @@ This project exists thanks to the following contributors:
                 </a>
             </td>
             <td align="center">
+                <a href="https://github.com/backslashxx">
+                    <img src="https://avatars.githubusercontent.com/u/118538522?v=4" width="100;" alt="backslashxx"/>
+                    <br />
+                    <sub><b>backslashxx</b></sub>
+                </a>
+            </td>
+            <td align="center">
                 <a href="https://github.com/scrxpted7327">
                     <img src="https://avatars.githubusercontent.com/u/80987982?v=4" width="100;" alt="scrxpted7327"/>
                     <br />

@@ -94,6 +94,7 @@
     <string name="activity_desc_xposed_menu">برای استفاده از این گزینه‌ها داشتن برنامه LSPosed الزامی است</string>
     <string name="activity_title_extras">موارد بیشتر</string>
     <string name="activity_desc_extras">تنظیمات و گزینه‌های اضافه</string>
+    <string name="activity_title_dual_statusbar">Dual Statusbar</string>
     <!-- Settings -->
     <string name="settings_section_title_general">عمومی</string>
     <string name="settings_app_language">زبان</string>
@@ -127,6 +128,8 @@
     <string name="settings_show_home_page_card_desc">نمایش یک برگه زیبا در بخش خانه برنامه.</string>
     <string name="settings_vibrate_ui_card_title">بازخورد لمسی</string>
     <string name="settings_vibrate_ui_page_card_desc">بازخورد لمسی را با لمس تعاملی تقویت کنید.</string>
+    <string name="settings_slider_controller_title">Slider Controller</string>
+    <string name="settings_slider_controller_desc">Enable to display plus and minus buttons with sliders.</string>
     <string name="settings_clear_app_cache_title">پاک‌سازی حافظه پنهان برنامه</string>
     <string name="settings_clear_app_cache_desc">پاک کردن حافظه پنهان ایجاد شده به دلیل استفاده از فونت های سفارشی، تصاویر یا گیف ها.</string>
     <string name="activity_title_experimental">گزینه‌های آزمایشی</string>
@@ -296,12 +299,17 @@
     <string name="section_title_qs_text_color">رنگ متن در نوارابزار</string>
     <string name="qs_text_color_normal">عادی</string>
     <string name="qs_text_color_pixel">پیکسل</string>
+    <string name="custom_qs_tile_text_color_title">رنگ متن سفارشی</string>
+    <string name="custom_qs_tile_text_color_desc">فعال کردن رنگ متن سفارشی تنظیم سریع</string>
+    <string name="custom_qs_tile_text_color_list_title">گزینه های رنگ متن</string>
     <string name="label_always_white_title">همیشه سفید</string>
     <string name="label_always_white_desc">هم متن و هم عنوان سفید</string>
     <string name="label_always_white_v2_title">همیشه سفید نسخه ۲</string>
     <string name="label_always_white_v2_desc">عنوان سفید و متن رنگی</string>
     <string name="label_follow_system_title">پیروی از سیستم</string>
     <string name="label_follow_system_desc">پیروی از سیستم هم در عنوان و هم در متن</string>
+    <string name="label_follow_system_inverse_title">دنبال کردن برعکس سیستم</string>
+    <!--<string name="label_follow_system_inverse_desc">Title system, subtitle system</string>-->
     <string name="label_follow_system_v2_title">پیروی از سیستم نسخه ۲</string>
     <string name="label_follow_system_v2_desc">پیروی از سیستم در عنوان و متن رنگی</string>
     <string name="label_fix_text_color_title">رفع مشکل رنگ </string>
@@ -316,6 +324,7 @@
     <!-- QS Panel Margin -->
     <string name="qqs_panel_top_margin_title">حاشیه بالای پنل تنظیم سریع</string>
     <string name="qs_panel_top_margin_title">تنظیم حاشیه بالای نوارابزار</string>
+    <string name="qs_panel_top_margin_info">دستگاه را برای دیدن تغییرات بچرخانید. اگر کار نمرد رابط را راه‌اندازی مجدد کنید.</string>
     <!-- Statusbar -->
     <string name="section_title_spacing">فضادهی</string>
     <string name="sb_left_padding">تنظیم حاشیه سمت چپ</string>
@@ -369,20 +378,16 @@
     <string name="vp_thick_background_desc">ضخیم کردن بخش میزان صدا</string>
     <string name="vp_no_background_title">بدون پیش‌زمینه</string>
     <string name="vp_no_background_desc">حذف بخش میزان صدا</string>
-    <string name="section_title_custom_magisk_module">ماژول سفارشی مجسیک</string>
+    <string name="read_carefully">توجه!</string>
+    <!-- Volume Panel Style -->
     <string name="volume_style">ظاهر نوار تنظیم صدا</string>
-    <string name="volume_module_desc">ساخت ماژول قابل فلش در مجیسک برای این استایل</string>
+    <string name="volume_style_default">Default</string>
     <string name="volume_style_gradient">گرادیان</string>
     <string name="volume_style_doublelayer">دو لایه</string>
     <string name="volume_style_shadedlayer">لایه سایه دار</string>
     <string name="volume_style_neumorph">نئومورف</string>
     <string name="volume_style_outline">برون نما</string>
     <string name="volume_style_neumorphoutline">نئومورف برون نما</string>
-    <string name="btn_create_module">ساختن ماژول</string>
-    <string name="toast_module_created">ماژول با موفقیت ساخته شد</string>
-    <string name="read_carefully">توجه!</string>
-    <string name="volume_module_installation_guide">با استفاده از این گزینه فایل ماژول در درون پوشه دانلود در حافظه داخلی ساخته می‌شود. فایل ماژول را که نام آن IconifyCompanion.zip است را باید در مجیسک فلش بزنید. همیشه قبل از نصب ماژول جدید نسخه قبلی را (در صورت وجود) از مجیسک پاک کرده و دستگاه خود را یکبار ریستارت کنید.\n\n<b>نکات:</b>\n• قبل از آپدیت کردن رام خود ماژول را حتما پاک کنید.\n• در صورت آپدیت رام و یا تغییر دادن ماژول آن را دوباره بسازید.\n• به هیچ وجه ماژولی را که مخصوص رام شما ساخته نشده فلش نرنید.</string>
-    <string name="volume_module_unstable_desc">در حال حاضر ماژول صدا در اندروید 14 و بالاتر ناپایدار است. با مسئولیت خودتان استفاده کنید.</string>
     <!-- Media Player -->
     <string name="cont_desc_media_player">پیش‌نمایش مدیا پلیر</string>
     <string name="media_player_preview_music_title">عنوان موسیقی</string>
@@ -406,7 +411,6 @@
     <string name="section_title_privacy_chip">تراشه حریم خصوصی</string>
     <string name="accent_privacy_chip_title">لهجه تراشه حریم خصوصی</string>
     <string name="accent_privacy_chip_desc">لهجه تراشه حریم خصوصی را رنگی کنید</string>
-    <string name="section_title_media_player">پخش‌کننده رسانه</string>
     <string name="disable_progress_wave_title">غیرفعال کردن موج پیشرفت</string>
     <string name="disable_progress_wave_desc">غیرفعال کردن انیمیشن موج نوار پیشرفت</string>
     <!-- Xposed Menu -->
@@ -444,6 +448,9 @@
     <string name="activity_title_xposed_others">تنظیمات بیشتر</string>
     <string name="activity_desc_xposed_others">تنظیمات متفرقه و شخصی‌سازی بیشتر</string>
     <string name="activity_title_xposed_weather_settings">تنظیمات آب و هوا</string>
+    <string name="activity_title_xposed_launcher">راه‌انداز</string>
+    <string name="activity_desc_xposed_launcher">تغییرات مربوط به راه‌انداز</string>
+    <string name="activity_title_lockscreen_album_art">Media Album Art</string>
     <!-- Oneplus QS Header -->
     <string name="oneplus_qs_header_title">سربرگ تنظیم سریع وان پلاس</string>
     <string name="oneplus_qs_header_desc">پخش کننده رسانه سبک وان‌پلاس و کاشی ها را در تنظیم سریع فعال کنید</string>
@@ -455,6 +462,7 @@
     <string name="oneplus_qs_header_fade_level">سطح محو شدن</string>
     <string name="oneplus_qs_header_top_margin">حاشیه بالا</string>
     <string name="oneplus_qs_header_expansion_y">مقدار گسترش</string>
+    <string name="oneplus_qs_header_gap">شکاف گسترش یافته</string>
     <!-- Lockscreen Widgets -->
     <string name="lockscreen_widgets_title">ویجت های صفحه قفل</string>
     <string name="lockscreen_widgets_enabled_title">فعال کردن ویجت های صفحه‌قفل</string>
@@ -486,6 +494,9 @@
     <string name="mini_widget_icon_inactive">رنگ غیر‌فعال ابزارک کوچک</string>
     <string name="weather_settings">تنظیمات آب و هوا</string>
     <string name="lockscreen_widgets_scale">مقیاس ابزارک ها</string>
+    <string name="lockscreen_device_widget_style_title">سبک ابزارک دستگاه</string>
+    <string name="lockscreen_device_widget_style_classic">نوار با دو قوس</string>
+    <string name="lockscreen_device_widget_style_arcs">چهار قوس</string>
     <!-- LS Widgets Actions -->
     <string name="camera">دوربین</string>
     <string name="clock_timer">ساعت/تایمر</string>
@@ -554,6 +565,9 @@
     <string name="colored_qs_notification_title">نماد اعلان رنگی</string>
     <string name="colored_qs_notification_desc">نمایش نماد برنامه به عنوان نماد اعلان</string>
     <string name="section_title_qs_margin">حاشیه تنظیم‌سریع</string>
+    <string name="section_title_media_player">پخش‌کننده رسانه</string>
+    <string name="compact_media_player_title">پخش‌کننده رسانه فشرده</string>
+    <string name="compact_media_player_desc">پخش‌کننده رسانه را فشرده کن</string>
     <string name="section_title_qs_elements">عناصر تنظیم‌سریع</string>
     <string name="hide_qs_on_lockscreen_title">تنظیم‌سریع را در صفحه قفل مخفی کنید</string>
     <string name="hide_qs_on_lockscreen_desc">پانل تنظیمات سریع را در صفحه قفل ایمن غیرفعال کنید</string>
@@ -691,6 +705,8 @@
     <string name="lockscreen_clock_auto_hide_clock_title">پنهان کردن خودکار ساعت</string>
     <string name="lockscreen_clock_auto_hide_clock_desc">پنهان کردن ساعت در اعلان ورودی</string>
     <string name="custom_lockscreen_clock_style_title">ظاهر ساعت</string>
+    <string name="lockscreen_clock_move_notification_icon_title">نماد‌های زیر ساعت همیشه روشن</string>
+    <string name="lockscreen_clock_move_notification_icon_desc">نمادهای همیشه روشن را به زیر ساعت سفارشی منتقل کنید، ممکن است در رام‌های قدیمی‌تر باگ داشته باشد</string>
     <string name="lockscreen_clock_font_title">فونت ساعت</string>
     <string name="lockscreen_clock_font_desc">برای ساعت قفل صفحه از فونت سفارشی استفاده کنید</string>
     <string name="lsclock_custom_color_title">رنگ ساعت سفارشی</string>
@@ -804,6 +820,36 @@
     <string name="hide_ls_carrier_desc">مخفی کردن اسم اپراتور در صفحه‌قفل</string>
     <string name="hide_ls_statusbar_title">مخفی کردن نوار‌اعلان صفحه‌قفل</string>
     <string name="hide_ls_statusbar_desc">نواراعلان را در صفحه قفل پنهان کنید</string>
+    <string name="sb_swap_wifi_cellular_title">تعویض وای‌فای با داده همراه</string>
+    <string name="sb_swap_wifi_cellular_desc">تعویض نماد های وای‌فای و داده همراه</string>
+    <string name="sb_swap_cellular_network_type_title">Swap Cellular and Network Type</string>
+    <string name="sb_swap_cellular_network_type_desc">Swap cellular and network type (3G 4G LTE etc.) icons</string>
+    <string name="sb_clock_on_right_side_title">Clock on End Side</string>
+    <string name="sb_clock_on_right_side_desc">Show clock on end side of statusbar</string>
+    <string name="sb_show_4g_icon_title">4G Icon</string>
+    <string name="sb_show_4g_icon_desc">Display 4G icon in statusbar instead of LTE</string>
+    <string name="sb_max_notification_icons_title">Notification Icons Limit</string>
+    <string name="dual_status_bar_title">Dual Statusbar</string>
+    <string name="dual_status_bar_desc">Display statusbar elements in two rows</string>
+    <!-- Xposed Dual Statusbar -->
+    <string name="dsb_title">Dual Row Statusbar</string>
+    <string name="dsb_portrait_only_title">Portrait Only</string>
+    <string name="dsb_single_line_start_side_title">Single-Line Start Side</string>
+    <string name="dsb_single_line_start_side_desc">Show one row on start side of statusbar</string>
+    <string name="dsb_single_line_end_side_title">Single-Line End Side</string>
+    <string name="dsb_single_line_end_side_desc">Show one row on end side of statusbar</string>
+    <string name="dsb_swap_start_side_title">Swap Start Side</string>
+    <string name="dsb_swap_start_side_desc">Swap the position of clock and notification icons</string>
+    <string name="dsb_swap_end_side_title">Swap End Side</string>
+    <string name="dsb_swap_end_side_desc">Swap the position of battery and status icons</string>
+    <string name="dsb_statusbar_height_title">Statusbar Height</string>
+    <string name="dsb_start_padding_title">Start Padding</string>
+    <string name="dsb_end_padding_title">End Padding</string>
+    <string name="dsb_top_padding_title">Top Padding</string>
+    <string name="dsb_start_top_margin_title">Start Top Margin</string>
+    <string name="dsb_start_bottom_margin_title">Start Bottom Margin</string>
+    <string name="dsb_end_top_margin_title">End Top Margin</string>
+    <string name="dsb_end_bottom_margin_title">End Bottom Margin</string>
     <!-- Xposed Others -->
     <string name="qs_header">سربرگ تنظیم‌سریع</string>
     <string name="hide_carrier_group_title">مخفی کردن اپراتور</string>
@@ -830,6 +876,7 @@
     <string name="view_changelog">نمایش تغییرات اخیر</string>
     <string name="hide_changelog">مخفی کردن تغییرات اخیر</string>
     <string name="already_up_to_date">آخرین نسخه برنامه در حال حاضر نصب است.</string>
+    <string name="auto_update_disabled">به‌روزرسانی خودکار برای ساخت اشکال‌زدایی غیرفعال است.</string>
     <string name="current_version">تسخه فعلی:</string>
     <string name="latest_version">آخرین نسخه:</string>
     <string name="update_checking_failed">بررسی برای آپدیت با موفقیت انجام نشد!</string>
@@ -1075,6 +1122,9 @@
     <string name="accent_tertiary">تاکیدی سوم</string>
     <string name="text_color_primary">رنگ متن تاکیدی</string>
     <string name="text_color_inverse">رنگ متن برعکس</string>
+    <string name="learn_more">بیشتر بدانید</string>
+    <string name="custom_tiles_footer_info">To ensure custom tiles work properly, first use the default internet and bluetooth tiles once before using the custom ones.</string>
+    <string name="hig_res_image_footer_info">Avoid using high-resolution images, as they may cause your system UI to crash.</string>
     <!-- Weather -->
     <!-- Omni Jaws Strings -->
     <string name="units_title">واحد</string>
@@ -1182,6 +1232,40 @@
     <string name="lockscreen_weather_selection_str_gradient">گرادیان</string>
     <string name="lockscreen_weather_selection_str_border_accent">تیره با حاشیه های برجسته</string>
     <string name="lockscreen_weather_selection_str_border_gradient">تاریک با حاشیه های گرادیان</string>
+    <string name="lockscreen_weather_font_title">فونت آب و هوا</string>
+    <string name="lockscreen_weather_font_desc">استفاده از فونت سفارشی برای متن آب و هوا</string>
+    <!-- Media art -->
+    <string name="media_art_title">Show Media Album Art</string>
+    <string name="media_art_summary">Display media album art when available</string>
+    <string name="media_art_blur_level_title">Blur Level</string>
+    <!-- Album art filter -->
+    <string name="albumart_filter_title">Media Album Art Filter</string>
+    <string name="albumart_filter_none">None</string>
+    <string name="albumart_filter_grayscale">Grayscale</string>
+    <string name="albumart_filter_tint">Accent Tinted</string>
+    <string name="albumart_filter_blur">Blur</string>
+    <string name="albumart_filter_grayblur">Grayscale and Blurred</string>
+    <!-- Launcher mods -->
+    <string name="section_title_icons">Icons</string>
+    <string name="section_title_home_screen">Home Screen</string>
+    <string name="section_title_app_drawer">App Drawer</string>
+    <string name="section_title_recents">Recents</string>
+    <string name="force_themed_icons_title">نمادهای اجباری پوسته</string>
+    <string name="force_themed_icons_desc">ایجاد در صورت عدم ارائه آیکون های تک رنگ توسط برنامه</string>
+    <string name="app_drawer_themed_icons_title">نمادهای پوسته‌ای کشوی برنامه</string>
+    <string name="app_drawer_themed_icons_desc">نمادهای پوسته را در کشوی برنامه فعال کنید</string>
+    <string name="double_tap_to_sleep_title">دوبار ضربه برای خواب</string>
+    <string name="double_tap_to_sleep_desc">روی فضای خالی صفحه اصلی دو ضربه سریع بزنید تا صفحه خاموش شود</string>
+    <string name="desktop_icon_labels_title">Icon Labels on Desktop</string>
+    <string name="app_drawer_icon_labels_title">Icon Labels in App Drawer</string>
+    <string name="disable_recents_blur_title">غیرفعال کردن تاری اخیراً</string>
+    <string name="disable_recents_blur_desc">در صورتی که صفحه اخیراً لگ داره تاری را غیرفعال کنید</string>
+    <string name="hide_desktop_search_bar_title">Hide Desktop Search Bar</string>
+    <string name="hide_desktop_search_bar_desc">Hide search bar from desktop dock</string>
+    <string name="dock_spacing_title">Dock Spacing</string>
+    <string name="app_drawer_background_opacity_title">کدورت پس‌زمینه کشوی برنامه</string>
+    <string name="recents_background_opacity_title">کدورت پس زمینه اخیرا</string>
+    <string name="launcher_mod_footer_info">Currently, only Pixel Launcher and Launcher3 are supported.</string>
     <!-- Alert Dialogs -->
     <string name="systemui_restart_required_title">راه‌اندازی مجدد رابط کاربری نیاز است</string>
     <string name="systemui_restart_required_desc">برای اعمال این تغییر به یک راه‌اندازی مجدد رابط سیستم نیاز است.</string>

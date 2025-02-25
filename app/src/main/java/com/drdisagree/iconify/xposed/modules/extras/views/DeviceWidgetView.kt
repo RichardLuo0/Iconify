@@ -1,100 +1,112 @@
 package com.drdisagree.iconify.xposed.modules.extras.views
 
 import android.annotation.SuppressLint
-import android.app.ActivityManager
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.content.pm.PackageManager
 import android.content.res.ColorStateList
 import android.graphics.Color
-import android.media.AudioManager
 import android.os.BatteryManager
 import android.os.Build
 import android.text.TextUtils
+import android.view.ViewGroup
 import android.widget.FrameLayout
-import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
-import androidx.core.content.ContextCompat
 import com.drdisagree.iconify.BuildConfig
 import com.drdisagree.iconify.R
+import com.drdisagree.iconify.xposed.modules.extras.callbacks.ThemeChange
 import com.drdisagree.iconify.xposed.modules.extras.utils.ViewHelper.findViewContainsTag
 import com.drdisagree.iconify.xposed.modules.extras.utils.ViewHelper.findViewWithTagAndChangeColor
-import com.drdisagree.iconify.xposed.modules.extras.views.ArcProgressWidget.generateBitmap
 
 class DeviceWidgetView(private val mContext: Context) : FrameLayout(mContext) {
+
     private var appContext: Context? = null
 
+    private var mDeviceWidgetStyle = DEVICE_WIDGET_CLASSIC
     private var mBatteryLevelView: TextView? = null
     private var mBatteryProgress: ProgressBar? = null
     private var mBatteryPercentage = 1
-    private var mVolumeLevelArcProgress: ImageView? = null
-    private var mRamUsageArcProgress: ImageView? = null
 
-    private val mAudioManager: AudioManager
-    private val mActivityManager: ActivityManager?
+    private var mClassicRow: LinearLayout? = null
+    private var mArcRow: LinearLayout? = null
+    private var mVolumeLevelContainer: LinearLayout? = null
+    private var mRamUsageContainer: LinearLayout? = null
+    private var mVolumeLevelContainerArc: LinearLayout? = null
+    private var mRamUsageContainerArc: LinearLayout? = null
+    private var mBatteryPercentArc: ArcProgressImageView? = null
+    private var mBatteryTempArc: ArcProgressImageView? = null
+    private var mVolumeLevelArcProgress: ArcProgressImageView? = null
+    private var mRamUsageArcProgress: ArcProgressImageView? = null
 
     private var mCustomColor = false
     private var mProgressColor = 0
     private var mLinearProgressColor = 0
     private var mTextColor = 0
 
+    private val batteryRegistered = false
+    private val mBatteryReceiver: BroadcastReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent?) {
+            if (intent?.action != null && intent.action == Intent.ACTION_BATTERY_CHANGED) {
+                val level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, 0)
+                val scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, 100)
+                mBatteryPercentage = (level * 100) / scale
+                initBatteryStatus()
+            }
+        }
+    }
+
+    private val mThemeChangeCallback: ThemeChange.OnThemeChangedListener =
+        object : ThemeChange.OnThemeChangedListener {
+            override fun onThemeChanged() {
+                reloadView()
+            }
+        }
+
     init {
-        try {
-            appContext = mContext.createPackageContext(
-                BuildConfig.APPLICATION_ID,
-                Context.CONTEXT_IGNORE_SECURITY
-            )
-        } catch (ignored: PackageManager.NameNotFoundException) {
-        }
-
-        mAudioManager = mContext.getSystemService(Context.AUDIO_SERVICE) as AudioManager
-        mActivityManager = mContext.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
-
-        try {
-            val mBatteryReceiver: BroadcastReceiver = object : BroadcastReceiver() {
-                override fun onReceive(context: Context, intent: Intent) {
-                    if (intent.action != null && intent.action == Intent.ACTION_BATTERY_CHANGED) {
-                        val level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, 0)
-                        val scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, 100)
-                        mBatteryPercentage = (level * 100) / scale
-                        initBatteryStatus()
-                    }
-                }
-            }
-            mContext.registerReceiver(mBatteryReceiver, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
-        } catch (ignored: Exception) {
-        }
-        try {
-            val mVolumeReceiver: BroadcastReceiver = object : BroadcastReceiver() {
-                override fun onReceive(context: Context, intent: Intent) {
-                    initSoundManager()
-                }
-            }
-            mContext.registerReceiver(
-                mVolumeReceiver,
-                IntentFilter("android.media.VOLUME_CHANGED_ACTION")
-            )
-        } catch (ignored: Exception) {
-        }
+        appContext = mContext.createPackageContext(
+            BuildConfig.APPLICATION_ID,
+            Context.CONTEXT_IGNORE_SECURITY
+        )
 
         inflateView()
+
+        ThemeChange.getInstance().registerThemeChangedCallback(mThemeChangeCallback)
     }
 
     private fun inflateView() {
         inflate(appContext, R.layout.view_device_widget, this)
         setupViews()
-        initSoundManager()
     }
 
     @SuppressLint("DiscouragedApi")
     private fun setupViews() {
+        mClassicRow = findViewContainsTag("device_widget_classic") as LinearLayout
+        mArcRow = findViewContainsTag("device_widget_arc") as LinearLayout
+
+        // First row
         mBatteryLevelView = findViewContainsTag("battery_percentage") as TextView
         mBatteryProgress = findViewContainsTag("battery_progressbar") as ProgressBar
-        mVolumeLevelArcProgress = findViewContainsTag("volume_progress") as ImageView
-        mRamUsageArcProgress = findViewContainsTag("ram_usage_info") as ImageView
+        mVolumeLevelContainer = findViewContainsTag("volume_progress") as LinearLayout
+        mRamUsageContainer = findViewContainsTag("ram_usage_info") as LinearLayout
+
+        // Volume progress
+        if (mVolumeLevelArcProgress == null) {
+            mVolumeLevelArcProgress = ArcProgressImageView(mContext).apply {
+                setProgressType(ArcProgressImageView.ProgressType.VOLUME)
+            }
+        }
+        mVolumeLevelContainer!!.addView(mVolumeLevelArcProgress);
+
+        // Ram usage progress
+        if (mRamUsageArcProgress == null) {
+            mRamUsageArcProgress = ArcProgressImageView(mContext).apply {
+                setProgressType(ArcProgressImageView.ProgressType.MEMORY)
+            }
+        }
+        mRamUsageContainer!!.addView(mRamUsageArcProgress);
 
         mBatteryProgress!!.progressTintList = ColorStateList.valueOf(
             if (mCustomColor)
@@ -110,16 +122,60 @@ class DeviceWidgetView(private val mContext: Context) : FrameLayout(mContext) {
                 mLinearProgressColor
         )
 
-        (findViewContainsTag("device_name") as TextView).text =
-            Build.MODEL
+        (findViewContainsTag("device_name") as TextView).text = Build.MODEL
+
+        // Second Row
+        mVolumeLevelContainerArc = findViewContainsTag("volume_progress_2") as LinearLayout
+        mRamUsageContainerArc = findViewContainsTag("memory_progress") as LinearLayout
+
+        val batteryArc = findViewContainsTag("battery_progress_arc") as LinearLayout
+        val batteryTemp = findViewContainsTag("temperature_progress") as LinearLayout
+
+        if (mBatteryPercentArc == null) {
+            mBatteryPercentArc = ArcProgressImageView(mContext)
+            mBatteryPercentArc!!.setProgressType(ArcProgressImageView.ProgressType.BATTERY)
+        }
+        batteryArc.addView(mBatteryPercentArc)
+
+        if (mBatteryTempArc == null) {
+            mBatteryTempArc = ArcProgressImageView(mContext)
+            mBatteryTempArc!!.setProgressType(ArcProgressImageView.ProgressType.TEMPERATURE)
+        }
+        batteryTemp.addView(mBatteryTempArc)
+
+        setupRows()
+    }
+
+    private fun setupRows() {
+        val isClassicWidget = mDeviceWidgetStyle == DEVICE_WIDGET_CLASSIC
+        val isCircularWidget = mDeviceWidgetStyle == DEVICE_WIDGET_CIRCULAR
+
+        val volumeContainer =
+            if (isClassicWidget) mVolumeLevelContainer!! else mVolumeLevelContainerArc!!
+        val ramContainer = if (isClassicWidget) mRamUsageContainer!! else mRamUsageContainerArc!!
+
+        (mVolumeLevelArcProgress?.parent as? ViewGroup)?.removeView(mVolumeLevelArcProgress)
+        (mRamUsageArcProgress?.parent as? ViewGroup)?.removeView(mRamUsageArcProgress)
+
+        volumeContainer.addView(mVolumeLevelArcProgress)
+        ramContainer.addView(mRamUsageArcProgress)
+
+        mClassicRow!!.visibility = if (isClassicWidget) VISIBLE else GONE
+        mArcRow!!.visibility = if (isCircularWidget) VISIBLE else GONE
+    }
+
+    fun setDeviceWidgetStyle(newStyle: Int) {
+        if (mDeviceWidgetStyle == newStyle) return
+        mDeviceWidgetStyle = newStyle
+        setupRows()
     }
 
     @SuppressLint("DiscouragedApi")
     private fun initBatteryStatus() {
-        if (mBatteryProgress != null) {
+        mBatteryProgress?.apply {
             post {
-                mBatteryProgress!!.progress = mBatteryPercentage
-                mBatteryProgress!!.progressTintList = ColorStateList.valueOf(
+                progress = mBatteryPercentage
+                progressTintList = ColorStateList.valueOf(
                     if (mCustomColor)
                         if (mLinearProgressColor == 0) mContext.resources.getColor(
                             mContext.resources.getIdentifier(
@@ -134,75 +190,55 @@ class DeviceWidgetView(private val mContext: Context) : FrameLayout(mContext) {
                 )
             }
         }
-        if (mBatteryLevelView != null) {
-            post {
-                mBatteryLevelView!!.text = appContext!!.resources
-                    .getString(R.string.percentage_text, mBatteryPercentage)
-            }
-        }
 
-        initRamUsage()
-    }
-
-    private fun initSoundManager() {
-        val volLevel = mAudioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
-        val maxVolLevel = mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
-        val volPercent = ((volLevel.toFloat() / maxVolLevel) * 100).toInt()
-
-        if (mVolumeLevelArcProgress != null) {
-            val widgetBitmap = generateBitmap(
-                mContext,
-                volPercent,
-                appContext!!.resources.getString(R.string.percentage_text, volPercent),
-                40,
-                ContextCompat.getDrawable(appContext!!, R.drawable.ic_volume_up),
-                36
+        post {
+            mBatteryLevelView?.text = appContext!!.resources.getString(
+                R.string.percentage_text,
+                mBatteryPercentage
             )
-            post { mVolumeLevelArcProgress!!.setImageBitmap(widgetBitmap) }
-        }
-    }
-
-    private fun initRamUsage() {
-        if (mActivityManager == null) return
-
-        val memoryInfo = ActivityManager.MemoryInfo()
-        mActivityManager.getMemoryInfo(memoryInfo)
-        val usedMemory = memoryInfo.totalMem - memoryInfo.availMem
-        if (memoryInfo.totalMem == 0L) return
-        val usedMemoryPercentage = ((usedMemory * 100) / memoryInfo.totalMem).toInt()
-
-        if (mRamUsageArcProgress != null) {
-            val widgetBitmap = generateBitmap(
-                context = mContext,
-                percentage = usedMemoryPercentage,
-                textInside = appContext!!.resources.getString(
-                    R.string.percentage_text,
-                    usedMemoryPercentage
-                ),
-                textInsideSizePx = 40,
-                textBottom = "RAM",
-                textBottomSizePx = 28
-            )
-            post { mRamUsageArcProgress!!.setImageBitmap(widgetBitmap) }
         }
     }
 
     fun setCustomColor(customColor: Boolean, linearColor: Int, circularColor: Int) {
         mCustomColor = customColor
-        mProgressColor = linearColor
-        mLinearProgressColor = circularColor
-        post { this.initSoundManager() }
-        post {
-            findViewWithTagAndChangeColor(
-                this,
-                "circularprogress",
-                if (mCustomColor) mProgressColor else Color.WHITE
-            )
-        }
+        mProgressColor = circularColor
+        mLinearProgressColor = linearColor
+        mVolumeLevelArcProgress!!.setColors(
+            if (mCustomColor) mProgressColor else Color.WHITE,
+            mTextColor
+        )
+        mRamUsageArcProgress!!.setColors(
+            if (mCustomColor) mProgressColor else Color.WHITE,
+            mTextColor
+        )
+        mBatteryPercentArc!!.setColors(
+            if (mCustomColor) mProgressColor else Color.WHITE,
+            mTextColor
+        )
+        mBatteryTempArc!!.setColors(
+            if (mCustomColor) mProgressColor else Color.WHITE,
+            mTextColor
+        )
     }
 
     fun setTextCustomColor(color: Int) {
         mTextColor = color
+        mVolumeLevelArcProgress!!.setColors(
+            if (mCustomColor) mProgressColor else Color.WHITE,
+            mTextColor
+        )
+        mRamUsageArcProgress!!.setColors(
+            if (mCustomColor) mProgressColor else Color.WHITE,
+            mTextColor
+        )
+        mBatteryPercentArc!!.setColors(
+            if (mCustomColor) mProgressColor else Color.WHITE,
+            mTextColor
+        )
+        mBatteryTempArc!!.setColors(
+            if (mCustomColor) mProgressColor else Color.WHITE,
+            mTextColor
+        )
         post {
             findViewWithTagAndChangeColor(
                 this,
@@ -212,16 +248,40 @@ class DeviceWidgetView(private val mContext: Context) : FrameLayout(mContext) {
         }
     }
 
-    fun setDeviceName(devName: String?) {
-        val deviceName = if (!TextUtils.isEmpty(devName)) {
-            devName
-        } else {
-            Build.MODEL
-        }
-
+    fun setDeviceName(deviceName: String?) {
         post {
             (findViewContainsTag("device_name") as TextView).text =
-                deviceName
+                deviceName?.takeIf { !TextUtils.isEmpty(it) } ?: Build.MODEL
         }
+    }
+
+    private fun reloadView() {
+        initBatteryStatus()
+    }
+
+    override fun onAttachedToWindow() {
+        super.onAttachedToWindow()
+
+        try {
+            if (!batteryRegistered) mContext.registerReceiver(
+                mBatteryReceiver,
+                IntentFilter(Intent.ACTION_BATTERY_CHANGED)
+            )
+        } catch (ignored: Exception) {
+        }
+    }
+
+    override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
+
+        try {
+            if (batteryRegistered) mContext.unregisterReceiver(mBatteryReceiver)
+        } catch (ignored: Exception) {
+        }
+    }
+
+    companion object {
+        private const val DEVICE_WIDGET_CLASSIC: Int = 0
+        private const val DEVICE_WIDGET_CIRCULAR: Int = 1
     }
 }

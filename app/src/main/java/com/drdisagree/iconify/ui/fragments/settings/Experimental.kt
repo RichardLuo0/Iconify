@@ -19,10 +19,10 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import com.drdisagree.iconify.R
-import com.drdisagree.iconify.common.Preferences.HEADER_IMAGE_OVERLAP
-import com.drdisagree.iconify.common.Preferences.HIDE_DATA_DISABLED_ICON
-import com.drdisagree.iconify.config.RPrefs.getBoolean
-import com.drdisagree.iconify.config.RPrefs.putBoolean
+import com.drdisagree.iconify.data.common.Preferences.HEADER_IMAGE_OVERLAP
+import com.drdisagree.iconify.data.common.Preferences.HIDE_DATA_DISABLED_ICON
+import com.drdisagree.iconify.data.config.RPrefs.getBoolean
+import com.drdisagree.iconify.data.config.RPrefs.putBoolean
 import com.drdisagree.iconify.databinding.FragmentExperimentalBinding
 import com.drdisagree.iconify.ui.activities.MainActivity
 import com.drdisagree.iconify.ui.base.BaseFragment

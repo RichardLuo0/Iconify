@@ -18,7 +18,6 @@ import android.media.session.MediaSessionManager
 import android.media.session.PlaybackState
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
-import android.net.wifi.WifiConfiguration
 import android.net.wifi.WifiManager
 import android.os.Build
 import android.os.Handler
@@ -40,20 +39,21 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import com.drdisagree.iconify.BuildConfig
 import com.drdisagree.iconify.R
-import com.drdisagree.iconify.common.Const.FRAMEWORK_PACKAGE
-import com.drdisagree.iconify.common.Const.SYSTEMUI_PACKAGE
+import com.drdisagree.iconify.data.common.Const.FRAMEWORK_PACKAGE
+import com.drdisagree.iconify.data.common.Const.SYSTEMUI_PACKAGE
 import com.drdisagree.iconify.utils.OmniJawsClient
 import com.drdisagree.iconify.xposed.HookEntry.Companion.enqueueProxyCommand
 import com.drdisagree.iconify.xposed.HookRes.Companion.modRes
 import com.drdisagree.iconify.xposed.modules.extras.callbacks.ControllersProvider
 import com.drdisagree.iconify.xposed.modules.extras.callbacks.ThemeChange
 import com.drdisagree.iconify.xposed.modules.extras.utils.ActivityLauncherUtils
+import com.drdisagree.iconify.xposed.modules.extras.utils.ViewHelper.getExpandableView
 import com.drdisagree.iconify.xposed.modules.extras.utils.ViewHelper.toPx
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.callMethod
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.getField
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.log
-import com.drdisagree.iconify.xposed.modules.lockscreen.widgets.LockscreenWidgets.Companion.LaunchableImageView
-import com.drdisagree.iconify.xposed.modules.lockscreen.widgets.LockscreenWidgets.Companion.LaunchableLinearLayout
+import com.drdisagree.iconify.xposed.modules.lockscreen.widgets.LockscreenWidgets.Companion.launchableImageViewClass
+import com.drdisagree.iconify.xposed.modules.lockscreen.widgets.LockscreenWidgets.Companion.launchableLinearLayoutClass
 import java.lang.reflect.Method
 import java.util.Locale
 import kotlin.math.abs
@@ -243,30 +243,29 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
         }
 
     private fun createDeviceWidgetContainer(context: Context): LinearLayout {
-        val deviceWidget = LinearLayout(context)
-        deviceWidget.orientation = HORIZONTAL
-        deviceWidget.gravity = Gravity.CENTER
-        deviceWidget.layoutParams = LayoutParams(
-            ViewGroup.LayoutParams.MATCH_PARENT,
-            ViewGroup.LayoutParams.WRAP_CONTENT
-        )
+        return LinearLayout(context).apply {
+            orientation = HORIZONTAL
+            gravity = Gravity.CENTER
+            layoutParams = LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            )
 
-        if (mDeviceWidgetView == null) mDeviceWidgetView = DeviceWidgetView(context)
+            if (mDeviceWidgetView == null) mDeviceWidgetView = DeviceWidgetView(context)
 
-        try {
-            (mDeviceWidgetView!!.parent as ViewGroup).removeView(mDeviceWidgetView)
-        } catch (ignored: Throwable) {
+            try {
+                (mDeviceWidgetView!!.parent as ViewGroup).removeView(mDeviceWidgetView)
+            } catch (ignored: Throwable) {
+            }
+
+            addView(mDeviceWidgetView)
+            setPadding(0, 0, 0, mContext.toPx(18))
         }
-
-        deviceWidget.addView(mDeviceWidgetView)
-        deviceWidget.setPadding(0, 0, 0, mContext.toPx(18))
-
-        return deviceWidget
     }
 
     private fun createMainWidgetsContainer(context: Context): LinearLayout {
         val mainWidgetsContainer: LinearLayout = try {
-            LaunchableLinearLayout!!.getConstructor(Context::class.java)
+            launchableLinearLayoutClass!!.getConstructor(Context::class.java)
                 .newInstance(context) as LinearLayout
         } catch (e: Exception) {
             // LaunchableLinearLayout not found or other error, ensure the creation of our ImageView
@@ -294,38 +293,32 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
     }
 
     private fun createFAB(context: Context): ExtendedFAB {
-        val fab = ExtendedFAB(context)
-        fab.id = generateViewId()
-        val params = LayoutParams(
-            (mFabWidth * mWidgetsScale).toInt(),
-            (mFabHeight * mWidgetsScale).toInt()
-        )
-        params.setMargins(
-            (mFabMarginStart * mWidgetsScale).toInt(),
-            0,
-            (mFabMarginEnd * mWidgetsScale).toInt(),
-            0
-        )
-        fab.layoutParams = params
-        fab.setPadding(
-            (mFabPadding * mWidgetsScale).toInt(),
-            (mFabPadding * mWidgetsScale).toInt(),
-            (mFabPadding * mWidgetsScale).toInt(),
-            (mFabPadding * mWidgetsScale).toInt()
-        )
-        fab.gravity = Gravity.CENTER_VERTICAL
-        fab.setPadding(
-            mContext.toPx(24),
-            mContext.toPx(8),
-            mContext.toPx(24),
-            mContext.toPx(8)
-        )
-        return fab
+        return ExtendedFAB(context).apply {
+            id = generateViewId()
+            layoutParams = LayoutParams(
+                (mFabWidth * mWidgetsScale).toInt(),
+                (mFabHeight * mWidgetsScale).toInt()
+            ).apply {
+                setMargins(
+                    (mFabMarginStart * mWidgetsScale).toInt(),
+                    0,
+                    (mFabMarginEnd * mWidgetsScale).toInt(),
+                    0
+                )
+            }
+            setPadding(
+                (mFabPadding * mWidgetsScale).toInt(),
+                (mFabPadding * mWidgetsScale).toInt(),
+                (mFabPadding * mWidgetsScale).toInt(),
+                (mFabPadding * mWidgetsScale).toInt()
+            )
+            gravity = Gravity.CENTER_VERTICAL
+        }
     }
 
     private fun createSecondaryWidgetsContainer(context: Context): LinearLayout {
         val secondaryWidgetsContainer: LinearLayout = try {
-            LaunchableLinearLayout!!.getConstructor(Context::class.java)
+            launchableLinearLayoutClass!!.getConstructor(Context::class.java)
                 .newInstance(context) as LinearLayout
         } catch (e: Exception) {
             // LaunchableLinearLayout not found or other error, ensure the creation of our ImageView
@@ -360,7 +353,7 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
 
     private fun createImageView(context: Context): ImageView {
         val imageView = try {
-            LaunchableImageView!!.getConstructor(Context::class.java)
+            launchableImageViewClass!!.getConstructor(Context::class.java)
                 .newInstance(context) as ImageView
         } catch (e: Exception) {
             // LaunchableImageView not found or other error, ensure the creation of our ImageView
@@ -613,10 +606,7 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
             if (isSecondaryWidgetsEmpty || mIsLargeClock) GONE else VISIBLE
 
         val shouldHideContainer = isEmpty || mDozing || !lockscreenWidgetsEnabled
-        layoutParams?.apply {
-            width = if (shouldHideContainer) 0 else ViewGroup.LayoutParams.MATCH_PARENT
-            height = if (shouldHideContainer) 0 else ViewGroup.LayoutParams.WRAP_CONTENT
-        }
+        visibility = if (shouldHideContainer) GONE else VISIBLE
     }
 
     private fun updateWidgetViews() {
@@ -934,20 +924,24 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
     }
 
     private fun setUpWidgetResources(
-        iv: ImageView?, efab: ExtendedFAB?,
-        cl: OnClickListener, icon: Drawable?, text: String
+        iv: ImageView?,
+        efab: ExtendedFAB?,
+        cl: OnClickListener,
+        icon: Drawable?,
+        text: String
     ) {
-        if (efab != null) {
-            efab.setOnClickListener(cl)
-            efab.icon = icon
-            efab.text = text
-            if (mediaButtonFab === efab) {
-                attachSwipeGesture(efab)
+        efab?.apply {
+            setOnClickListener(cl)
+            this.icon = icon
+            this.text = text
+            if (mediaButtonFab == this) {
+                attachSwipeGesture(this)
             }
         }
-        if (iv != null) {
-            iv.setOnClickListener(cl)
-            iv.setImageDrawable(icon)
+
+        iv?.apply {
+            setOnClickListener(cl)
+            setImageDrawable(icon)
         }
     }
 
@@ -1121,31 +1115,42 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
 
     private fun launchHomeControls(view: View) {
         val controlsTile: Any = ControllersProvider.mDeviceControlsTile ?: return
-        val finalView: View = if (view is ExtendedFAB) {
-            view.parent as View
-        } else {
-            view
-        }
+        val finalView: View = if (view is ExtendedFAB) view.parent as View else view
+
         post {
-            controlsTile.callMethod("handleClick", finalView)
+            try {
+                controlsTile.callMethod("handleClick", finalView)
+            } catch (ignored: Throwable) {
+                controlsTile.callMethod(
+                    "handleClick",
+                    finalView.getExpandableView()
+                )
+            }
         }
+
         vibrate(1)
     }
 
     private fun launchWallet(view: View) {
         val mWalletTile: Any? = ControllersProvider.mWalletTile
+
         if (mWalletTile != null) {
-            val finalView: View = if (view is ExtendedFAB) {
-                view.parent as View
-            } else {
-                view
-            }
+            val finalView: View = if (view is ExtendedFAB) view.parent as View else view
+
             post {
-                mWalletTile.callMethod("handleClick", finalView)
+                try {
+                    mWalletTile.callMethod("handleClick", finalView)
+                } catch (ignored: Throwable) {
+                    mWalletTile.callMethod(
+                        "handleClick",
+                        finalView.getExpandableView()
+                    )
+                }
             }
         } else {
             mActivityLauncherUtils.launchWallet()
         }
+
         vibrate(1)
     }
 
@@ -1164,11 +1169,20 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
     }
 
     private fun toggleHotspot() {
-        val mHotspotTile = ControllersProvider.mHotspotTile
-        if (mHotspotTile != null) {
-            val finalView = hotspotButton ?: hotspotButtonFab
-            mHotspotTile.callMethod("handleClick", finalView)
+        val hotspotTile: Any = ControllersProvider.mHotspotTile ?: return
+        val finalView = hotspotButton ?: hotspotButtonFab
+
+        post {
+            try {
+                hotspotTile.callMethod("handleClick", finalView)
+            } catch (ignored: Throwable) {
+                hotspotTile.callMethod(
+                    "handleClick",
+                    finalView.getExpandableView()
+                )
+            }
         }
+
         updateHotspotButtonState(0)
         postDelayed({ updateHotspotButtonState(0) }, 350L)
         vibrate(1)
@@ -1500,8 +1514,15 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
         }
 
     private fun toggleBluetoothState() {
-        val bluetoothController: Any = ControllersProvider.mBluetoothController ?: return
-        bluetoothController.callMethod("setBluetoothEnabled", !isBluetoothEnabled)
+        val bluetoothTile: Any? = ControllersProvider.mBluetoothTile
+        val bluetoothController: Any? = ControllersProvider.mBluetoothController
+
+        try {
+            bluetoothController.callMethod("setBluetoothEnabled", !isBluetoothEnabled)
+        } catch (throwable: Throwable) {
+            bluetoothTile.callMethod("toggleBluetooth")
+        }
+
         updateBtState()
         mHandler.postDelayed({ this.updateBtState() }, 350L)
         vibrate(1)
@@ -1586,10 +1607,10 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
     @Suppress("deprecation")
     private fun getHotspotSSID(): String {
         try {
-            val methods: Array<Method> = WifiManager::class.java.declaredMethods
+            val methods: Array<Method> = WifiManager::class.java.declaredMethods.toList().union(WifiManager::class.java.methods.toList()).toTypedArray()
             for (m in methods) {
                 if (m.name == "getWifiApConfiguration") {
-                    val config = m.invoke(mWifiManager) as WifiConfiguration
+                    val config = m.invoke(mWifiManager) as android.net.wifi.WifiConfiguration
                     return config.SSID
                 }
             }
@@ -1630,28 +1651,33 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
         lsWidgets: Boolean, deviceWidget: Boolean,
         mainWidgets: String, secondaryWidgets: String
     ) {
-        instance!!.lockscreenWidgetsEnabled = lsWidgets
-        instance!!.deviceWidgetsEnabled = deviceWidget
-        instance!!.mMainLockscreenWidgetsList = mainWidgets
-        instance!!.mMainWidgetsList = listOf(
-            *instance!!.mMainLockscreenWidgetsList!!.split(",".toRegex())
-                .dropLastWhile { it.isEmpty() }
-                .toTypedArray())
-        instance!!.mSecondaryLockscreenWidgetsList = secondaryWidgets
-        instance!!.mSecondaryWidgetsList = listOf(
-            *instance!!.mSecondaryLockscreenWidgetsList!!.split(",".toRegex())
-                .dropLastWhile { it.isEmpty() }
-                .toTypedArray())
-        instance!!.updateWidgetViews()
+        instance!!.apply {
+            lockscreenWidgetsEnabled = lsWidgets
+            deviceWidgetsEnabled = deviceWidget
+            mMainLockscreenWidgetsList = mainWidgets
+            mMainWidgetsList = listOf(
+                *mMainLockscreenWidgetsList!!.split(",".toRegex())
+                    .dropLastWhile { it.isEmpty() }
+                    .toTypedArray())
+            mSecondaryLockscreenWidgetsList = secondaryWidgets
+            mSecondaryWidgetsList = listOf(
+                *mSecondaryLockscreenWidgetsList!!.split(",".toRegex())
+                    .dropLastWhile { it.isEmpty() }
+                    .toTypedArray())
+            updateWidgetViews()
+        }
     }
 
     fun setIsLargeClock(isLargeClock: Boolean) {
-        instance!!.mIsLargeClock = isLargeClock
-        instance!!.updateContainerVisibility()
+        instance!!.apply {
+            mIsLargeClock = isLargeClock
+            updateContainerVisibility()
+        }
     }
 
     /**
      * Set the options for the Device Widget
+     * @param deviceWidgetStyle style for device widget
      * @param customColor true if custom color is enabled
      * @param linearColor color for linear battery progressbar
      * @param circularColor color for circular progressbar
@@ -1659,16 +1685,19 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
      * @param devName device name, keep blank for default Build.MODEL
      */
     fun setDeviceWidgetOptions(
+        deviceWidgetStyle: Int,
         customColor: Boolean,
         linearColor: Int,
         circularColor: Int,
         textColor: Int,
         devName: String?
     ) {
-        if (instance!!.mDeviceWidgetView == null) return
-        instance!!.mDeviceWidgetView!!.setCustomColor(customColor, linearColor, circularColor)
-        instance!!.mDeviceWidgetView!!.setTextCustomColor(textColor)
-        instance!!.mDeviceWidgetView!!.setDeviceName(devName)
+        instance!!.mDeviceWidgetView?.apply {
+            setDeviceWidgetStyle(deviceWidgetStyle)
+            setCustomColor(customColor, linearColor, circularColor)
+            setTextCustomColor(textColor)
+            setDeviceName(devName)
+        }
     }
 
     fun setCustomColors(
@@ -1676,23 +1705,27 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
         bigInactive: Int, bigActive: Int, smallInactive: Int, smallActive: Int,
         bigIconInactive: Int, bigIconActive: Int, smallIconInactive: Int, smallIconActive: Int
     ) {
-        instance!!.mCustomColors = customColorsEnabled
-        instance!!.mBigInactiveColor = bigInactive
-        instance!!.mBigActiveColor = bigActive
-        instance!!.mSmallInactiveColor = smallInactive
-        instance!!.mSmallActiveColor = smallActive
-        instance!!.mBigIconInactiveColor = bigIconInactive
-        instance!!.mBigIconActiveColor = bigIconActive
-        instance!!.mSmallIconInactiveColor = smallIconInactive
-        instance!!.mSmallIconActiveColor = smallIconActive
-        instance!!.updateWidgetViews()
+        instance!!.apply {
+            mCustomColors = customColorsEnabled
+            mBigInactiveColor = bigInactive
+            mBigActiveColor = bigActive
+            mSmallInactiveColor = smallInactive
+            mSmallActiveColor = smallActive
+            mBigIconInactiveColor = bigIconInactive
+            mBigIconActiveColor = bigIconActive
+            mSmallIconInactiveColor = smallIconInactive
+            mSmallIconActiveColor = smallIconActive
+            updateWidgetViews()
+        }
     }
 
     fun setScale(scale: Float) {
-        instance!!.mWidgetsScale = scale
-        instance!!.removeAllViews()
-        instance!!.drawUI()
-        instance!!.updateWidgetViews()
+        instance!!.apply {
+            mWidgetsScale = scale
+            removeAllViews()
+            drawUI()
+            updateWidgetViews()
+        }
     }
 
     fun setActivityStarter(activityStarter: Any?) {
@@ -1700,8 +1733,10 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
     }
 
     fun setDozingState(isDozing: Boolean) {
-        instance!!.mDozing = isDozing
-        instance!!.updateContainerVisibility()
+        instance!!.apply {
+            mDozing = isDozing
+            updateContainerVisibility()
+        }
     }
 
     @Suppress("DiscouragedApi")

@@ -1,26 +1,36 @@
 package com.drdisagree.iconify.xposed
 
 import android.os.Build
-import com.drdisagree.iconify.common.Const.PIXEL_LAUNCHER_PACKAGE
-import com.drdisagree.iconify.common.Const.SYSTEMUI_PACKAGE
+import com.drdisagree.iconify.data.common.Const.LAUNCHER3_PACKAGE
+import com.drdisagree.iconify.data.common.Const.PIXEL_LAUNCHER_PACKAGE
+import com.drdisagree.iconify.data.common.Const.SETTINGS_PACKAGE
+import com.drdisagree.iconify.data.common.Const.SYSTEMUI_PACKAGE
 import com.drdisagree.iconify.xposed.modules.BackgroundChip
 import com.drdisagree.iconify.xposed.modules.BatteryStyleManager
 import com.drdisagree.iconify.xposed.modules.extras.callbacks.ControllersProvider
 import com.drdisagree.iconify.xposed.modules.extras.callbacks.ThemeChange
 import com.drdisagree.iconify.xposed.modules.extras.utils.MyConstraintSet
 import com.drdisagree.iconify.xposed.modules.extras.utils.SettingsLibUtils
+import com.drdisagree.iconify.xposed.modules.launcher.GestureMod
+import com.drdisagree.iconify.xposed.modules.launcher.HotseatMod
+import com.drdisagree.iconify.xposed.modules.launcher.IconLabels
 import com.drdisagree.iconify.xposed.modules.launcher.IconUpdater
+import com.drdisagree.iconify.xposed.modules.launcher.OpacityModifier
+import com.drdisagree.iconify.xposed.modules.launcher.ThemedIcons
+import com.drdisagree.iconify.xposed.modules.lockscreen.AlbumArt
 import com.drdisagree.iconify.xposed.modules.lockscreen.Lockscreen
 import com.drdisagree.iconify.xposed.modules.lockscreen.clock.LockscreenClock
 import com.drdisagree.iconify.xposed.modules.lockscreen.clock.LockscreenClockA15
 import com.drdisagree.iconify.xposed.modules.lockscreen.depthwallpaper.DepthWallpaper
 import com.drdisagree.iconify.xposed.modules.lockscreen.depthwallpaper.DepthWallpaperA14
+import com.drdisagree.iconify.xposed.modules.lockscreen.depthwallpaper.DepthWallpaperA15
 import com.drdisagree.iconify.xposed.modules.lockscreen.weather.LockscreenWeather
 import com.drdisagree.iconify.xposed.modules.lockscreen.weather.LockscreenWeatherA15
 import com.drdisagree.iconify.xposed.modules.lockscreen.widgets.LockscreenWidgets
 import com.drdisagree.iconify.xposed.modules.lockscreen.widgets.LockscreenWidgetsA15
 import com.drdisagree.iconify.xposed.modules.misc.Miscellaneous
-import com.drdisagree.iconify.xposed.modules.quicksettings.ColorizeNotification
+import com.drdisagree.iconify.xposed.modules.quicksettings.AppIconInNotification
+import com.drdisagree.iconify.xposed.modules.quicksettings.ColorizeNotificationView
 import com.drdisagree.iconify.xposed.modules.quicksettings.HeaderImage
 import com.drdisagree.iconify.xposed.modules.quicksettings.OpQsHeader
 import com.drdisagree.iconify.xposed.modules.quicksettings.QSTransparency
@@ -37,8 +47,15 @@ import com.drdisagree.iconify.xposed.modules.quicksettings.themes.QSLightThemeA1
 import com.drdisagree.iconify.xposed.modules.quicksettings.themes.QSLightThemeA13
 import com.drdisagree.iconify.xposed.modules.quicksettings.themes.QSLightThemeA14
 import com.drdisagree.iconify.xposed.modules.quicksettings.themes.QSLightThemeA15
-import com.drdisagree.iconify.xposed.modules.statusbar.Statusbar
+import com.drdisagree.iconify.xposed.modules.settings.GoogleIcon
+import com.drdisagree.iconify.xposed.modules.settings.ZenPriorityModeIcon
+import com.drdisagree.iconify.xposed.modules.statusbar.AppIconsInStatusbar
+import com.drdisagree.iconify.xposed.modules.statusbar.DualStatusbar
+import com.drdisagree.iconify.xposed.modules.statusbar.StatusbarMisc
+import com.drdisagree.iconify.xposed.modules.statusbar.SwapSignalNetworkType
+import com.drdisagree.iconify.xposed.modules.statusbar.SwapWiFiCellular
 import com.drdisagree.iconify.xposed.modules.volume.VolumePanel
+import com.drdisagree.iconify.xposed.modules.volume.VolumePanelStyle
 import com.drdisagree.iconify.xposed.utils.HookCheck
 
 object EntryList {
@@ -58,13 +75,20 @@ object EntryList {
         LockscreenClock::class.java,
         LockscreenWidgets::class.java,
         LockscreenWeather::class.java,
+        AlbumArt::class.java,
         Miscellaneous::class.java,
         QSTransparency::class.java,
         QuickSettings::class.java,
-        Statusbar::class.java,
+        AppIconsInStatusbar::class.java,
+        SwapWiFiCellular::class.java,
+        SwapSignalNetworkType::class.java,
+        DualStatusbar::class.java,
+        StatusbarMisc::class.java,
         BatteryStyleManager::class.java,
         VolumePanel::class.java,
-        ColorizeNotification::class.java
+        VolumePanelStyle::class.java,
+        ColorizeNotificationView::class.java,
+        AppIconInNotification::class.java
     )
 
     private val systemUiAndroid12ModPacks: List<Class<out ModPack>> = listOf(
@@ -93,7 +117,7 @@ object EntryList {
     )
 
     private val systemUiAndroid15ModPacks: List<Class<out ModPack>> = listOf(
-        DepthWallpaperA14::class.java,
+        DepthWallpaperA15::class.java,
         QSFluidThemeA15::class.java,
         QSBlackThemeA15::class.java,
         QSLightThemeA15::class.java,
@@ -105,7 +129,28 @@ object EntryList {
     )
 
     private val pixelLauncherModPacks: List<Class<out ModPack>> = listOf(
-        IconUpdater::class.java
+        IconUpdater::class.java,
+        ThemedIcons::class.java,
+        OpacityModifier::class.java,
+        GestureMod::class.java,
+        IconLabels::class.java,
+        HotseatMod::class.java
+    )
+
+    private val launcher3ModPacks: List<Class<out ModPack>> = listOf(
+        ThemedIcons::class.java,
+        OpacityModifier::class.java,
+        GestureMod::class.java,
+        IconLabels::class.java,
+        HotseatMod::class.java
+    )
+
+    private val settingsCommonModPacks: List<Class<out ModPack>> = listOf(
+        GoogleIcon::class.java
+    )
+
+    private val settingsAndroid15ModPacks: List<Class<out ModPack>> = listOf(
+        ZenPriorityModeIcon::class.java
     )
 
     fun getEntries(packageName: String): ArrayList<Class<out ModPack>> {
@@ -140,6 +185,18 @@ object EntryList {
 
             PIXEL_LAUNCHER_PACKAGE -> {
                 modPacks.addAll(pixelLauncherModPacks)
+            }
+
+            LAUNCHER3_PACKAGE -> {
+                modPacks.addAll(launcher3ModPacks)
+            }
+
+            SETTINGS_PACKAGE -> {
+                modPacks.addAll(settingsCommonModPacks)
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+                    modPacks.addAll(settingsAndroid15ModPacks)
+                }
             }
         }
 

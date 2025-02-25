@@ -2,6 +2,7 @@ package com.drdisagree.iconify.xposed.modules.extras.callbacks
 
 import android.annotation.SuppressLint
 import android.content.Context
+import com.drdisagree.iconify.data.common.Const.SYSTEMUI_PACKAGE
 import com.drdisagree.iconify.xposed.ModPack
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.XposedHook.Companion.findClass
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.hookMethod
@@ -18,17 +19,30 @@ class ThemeChange(context: Context) : ModPack(context) {
         instance = this
 
         // Get monet change so we can apply theme
-        val scrimControllerClass = findClass("com.android.systemui.statusbar.phone.ScrimController")
+        val scrimControllerClass = findClass("$SYSTEMUI_PACKAGE.statusbar.phone.ScrimController")
 
         scrimControllerClass
             .hookMethod("updateThemeColors")
             .runAfter { onThemeChanged() }
 
-        val notificationPanelViewControllerClass =
-            findClass("com.android.systemui.shade.NotificationPanelViewController")
+        val notificationPanelViewControllerClass = findClass(
+            "$SYSTEMUI_PACKAGE.shade.NotificationPanelViewController",
+            "$SYSTEMUI_PACKAGE.statusbar.phone.NotificationPanelViewController"
+        )
 
         notificationPanelViewControllerClass
             .hookMethod("onThemeChanged")
+            .runAfter { onThemeChanged() }
+
+        val configurationListenerClass = findClass(
+            "$SYSTEMUI_PACKAGE.shade.NotificationPanelViewController\$ConfigurationListener",
+            "$SYSTEMUI_PACKAGE.statusbar.phone.NotificationPanelViewController\$ConfigurationListener",
+            suppressError = true
+        )
+
+        configurationListenerClass
+            .hookMethod("onThemeChanged")
+            .suppressError()
             .runAfter { onThemeChanged() }
     }
 
@@ -62,7 +76,5 @@ class ThemeChange(context: Context) : ModPack(context) {
         fun getInstance(): ThemeChange {
             return instance!!
         }
-
     }
-
 }

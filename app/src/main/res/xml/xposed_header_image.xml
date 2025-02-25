@@ -64,4 +64,9 @@
         app:defaultValue="true"
         app:iconSpaceReserved="false" />
 
+    <com.drdisagree.iconify.ui.preferences.FooterPreference
+        android:key="header_image_footer_info"
+        android:title="@string/hig_res_image_footer_info"
+        search:ignore="true" />
+
 </PreferenceScreen>

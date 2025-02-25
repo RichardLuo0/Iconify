@@ -4,47 +4,62 @@ import android.util.ArraySet
 import java.lang.reflect.Method
 import java.util.regex.Pattern
 
-fun isMethodAvailable(
-    target: Any?,
-    methodName: String,
-    vararg parameterTypes: Class<*>?
-): Boolean {
-    if (target == null) return false
+fun Any?.isMethodAvailable(methodName: String, vararg parameterTypes: Class<*>?): Boolean {
+    if (this == null) return false
 
-    if (target is Class<*>) return if (parameterTypes.isEmpty()) {
-        target.declaredMethods.any { it.name == methodName }
+    if (this is Class<*>) return if (parameterTypes.isEmpty()) {
+        declaredMethods.toList().union(methods.toList()).any { it.name == methodName }
     } else {
         try {
-            target.getMethod(methodName, *parameterTypes)
+            getDeclaredMethod(methodName, *parameterTypes)
             true
         } catch (ignored: NoSuchMethodException) {
-            false
+            try {
+                getMethod(methodName, *parameterTypes)
+                true
+            } catch (ignored: NoSuchMethodException) {
+                false
+            }
         }
     }
 
     return try {
         if (parameterTypes.isEmpty()) {
-            target::class.java.declaredMethods.any { it.name == methodName }
+            this::class.java.declaredMethods.toList().union(this::class.java.methods.toList())
+                .any { it.name == methodName }
         } else {
-            target::class.java.getMethod(methodName, *parameterTypes)
-            true
+            try {
+                this::class.java.getDeclaredMethod(methodName, *parameterTypes)
+                true
+            } catch (ignored: NoSuchMethodException) {
+                try {
+                    this::class.java.getMethod(methodName, *parameterTypes)
+                    true
+                } catch (ignored: NoSuchMethodException) {
+                    false
+                }
+            }
         }
     } catch (ignored: NoSuchMethodException) {
         false
     }
 }
 
-fun isFieldAvailable(clazz: Class<*>, fieldName: String): Boolean {
+fun Class<*>?.isFieldAvailable(fieldName: String): Boolean {
+    if (this == null) return false
+
     return try {
-        clazz::class.java.getDeclaredField(fieldName)
+        this::class.java.getDeclaredField(fieldName)
         true
     } catch (ignored: NoSuchFieldException) {
         false
     }
 }
 
-fun findMethod(clazz: Class<*>, namePattern: String): Method? {
-    val methods: Array<Method> = clazz.declaredMethods
+fun Class<*>?.findMethod(namePattern: String): Method? {
+    if (this == null) return null
+
+    val methods: Array<Method> = declaredMethods.toList().union(methods.toList()).toTypedArray()
 
     for (method in methods) {
         if (Pattern.matches(namePattern, method.name)) {
@@ -55,11 +70,13 @@ fun findMethod(clazz: Class<*>, namePattern: String): Method? {
     return null
 }
 
-fun findMethods(clazz: Class<*>, namePattern: String): Set<Method> {
-    val result: MutableSet<Method> = ArraySet()
-    val methods: Array<Method> = clazz.declaredMethods
+fun Class<*>?.findMethods(namePattern: String): Set<Method> {
+    if (this == null) return emptySet()
 
-    for (method in methods) {
+    val result: MutableSet<Method> = ArraySet()
+    val methods: Array<Method> = declaredMethods.toList().union(methods.toList()).toTypedArray()
+
+    methods.forEach { method ->
         if (Pattern.matches(namePattern, method.name)) {
             result.add(method)
         }
