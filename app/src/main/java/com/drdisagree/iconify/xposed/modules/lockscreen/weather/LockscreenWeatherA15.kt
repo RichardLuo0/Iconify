@@ -462,11 +462,12 @@ class LockscreenWeatherA15(context: Context) : ModPack(context) {
         if (!mWeatherEnabled || mLockscreenRootView == null) return
         if (mLockscreenClockEnabled && !mLockscreenClockInflated) return
 
-        try {
-            val currentWeatherView: CurrentWeatherView = CurrentWeatherView.getInstance(
-                mContext,
-                LOCKSCREEN_WEATHER
-            )
+        val currentWeatherView: CurrentWeatherView = CurrentWeatherView.getInstance(
+            mContext,
+            LOCKSCREEN_WEATHER
+        )
+
+        if (currentWeatherView.parent != mWeatherContainer) {
             (currentWeatherView.parent as? ViewGroup)?.removeView(currentWeatherView)
             mWeatherContainer.addView(currentWeatherView)
 
@@ -477,7 +478,6 @@ class LockscreenWeatherA15(context: Context) : ModPack(context) {
             val broadcast = Intent(ACTION_WEATHER_INFLATED)
             broadcast.setFlags(Intent.FLAG_RECEIVER_FOREGROUND)
             Thread { mContext.sendBroadcast(broadcast) }.start()
-        } catch (ignored: Throwable) {
         }
     }
 

@@ -574,15 +574,13 @@ object ResourceHookManager {
                     .hookMethod(method)
                     .runBefore { param ->
                         val hookData = hookedResources.find {
-                            it.method == method && it.resId == param.args[0]
+                            it.method == method && it.resId == param.args[0] && it.condition.invoke()
                         } ?: return@runBefore
 
-                        if (hookData.condition.invoke()) {
-                            if (method == "getDimensionPixelSize") {
-                                param.result = context.toPx(hookData.value.invoke() as Int)
-                            } else {
-                                param.result = hookData.value.invoke()
-                            }
+                        if (method == "getDimensionPixelSize") {
+                            param.result = context.toPx(hookData.value.invoke() as Int)
+                        } else {
+                            param.result = hookData.value.invoke()
                         }
                     }
             }

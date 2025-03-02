@@ -61,6 +61,7 @@
         android:key="xposed_notificationiconslimit"
         android:title="@string/sb_max_notification_icons_title"
         app:defaultValue="-1"
+        app:showResetButton="true"
         app:iconSpaceReserved="false"
         app:maxVal="15"
         app:minVal="-1"

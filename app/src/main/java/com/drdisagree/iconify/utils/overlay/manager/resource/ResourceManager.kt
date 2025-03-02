@@ -35,22 +35,20 @@ object ResourceManager {
         } else {
             val hasErroredOut = AtomicBoolean(false)
 
-            withContext(Dispatchers.IO) {
-                saveResources(*resourceEntries.filterNotNull().toTypedArray())
+            saveResources(*resourceEntries.filterNotNull().toTypedArray())
 
-                try {
-                    val distinctPackageNames = resourceEntries.filterNotNull()
-                        .map { it.packageName }
-                        .distinct()
+            try {
+                val distinctPackageNames = resourceEntries.filterNotNull()
+                    .map { it.packageName }
+                    .distinct()
 
-                    hasErroredOut.set(DynamicCompiler.buildDynamicOverlay(overlaysToUpdate = distinctPackageNames))
-                } catch (e: Exception) {
-                    Log.i(TAG, "buildOverlayWithResource: ", e)
-                    hasErroredOut.set(true)
-                }
-
-                showToast(hasErroredOut)
+                hasErroredOut.set(DynamicCompiler.buildDynamicOverlay(overlaysToUpdate = distinctPackageNames))
+            } catch (e: Exception) {
+                Log.i(TAG, "buildOverlayWithResource: ", e)
+                hasErroredOut.set(true)
             }
+
+            showToast(hasErroredOut)
 
             return hasErroredOut.get()
         }
@@ -64,22 +62,20 @@ object ResourceManager {
         } else {
             val hasErroredOut = AtomicBoolean(false)
 
-            withContext(Dispatchers.IO) {
-                removeResources(*resourceEntries.filterNotNull().toTypedArray())
+            removeResources(*resourceEntries.filterNotNull().toTypedArray())
 
-                try {
-                    val distinctPackageNames = resourceEntries.filterNotNull()
-                        .map { it.packageName }
-                        .distinct()
+            try {
+                val distinctPackageNames = resourceEntries.filterNotNull()
+                    .map { it.packageName }
+                    .distinct()
 
-                    hasErroredOut.set(DynamicCompiler.buildDynamicOverlay(overlaysToUpdate = distinctPackageNames))
-                } catch (e: Exception) {
-                    Log.i(TAG, "removeResourceFromOverlay: ", e)
-                    hasErroredOut.set(true)
-                }
-
-                showToast(hasErroredOut)
+                hasErroredOut.set(DynamicCompiler.buildDynamicOverlay(overlaysToUpdate = distinctPackageNames))
+            } catch (e: Exception) {
+                Log.i(TAG, "removeResourceFromOverlay: ", e)
+                hasErroredOut.set(true)
             }
+
+            showToast(hasErroredOut)
 
             return hasErroredOut.get()
         }
@@ -88,89 +84,95 @@ object ResourceManager {
     }
 
     private suspend fun saveResources(vararg resourceEntries: ResourceEntry) {
-        withContext(Dispatchers.IO) {
-            repository.insertResources(
-                resourceEntries.map { entry ->
-                    DynamicResourceEntity(
-                        packageName = entry.packageName,
-                        startEndTag = entry.startEndTag,
-                        resourceName = entry.resourceName,
-                        resourceValue = entry.resourceValue,
-                        isPortrait = entry.isPortrait,
-                        isLandscape = entry.isLandscape,
-                        isNightMode = entry.isNightMode,
-                    )
-                }
-            )
-        }
+        repository.insertResources(
+            resourceEntries.map { entry ->
+                DynamicResourceEntity(
+                    packageName = entry.packageName,
+                    startEndTag = entry.startEndTag,
+                    resourceName = entry.resourceName,
+                    resourceValue = entry.resourceValue,
+                    isPortrait = entry.isPortrait,
+                    isLandscape = entry.isLandscape,
+                    isNightMode = entry.isNightMode,
+                )
+            }
+        )
     }
 
-    private suspend fun removeResources(vararg resourceEntries: ResourceEntry) {
-        withContext(Dispatchers.IO) {
-            repository.deleteResources(
-                resourceEntries.map { entry ->
-                    DynamicResourceEntity(
-                        packageName = entry.packageName,
-                        startEndTag = entry.startEndTag,
-                        resourceName = entry.resourceName,
-                        resourceValue = entry.resourceValue,
-                        isPortrait = entry.isPortrait,
-                        isLandscape = entry.isLandscape,
-                        isNightMode = entry.isNightMode,
-                    )
-                }
-            )
-        }
+    suspend fun removeResources(vararg resourceEntries: ResourceEntry) {
+        repository.deleteResources(
+            resourceEntries.map { entry ->
+                DynamicResourceEntity(
+                    packageName = entry.packageName,
+                    startEndTag = entry.startEndTag,
+                    resourceName = entry.resourceName,
+                    resourceValue = entry.resourceValue,
+                    isPortrait = entry.isPortrait,
+                    isLandscape = entry.isLandscape,
+                    isNightMode = entry.isNightMode,
+                )
+            }
+        )
     }
 
-    suspend fun generateXmlStructureForAllResources(overlaysToUpdate: List<String>? = null): MutableMap<String, MutableMap<ResourceType, ArrayList<String>>> {
-        return withContext(Dispatchers.IO) {
-            val resourceEntries = repository.getAllResources()
-            val resourcesGrouped = resourceEntries.groupBy { it.packageName }
-            val result: MutableMap<String, MutableMap<ResourceType, ArrayList<String>>> =
-                mutableMapOf()
-            val emptyResources = getEmptyResources()
+    suspend fun generateXmlStructureForAllResources(overlaysToUpdate: List<String>?): MutableMap<String, MutableMap<ResourceType, ArrayList<String>>> {
+        val resourceEntries = repository.getAllResources()
+        val resourcesGrouped = resourceEntries.groupBy { it.packageName }
+        val result: MutableMap<String, MutableMap<ResourceType, ArrayList<String>>> = mutableMapOf()
+        val emptyResources = getEmptyResources()
 
-            resourcesGrouped.forEach { (packageName, resources) ->
-                if (overlaysToUpdate?.contains(packageName) == false) return@forEach
-
-                if (!DYNAMIC_OVERLAYABLE_PACKAGES.contains(packageName)) {
-                    throw Exception("Package $packageName is not dynamically overlayable.")
-                }
-
-                val xmlPartsMap: MutableMap<ResourceType, ArrayList<String>> = mutableMapOf()
-
-                val groupedByType = resources.groupBy {
-                    when {
-                        it.isPortrait -> ResourceType.PORTRAIT
-                        it.isLandscape -> ResourceType.LANDSCAPE
-                        it.isNightMode -> ResourceType.NIGHT
-                        else -> throw Exception("Invalid resource type")
-                    }
-                }
-
-                groupedByType.forEach { (type, group) ->
-                    val xmlParts = ArrayList<String>()
-
-                    xmlParts.add("<?xml version=\"1.0\" encoding=\"utf-8\"?>")
-                    xmlParts.add("<resources>")
-                    group.forEach { entry ->
-                        xmlParts.add("<${entry.startEndTag} name=\"${entry.resourceName}\">${entry.resourceValue}</${entry.startEndTag}>")
-                    }
-                    xmlParts.add("</resources>")
-
-                    xmlPartsMap[type] = ArrayList(xmlParts)
-
-                    if (type == ResourceType.PORTRAIT && group.isEmpty()) {
-                        xmlPartsMap[type] = ArrayList(emptyResources[packageName]!!)
-                    }
-                }
-
-                result[packageName] = xmlPartsMap
+        resourcesGrouped.forEach { (packageName, resources) ->
+            if (!DYNAMIC_OVERLAYABLE_PACKAGES.contains(packageName)) {
+                throw Exception("Package $packageName is not dynamically overlayable.")
             }
 
-            result
+            if (overlaysToUpdate != null && packageName !in overlaysToUpdate) {
+                return@forEach
+            }
+
+            val xmlPartsMap: MutableMap<ResourceType, ArrayList<String>> = mutableMapOf()
+
+            val groupedByType = resources.groupBy {
+                when {
+                    it.isPortrait -> ResourceType.PORTRAIT
+                    it.isLandscape -> ResourceType.LANDSCAPE
+                    it.isNightMode -> ResourceType.NIGHT
+                    else -> throw Exception("Invalid resource type")
+                }
+            }
+
+            val xmlParts = ArrayList<String>()
+
+            groupedByType.forEach { (type, group) ->
+                xmlParts.clear()
+                xmlParts.add("<?xml version=\"1.0\" encoding=\"utf-8\"?>")
+                xmlParts.add("<resources>")
+                group.forEach { entry ->
+                    xmlParts.add("<${entry.startEndTag} name=\"${entry.resourceName}\">${entry.resourceValue}</${entry.startEndTag}>")
+                }
+                xmlParts.add("</resources>")
+
+                xmlPartsMap[type] = ArrayList(xmlParts)
+
+                if (type == ResourceType.PORTRAIT && group.isEmpty()) {
+                    xmlPartsMap[type] = ArrayList(emptyResources[packageName]!!)
+                }
+            }
+
+            result[packageName] = xmlPartsMap
         }
+
+        overlaysToUpdate?.forEach { packageName ->
+            if (packageName !in result) {
+                result[packageName] = mutableMapOf(
+                    ResourceType.PORTRAIT to ArrayList(
+                        emptyResources[packageName]!!
+                    )
+                )
+            }
+        }
+
+        return result
     }
 
     private fun getEmptyResources(): MutableMap<String, ArrayList<String>> {

@@ -10,10 +10,12 @@ import android.graphics.drawable.LayerDrawable
 import android.graphics.drawable.RotateDrawable
 import android.graphics.drawable.ShapeDrawable
 import android.graphics.drawable.shapes.RoundRectShape
+import android.os.Build
 import android.util.TypedValue
 import android.view.Gravity
 import androidx.core.content.ContextCompat
 import com.drdisagree.iconify.data.common.Const.SYSTEMUI_PACKAGE
+import com.drdisagree.iconify.xposed.modules.extras.utils.DisplayUtils.isNightMode
 import com.drdisagree.iconify.xposed.modules.extras.utils.ViewHelper.toPx
 
 @SuppressLint("DiscouragedApi", "RtlHardcoded")
@@ -74,9 +76,16 @@ class VolumeOutline(
             getSysUiDimen("rounded_slider_track_inset")
         } else 0
 
-        val backgroundColor = TypedValue().apply {
-            mContext.theme.resolveAttribute(android.R.attr.colorBackground, this, true)
-        }.data
+        val backgroundColor = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+            mContext.resources.getColor(
+                if (mContext.isNightMode) android.R.color.system_outline_variant_dark
+                else android.R.color.system_outline_variant_light, mContext.theme
+            )
+        } else {
+            TypedValue().apply {
+                mContext.theme.resolveAttribute(android.R.attr.colorBackground, this, true)
+            }.data
+        }
 
         val insetBackground = InsetDrawable(
             ShapeDrawable().apply {

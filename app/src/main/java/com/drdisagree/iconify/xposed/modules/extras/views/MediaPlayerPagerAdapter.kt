@@ -3,6 +3,7 @@ package com.drdisagree.iconify.xposed.modules.extras.views
 import android.view.View
 import android.view.ViewGroup
 import androidx.viewpager.widget.PagerAdapter
+import com.drdisagree.iconify.xposed.modules.extras.utils.ViewHelper.reAddView
 
 class MediaPlayerPagerAdapter(
     private val mediaPlayerViews: MutableList<Pair<String?, OpQsMediaPlayerView>>
@@ -19,8 +20,7 @@ class MediaPlayerPagerAdapter(
     override fun instantiateItem(container: ViewGroup, position: Int): Any {
         val view = mediaPlayerViews[position].second
         val index = (view.parent as? ViewGroup)?.indexOfChild(view)?.coerceAtLeast(0) ?: 0
-        (view.parent as? ViewGroup)?.removeView(view)
-        container.addView(view, index)
+        container.reAddView(view, index)
         return view
     }
 

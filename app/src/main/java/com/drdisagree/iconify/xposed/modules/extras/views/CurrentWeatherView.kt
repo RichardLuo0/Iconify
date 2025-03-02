@@ -477,16 +477,17 @@ class CurrentWeatherView(context: Context, name: String) : LinearLayout(context)
                 obj[1] == name
             }
             .forEach { obj: Array<Any> ->
-                val instance = obj[0] as CurrentWeatherView
-                instance.mShowWeatherLocation = showLocation
-                instance.mShowWeatherText = showText
-                instance.mShowWeatherHumidity = showHumidity
-                instance.mShowWeatherWind = showWind
-                instance.mLeftText!!.visibility = if (showLocation) VISIBLE else GONE
-                instance.mWeatherText!!.visibility = if (showText) VISIBLE else GONE
-                instance.mHumLayout!!.visibility = if (showHumidity) VISIBLE else GONE
-                instance.mWindLayout!!.visibility = if (showWind) VISIBLE else GONE
-                instance.updateSettings()
+                (obj[0] as CurrentWeatherView).apply {
+                    mShowWeatherLocation = showLocation
+                    mShowWeatherText = showText
+                    mShowWeatherHumidity = showHumidity
+                    mShowWeatherWind = showWind
+                    mLeftText!!.visibility = if (showLocation) VISIBLE else GONE
+                    mWeatherText!!.visibility = if (showText) VISIBLE else GONE
+                    mHumLayout!!.visibility = if (showHumidity) VISIBLE else GONE
+                    mWindLayout!!.visibility = if (showWind) VISIBLE else GONE
+                    updateSettings()
+                }
             }
     }
 
@@ -496,8 +497,9 @@ class CurrentWeatherView(context: Context, name: String) : LinearLayout(context)
         val Int.dp: Int
             get() = (this * Resources.getSystem().displayMetrics.density + 0.5f).toInt()
 
-        @SuppressLint("StaticFieldLeak")
+        @Volatile
         var instances: ArrayList<Array<Any>> = ArrayList()
+
         fun updateIconsSize(size: Int, name: String) {
             instances
                 .stream()
@@ -534,5 +536,4 @@ class CurrentWeatherView(context: Context, name: String) : LinearLayout(context)
             return null
         }
     }
-
 }

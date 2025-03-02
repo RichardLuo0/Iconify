@@ -523,34 +523,36 @@ object ViewHelper {
     fun ViewGroup?.getLsItemsContainer(): LinearLayout? {
         if (this == null) return null
 
-        var layout: LinearLayout? = findViewWithTag(ICONIFY_LOCKSCREEN_CONTAINER_TAG)
+        synchronized(ViewHelper) {
+            var layout: LinearLayout? = findViewWithTag(ICONIFY_LOCKSCREEN_CONTAINER_TAG)
 
-        val showDepthWallpaper = Xprefs.getBoolean(DEPTH_WALLPAPER_SWITCH, false)
-        val idx = if (showDepthWallpaper) {
-            val tempIdx = findChildIndexContainsTag(ICONIFY_DEPTH_WALLPAPER_FOREGROUND_TAG)
-            if (tempIdx == -1) 0 else tempIdx
-        } else {
-            0
-        }
-
-        if (layout == null) {
-            layout = LinearLayout(this.context).apply {
-                id = View.generateViewId()
-                tag = ICONIFY_LOCKSCREEN_CONTAINER_TAG
-                layoutParams = LinearLayout.LayoutParams(
-                    0,
-                    ViewGroup.LayoutParams.WRAP_CONTENT
-                )
-                orientation = LinearLayout.VERTICAL
+            val showDepthWallpaper = Xprefs.getBoolean(DEPTH_WALLPAPER_SWITCH, false)
+            val idx = if (showDepthWallpaper) {
+                val tempIdx = findChildIndexContainsTag(ICONIFY_DEPTH_WALLPAPER_FOREGROUND_TAG)
+                if (tempIdx == -1) 0 else tempIdx
+            } else {
+                0
             }
-            addView(layout, idx)
-        } else {
-            if (indexOfChild(layout) != idx) {
-                reAddView(layout, idx)
-            }
-        }
 
-        return layout
+            if (layout == null) {
+                layout = LinearLayout(this.context).apply {
+                    id = View.generateViewId()
+                    tag = ICONIFY_LOCKSCREEN_CONTAINER_TAG
+                    layoutParams = LinearLayout.LayoutParams(
+                        0,
+                        ViewGroup.LayoutParams.WRAP_CONTENT
+                    )
+                    orientation = LinearLayout.VERTICAL
+                }
+                addView(layout, idx)
+            } else {
+                if (indexOfChild(layout) != idx) {
+                    reAddView(layout, idx)
+                }
+            }
+
+            return layout
+        }
     }
 
     fun ViewGroup.reAddView(childView: View?) {
@@ -570,9 +572,14 @@ object ViewHelper {
                 ) return
             }
 
-            (view.parent as? ViewGroup)?.removeView(view)
+            view.removeViewFromParent()
             addView(view, index.coerceAtMost(childCount))
         }
+    }
+
+    fun View?.removeViewFromParent() {
+        if (this == null) return
+        (parent as? ViewGroup)?.removeView(this)
     }
 
     fun View?.getExpandableView(): Any? {

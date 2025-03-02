@@ -23,8 +23,9 @@ import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
+import android.provider.Settings
 import android.telephony.TelephonyManager
-import android.util.Log
+import android.text.TextUtils
 import android.view.GestureDetector
 import android.view.GestureDetector.SimpleOnGestureListener
 import android.view.Gravity
@@ -47,6 +48,7 @@ import com.drdisagree.iconify.xposed.HookRes.Companion.modRes
 import com.drdisagree.iconify.xposed.modules.extras.callbacks.ControllersProvider
 import com.drdisagree.iconify.xposed.modules.extras.callbacks.ThemeChange
 import com.drdisagree.iconify.xposed.modules.extras.utils.ActivityLauncherUtils
+import com.drdisagree.iconify.xposed.modules.extras.utils.DisplayUtils.isNightMode
 import com.drdisagree.iconify.xposed.modules.extras.utils.ViewHelper.getExpandableView
 import com.drdisagree.iconify.xposed.modules.extras.utils.ViewHelper.toPx
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.callMethod
@@ -140,14 +142,12 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
 
     private var isBluetoothOn = false
 
-    private var mIsInflated = false
     private var mIsLongPress = false
 
     private val mCameraManager: CameraManager
     private var mCameraId: String? = null
     private var isFlashOn = false
 
-    private val mAudioMode = 0
     private val mMediaUpdater: Runnable
     private val mHandler: Handler
 
@@ -313,6 +313,8 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
                 (mFabPadding * mWidgetsScale).toInt()
             )
             gravity = Gravity.CENTER_VERTICAL
+            maxLines = 2
+            ellipsize = TextUtils.TruncateAt.END
         }
     }
 
@@ -433,8 +435,8 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
 
     private fun updateMediaController() {
         if (!isWidgetEnabled("media")) return
-        val localController =
-            activeLocalMediaController
+
+        val localController = activeLocalMediaController
         if (localController != null && !sameSessions(mController, localController)) {
             if (mController != null) {
                 mController!!.unregisterCallback(mMediaCallback)
@@ -457,25 +459,18 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
 
     override fun onWindowVisibilityChanged(visibility: Int) {
         super.onWindowVisibilityChanged(visibility)
-        if (!lockscreenWidgetsEnabled) return
-        if (visibility == VISIBLE) {
+        if (visibility == VISIBLE && lockscreenWidgetsEnabled) {
             onVisible()
         }
     }
 
     private fun enableWeatherUpdates() {
-        if (mWeatherClient != null) {
-            mWeatherClient!!.addObserver(this)
-            queryAndUpdateWeather()
-        }
+        mWeatherClient?.addObserver(this)
+        queryAndUpdateWeather()
     }
 
     private fun disableWeatherUpdates() {
-        if (mWeatherClient != null) {
-            weatherButton = null
-            weatherButtonFab = null
-            mWeatherClient!!.removeObserver(this)
-        }
+        mWeatherClient?.removeObserver(this)
     }
 
     override fun weatherError(errorReason: Int) {
@@ -495,18 +490,16 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
     @SuppressLint("SetTextI18n")
     private fun queryAndUpdateWeather() {
         try {
-            if (mWeatherClient == null || !mWeatherClient!!.isOmniJawsEnabled) {
-                return
-            }
+            if (mWeatherClient == null || !mWeatherClient!!.isOmniJawsEnabled) return
+
             mWeatherClient!!.queryWeather()
             mWeatherInfo = mWeatherClient!!.weatherInfo
+
             if (mWeatherInfo != null) {
                 // OpenWeatherMap
                 var formattedCondition: String = mWeatherInfo!!.condition!!
-                if (formattedCondition.lowercase(Locale.getDefault())
-                        .contains("clouds") || formattedCondition.lowercase(
-                        Locale.getDefault()
-                    ).contains("overcast")
+                if (formattedCondition.lowercase(Locale.getDefault()).contains("clouds") ||
+                    formattedCondition.lowercase(Locale.getDefault()).contains("overcast")
                 ) {
                     formattedCondition = modRes.getString(R.string.weather_condition_clouds)
                 } else if (formattedCondition.lowercase(Locale.getDefault()).contains("rain")) {
@@ -525,33 +518,35 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
 
                 // MET Norway
                 if (formattedCondition.lowercase(Locale.getDefault()).contains("_")) {
-                    val words =
-                        formattedCondition.split("_".toRegex()).dropLastWhile { it.isEmpty() }
-                            .toTypedArray()
+                    val words = formattedCondition.split("_".toRegex())
+                        .dropLastWhile { it.isEmpty() }
+                        .toTypedArray()
                     val formattedConditionBuilder = StringBuilder()
                     for (word in words) {
-                        val capitalizedWord =
-                            word.substring(0, 1).uppercase(Locale.getDefault()) + word.substring(1)
+                        val capitalizedWord = word.substring(0, 1)
+                            .uppercase(Locale.getDefault()) + word.substring(1)
                         formattedConditionBuilder.append(capitalizedWord).append(" ")
                     }
                     formattedCondition = formattedConditionBuilder.toString().trim { it <= ' ' }
                 }
 
-                val d: Drawable =
+                val drawable: Drawable =
                     mWeatherClient!!.getWeatherConditionImage(mWeatherInfo!!.conditionCode)
+
                 if (weatherButtonFab != null) {
-                    weatherButtonFab!!.icon = d
+                    weatherButtonFab!!.icon = drawable
                     weatherButtonFab!!.text =
                         (mWeatherInfo!!.temp + mWeatherInfo!!.tempUnits) + " • " + formattedCondition
                     weatherButtonFab!!.iconTint = null
                 }
+
                 if (weatherButton != null) {
-                    weatherButton!!.setImageDrawable(d)
+                    weatherButton!!.setImageDrawable(drawable)
                     weatherButton!!.imageTintList = null
                 }
             }
         } catch (e: java.lang.Exception) {
-            Log.e("LockscreenWidgets", "Error updating weather: " + e.message)
+            log(this@LockscreenWidgetsView, "Error updating weather: " + e.message)
         }
     }
 
@@ -587,7 +582,6 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
 
     override fun onFinishInflate() {
         super.onFinishInflate()
-        mIsInflated = true
         updateWidgetViews()
     }
 
@@ -612,36 +606,36 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
     private fun updateWidgetViews() {
         if (mMainWidgetViews != null && mMainWidgetsList != null) {
             for (i in mMainWidgetViews!!.indices) {
-                mMainWidgetViews!![i].visibility =
+                mMainWidgetViews?.get(i)?.visibility =
                     if (i < mMainWidgetsList!!.size) VISIBLE else GONE
             }
-            for (i in 0 until min(
-                mMainWidgetsList!!.size.toDouble(),
-                mMainWidgetViews!!.size.toDouble()
-            ).toInt()) {
-                val widgetType: String = mMainWidgetsList!![i]
-                if (i < mMainWidgetViews!!.size) {
+
+            for (i in 0 until min(mMainWidgetsList!!.size, mMainWidgetViews!!.size)) {
+                val widgetType: String? = mMainWidgetsList?.get(i)
+
+                if (mMainWidgetViews?.get(i) != null && widgetType != null) {
                     setUpWidgetViews(efab = mMainWidgetViews!![i], type = widgetType)
                     updateMainWidgetResources(mMainWidgetViews!![i])
                 }
             }
         }
+
         if (mSecondaryWidgetViews != null && mSecondaryWidgetsList != null) {
             for (i in mSecondaryWidgetViews!!.indices) {
-                mSecondaryWidgetViews!![i].visibility =
+                mSecondaryWidgetViews?.get(i)?.visibility =
                     if (i < mSecondaryWidgetsList!!.size) VISIBLE else GONE
             }
-            for (i in 0 until min(
-                mSecondaryWidgetsList!!.size.toDouble(),
-                mSecondaryWidgetViews!!.size.toDouble()
-            ).toInt()) {
-                val widgetType: String = mSecondaryWidgetsList!![i]
-                if (i < mSecondaryWidgetViews!!.size) {
+
+            for (i in 0 until min(mSecondaryWidgetsList!!.size, mSecondaryWidgetViews!!.size)) {
+                val widgetType: String? = mSecondaryWidgetsList?.get(i)
+
+                if (mSecondaryWidgetViews?.get(i) != null && widgetType != null) {
                     setUpWidgetViews(iv = mSecondaryWidgetViews!![i], type = widgetType)
                     updateWidgetsResources(mSecondaryWidgetViews!![i])
                 }
             }
         }
+
         updateContainerVisibility()
         updateMediaController()
     }
@@ -649,8 +643,10 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
     @Suppress("SameParameterValue")
     private fun updateMainWidgetResources(efab: ExtendedFAB?) {
         if (efab == null) return
+
         efab.setElevation(0F)
         setButtonActiveState(null, efab, false)
+
         val params: ViewGroup.LayoutParams = efab.layoutParams
         if (params is LayoutParams) {
             if (efab.visibility == VISIBLE && mMainWidgetsList!!.size == 1) {
@@ -666,28 +662,19 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
 
     private fun updateWidgetsResources(iv: ImageView?) {
         if (iv == null) return
-        val d = ResourcesCompat.getDrawable(
+
+        iv.background = ResourcesCompat.getDrawable(
             modRes,
             R.drawable.lockscreen_widget_background_circle,
             mContext.theme
         )
-        iv.background = d
         setButtonActiveState(iv, null, false)
     }
-
-    private val isNightMode: Boolean
-        get() {
-            val config = mContext.resources.configuration
-            return ((config.uiMode and Configuration.UI_MODE_NIGHT_MASK)
-                    == Configuration.UI_MODE_NIGHT_YES)
-        }
 
     private fun setUpWidgetViews(iv: ImageView? = null, efab: ExtendedFAB? = null, type: String) {
         when (type) {
             "none" -> {
-                if (iv != null) {
-                    iv.visibility = GONE
-                }
+                iv?.visibility = GONE
                 efab?.visibility = GONE
             }
 
@@ -699,6 +686,7 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
                         true
                     }
                 }
+
                 if (efab != null) {
                     wifiButtonFab = efab
                     wifiButtonFab!!.setOnLongClickListener { v ->
@@ -706,11 +694,13 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
                         true
                     }
                 }
+
                 setUpWidgetResources(
-                    iv, efab,
-                    { toggleWiFi() }, getDrawable(WIFI_INACTIVE, FRAMEWORK_PACKAGE), getString(
-                        WIFI_LABEL, SYSTEMUI_PACKAGE
-                    )
+                    imageView = iv,
+                    extendedFAB = efab,
+                    clickListener = { toggleWiFi() },
+                    icon = getDrawable(WIFI_INACTIVE, FRAMEWORK_PACKAGE),
+                    text = getString(WIFI_LABEL, SYSTEMUI_PACKAGE)
                 )
             }
 
@@ -722,6 +712,7 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
                         true
                     }
                 }
+
                 if (efab != null) {
                     dataButtonFab = efab
                     dataButtonFab!!.setOnLongClickListener { v ->
@@ -729,11 +720,13 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
                         true
                     }
                 }
+
                 setUpWidgetResources(
-                    iv, efab,
-                    { toggleMobileData() }, getDrawable(DATA_ICON, FRAMEWORK_PACKAGE), getString(
-                        DATA_LABEL, SYSTEMUI_PACKAGE
-                    )
+                    imageView = iv,
+                    extendedFAB = efab,
+                    clickListener = { toggleMobileData() },
+                    icon = getDrawable(DATA_ICON, FRAMEWORK_PACKAGE),
+                    text = getString(DATA_LABEL, SYSTEMUI_PACKAGE)
                 )
             }
 
@@ -745,6 +738,7 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
                         true
                     }
                 }
+
                 if (efab != null) {
                     ringerButtonFab = efab
                     ringerButtonFab!!.setOnLongClickListener {
@@ -752,15 +746,17 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
                         true
                     }
                 }
+
                 setUpWidgetResources(
-                    iv, efab,
-                    { toggleRingerMode() },
-                    ResourcesCompat.getDrawable(
+                    imageView = iv,
+                    extendedFAB = efab,
+                    clickListener = { toggleRingerMode() },
+                    icon = ResourcesCompat.getDrawable(
                         modRes,
                         R.drawable.ic_ringer_normal,
                         mContext.theme
                     ),
-                    ringerText
+                    text = ringerText
                 )
             }
 
@@ -772,6 +768,7 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
                         true
                     }
                 }
+
                 if (efab != null) {
                     btButtonFab = efab
                     btButtonFab!!.setOnLongClickListener { v ->
@@ -779,12 +776,16 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
                         true
                     }
                 }
+
                 setUpWidgetResources(
-                    iv, efab,
-                    { toggleBluetoothState() }, getDrawable(
+                    imageView = iv,
+                    extendedFAB = efab,
+                    clickListener = { toggleBluetoothState() },
+                    icon = getDrawable(
                         BT_ICON,
                         SYSTEMUI_PACKAGE
-                    ), getString(BT_LABEL, SYSTEMUI_PACKAGE)
+                    ),
+                    text = getString(BT_LABEL, SYSTEMUI_PACKAGE)
                 )
             }
 
@@ -792,68 +793,65 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
                 if (iv != null) {
                     torchButton = iv
                 }
+
                 if (efab != null) {
                     torchButtonFab = efab
                 }
+
                 setUpWidgetResources(
-                    iv,
-                    efab,
-                    { toggleFlashlight() },
-                    getDrawable(TORCH_INACTIVE, SYSTEMUI_PACKAGE),
-                    getString(
-                        TORCH_LABEL, SYSTEMUI_PACKAGE
-                    )
+                    imageView = iv,
+                    extendedFAB = efab,
+                    clickListener = { toggleFlashlight() },
+                    icon = getDrawable(TORCH_INACTIVE, SYSTEMUI_PACKAGE),
+                    text = getString(TORCH_LABEL, SYSTEMUI_PACKAGE)
                 )
             }
 
-            "timer" -> setUpWidgetResources(iv, efab, {
-                mActivityLauncherUtils.launchTimer()
-                vibrate(1)
-            }, getDrawable(ALARM_ICON, SYSTEMUI_PACKAGE), modRes.getString(R.string.clock_timer))
+            "timer" -> setUpWidgetResources(
+                imageView = iv,
+                extendedFAB = efab,
+                clickListener = {
+                    mActivityLauncherUtils.launchTimer()
+                    vibrate(1)
+                },
+                icon = getDrawable(ALARM_ICON, SYSTEMUI_PACKAGE),
+                text = modRes.getString(R.string.clock_timer)
+            )
 
             "camera" -> setUpWidgetResources(
-                iv,
-                efab,
-                {
+                imageView = iv,
+                extendedFAB = efab,
+                clickListener = {
                     mActivityLauncherUtils.launchCamera()
                     vibrate(1)
                 },
-                getDrawable(CAMERA_ICON, SYSTEMUI_PACKAGE),
-                getString(CAMERA_LABEL, SYSTEMUI_PACKAGE)
+                icon = getDrawable(CAMERA_ICON1, SYSTEMUI_PACKAGE)
+                    ?: getDrawable(CAMERA_ICON2, SYSTEMUI_PACKAGE),
+                text = getString(CAMERA_LABEL, SYSTEMUI_PACKAGE)
             )
 
             "calculator" -> setUpWidgetResources(
-                iv,
-                efab,
-                { openCalculator() },
-                getDrawable(CALCULATOR_ICON, SYSTEMUI_PACKAGE),
-                getString(
-                    CALCULATOR_LABEL, SYSTEMUI_PACKAGE
-                )
+                imageView = iv,
+                extendedFAB = efab,
+                clickListener = { openCalculator() },
+                icon = getDrawable(CALCULATOR_ICON, SYSTEMUI_PACKAGE),
+                text = getString(CALCULATOR_LABEL, SYSTEMUI_PACKAGE)
             )
 
             "homecontrols" -> setUpWidgetResources(
-                iv,
-                efab,
-                { view: View ->
-                    this.launchHomeControls(
-                        view
-                    )
-                },
-                getDrawable(HOME_CONTROLS, SYSTEMUI_PACKAGE),
-                getString(HOME_CONTROLS_LABEL, SYSTEMUI_PACKAGE)
+                imageView = iv,
+                extendedFAB = efab,
+                clickListener = { view: View -> this.launchHomeControls(view) },
+                icon = getDrawable(HOME_CONTROLS, SYSTEMUI_PACKAGE),
+                text = getString(HOME_CONTROLS_LABEL, SYSTEMUI_PACKAGE)
             )
 
             "wallet" -> setUpWidgetResources(
-                iv,
-                efab,
-                { view: View ->
-                    this.launchWallet(
-                        view
-                    )
-                },
-                getDrawable(WALLET_ICON, SYSTEMUI_PACKAGE),
-                getString(WALLET_LABEL, SYSTEMUI_PACKAGE)
+                imageView = iv,
+                extendedFAB = efab,
+                clickListener = { view: View -> this.launchWallet(view) },
+                icon = getDrawable(WALLET_ICON, SYSTEMUI_PACKAGE),
+                text = getString(WALLET_LABEL, SYSTEMUI_PACKAGE)
             )
 
             "media" -> {
@@ -861,15 +859,21 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
                     mediaButton = iv
                     mediaButton!!.setOnLongClickListener { true }
                 }
+
                 if (efab != null) {
                     mediaButtonFab = efab
                     mediaButtonFab!!.setOnLongClickListener { true }
                 }
+
                 setUpWidgetResources(
-                    iv, efab,
-                    { toggleMediaPlaybackState() },
-                    ResourcesCompat.getDrawable(modRes, R.drawable.ic_play, mContext.theme),
-                    getString(MEDIA_PLAY_LABEL, SYSTEMUI_PACKAGE)
+                    imageView = iv, extendedFAB = efab,
+                    clickListener = { toggleMediaPlaybackState() },
+                    icon = ResourcesCompat.getDrawable(
+                        modRes,
+                        R.drawable.ic_play,
+                        mContext.theme
+                    ),
+                    text = getString(MEDIA_PLAY_LABEL, SYSTEMUI_PACKAGE)
                 )
             }
 
@@ -877,23 +881,22 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
                 if (iv != null) {
                     weatherButton = iv
                 }
+
                 if (efab != null) {
                     weatherButtonFab = efab
                 }
+
                 // Set a null on click listener to weather button to avoid running previous button action
                 setUpWidgetResources(
-                    iv, efab,
-                    {
-                        mActivityLauncherUtils.launchWeatherActivity(
-                            false
-                        )
-                    },
-                    ResourcesCompat.getDrawable(
+                    imageView = iv,
+                    extendedFAB = efab,
+                    clickListener = { mActivityLauncherUtils.launchWeatherActivity(false) },
+                    icon = ResourcesCompat.getDrawable(
                         appContext!!.resources,
                         R.drawable.google_30,
                         appContext!!.theme
                     ),
-                    appContext!!.getString(R.string.weather_settings)
+                    text = appContext!!.getString(R.string.weather_settings)
                 )
             }
 
@@ -905,6 +908,7 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
                         true
                     }
                 }
+
                 if (efab != null) {
                     hotspotButtonFab = efab
                     hotspotButtonFab!!.setOnLongClickListener {
@@ -912,10 +916,13 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
                         true
                     }
                 }
+
                 setUpWidgetResources(
-                    iv, efab, { toggleHotspot() },
-                    getDrawable(HOTSPOT_INACTIVE, SYSTEMUI_PACKAGE),
-                    getString(HOTSPOT_LABEL, SYSTEMUI_PACKAGE)
+                    imageView = iv,
+                    extendedFAB = efab,
+                    clickListener = { toggleHotspot() },
+                    icon = getDrawable(HOTSPOT_INACTIVE, SYSTEMUI_PACKAGE),
+                    text = getString(HOTSPOT_LABEL, SYSTEMUI_PACKAGE)
                 )
             }
 
@@ -924,14 +931,14 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
     }
 
     private fun setUpWidgetResources(
-        iv: ImageView?,
-        efab: ExtendedFAB?,
-        cl: OnClickListener,
+        imageView: ImageView?,
+        extendedFAB: ExtendedFAB?,
+        clickListener: OnClickListener,
         icon: Drawable?,
         text: String
     ) {
-        efab?.apply {
-            setOnClickListener(cl)
+        extendedFAB?.apply {
+            setOnClickListener(clickListener)
             this.icon = icon
             this.text = text
             if (mediaButtonFab == this) {
@@ -939,8 +946,8 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
             }
         }
 
-        iv?.apply {
-            setOnClickListener(cl)
+        imageView?.apply {
+            setOnClickListener(clickListener)
             setImageDrawable(icon)
         }
     }
@@ -976,6 +983,7 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
                 mHandler.postDelayed({ mIsLongPress = false }, 2500)
             }
         })
+
         view.setOnTouchListener { v, event ->
             val isClick: Boolean = gestureDetector.onTouchEvent(event)
             if ((event.action == MotionEvent.ACTION_UP) && !isClick && !mIsLongPress) {
@@ -987,54 +995,68 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
 
     private fun setButtonActiveState(iv: ImageView?, efab: ExtendedFAB?, active: Boolean) {
         val bgTint: Int
-        val tintColor: Int
+        val fgColor: Int
 
         if (!mCustomColors) {
             if (active) {
-                bgTint = if (isNightMode) mDarkColorActive else mLightColorActive
-                tintColor = if (isNightMode) mDarkColor else mLightColor
+                bgTint = if (mContext.isNightMode) mDarkColorActive else mLightColorActive
+                fgColor = if (mContext.isNightMode) mDarkColor else mLightColor
             } else {
-                bgTint = if (isNightMode) mDarkColor else mLightColor
-                tintColor = if (isNightMode) mLightColor else mDarkColor
+                bgTint = if (mContext.isNightMode) mDarkColor else mLightColor
+                fgColor = if (mContext.isNightMode) mLightColor else mDarkColor
             }
+
             if (iv != null) {
                 iv.backgroundTintList = ColorStateList.valueOf(bgTint)
-                if (iv !== weatherButton) {
-                    iv.imageTintList = ColorStateList.valueOf(tintColor)
+                if (iv != weatherButton) {
+                    iv.imageTintList = ColorStateList.valueOf(fgColor)
                 } else {
                     iv.imageTintList = null
                 }
             }
+
             if (efab != null) {
                 efab.backgroundTintList = ColorStateList.valueOf(bgTint)
-                if (efab !== weatherButtonFab) {
-                    efab.iconTint = ColorStateList.valueOf(tintColor)
+                if (efab != weatherButtonFab) {
+                    efab.iconTint = ColorStateList.valueOf(fgColor)
                 } else {
                     efab.iconTint = null
                 }
-                efab.setTextColor(tintColor)
+                efab.setTextColor(fgColor)
             }
         } else {
             if (iv != null) {
-                iv.backgroundTintList =
-                    ColorStateList.valueOf(if (active) mSmallActiveColor else mSmallInactiveColor)
+                iv.backgroundTintList = ColorStateList.valueOf(
+                    if (active) mSmallActiveColor
+                    else mSmallInactiveColor
+                )
                 if (iv !== weatherButton) {
-                    iv.imageTintList =
-                        ColorStateList.valueOf(if (active) mSmallIconActiveColor else mSmallIconInactiveColor)
+                    iv.imageTintList = ColorStateList.valueOf(
+                        if (active) mSmallIconActiveColor
+                        else mSmallIconInactiveColor
+                    )
                 } else {
                     iv.imageTintList = null
                 }
             }
+
             if (efab != null) {
-                efab.backgroundTintList =
-                    ColorStateList.valueOf(if (active) mBigActiveColor else mBigInactiveColor)
+                efab.backgroundTintList = ColorStateList.valueOf(
+                    if (active) mBigActiveColor
+                    else mBigInactiveColor
+                )
                 if (efab !== weatherButtonFab) {
-                    efab.iconTint =
-                        ColorStateList.valueOf(if (active) mBigIconActiveColor else mBigIconInactiveColor)
+                    efab.iconTint = ColorStateList.valueOf(
+                        if (active) mBigIconActiveColor
+                        else mBigIconInactiveColor
+                    )
                 } else {
                     efab.iconTint = null
                 }
-                efab.setTextColor(if (active) mBigIconActiveColor else mBigIconInactiveColor)
+                efab.setTextColor(
+                    if (active) mBigIconActiveColor
+                    else mBigIconInactiveColor
+                )
             }
         }
     }
@@ -1053,6 +1075,7 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
             mMediaUpdater.run()
             dispatchMediaKeyWithWakeLockToMediaSession(KeyEvent.KEYCODE_MEDIA_PLAY)
         }
+        vibrate(1)
     }
 
     private fun dispatchMediaKeyWithWakeLockToMediaSession(keycode: Int) {
@@ -1080,10 +1103,12 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
             if (isPlaying) R.drawable.ic_pause else R.drawable.ic_play,
             mContext.theme
         )
+
         if (mediaButton != null) {
             mediaButton!!.setImageDrawable(icon)
             setButtonActiveState(mediaButton, null, isPlaying)
         }
+
         if (mediaButtonFab != null) {
             val trackTitle =
                 if (mMediaMetadata != null) mMediaMetadata!!.getString(MediaMetadata.METADATA_KEY_TITLE) else ""
@@ -1207,10 +1232,7 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
         }
 
     private val isWifiEnabled: Boolean
-        get() {
-            val enabled: Boolean = mWifiManager!!.isWifiEnabled
-            return enabled
-        }
+        get() = mWifiManager!!.isWifiEnabled
 
     private fun toggleMobileData() {
         enqueueProxyCommand { proxy ->
@@ -1227,7 +1249,9 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
         } else {
             view
         }
-        ControllersProvider.showInternetDialog(finalView)
+        if (!ControllersProvider.showInternetDialog(finalView)) {
+            mActivityLauncherUtils.launchApp(Intent(Settings.ACTION_WIFI_SETTINGS), false)
+        }
         vibrate(0)
     }
 
@@ -1271,6 +1295,7 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
                 iv.setImageDrawable(icon)
                 setButtonActiveState(iv, null, active)
             }
+
             if (efab != null) {
                 efab.icon = icon
                 efab.text = text
@@ -1281,6 +1306,7 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
 
     fun updateTorchButtonState() {
         if (!isWidgetEnabled("torch")) return
+
         updateTileButtonState(
             torchButton,
             torchButtonFab,
@@ -1444,8 +1470,10 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
     private fun updateWiFiButtonState(enabled: Boolean) {
         if (!isWidgetEnabled("wifi")) return
         if (wifiButton == null && wifiButtonFab == null) return
+
         val connected: Boolean
         var theSsid: String = mWifiManager!!.connectionInfo.ssid
+
         if (theSsid == WifiManager.UNKNOWN_SSID) {
             theSsid = getString(WIFI_LABEL, SYSTEMUI_PACKAGE)
             connected = false
@@ -1455,25 +1483,31 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
             }
             connected = true
         }
+
         val icon: Drawable? = getDrawable(
             if (enabled && connected) WIFI_ACTIVE
             else if (enabled) WIFI_ACTIVE
             else WIFI_INACTIVE, FRAMEWORK_PACKAGE
         )
+
         updateTileButtonState(
-            wifiButton, wifiButtonFab,
+            wifiButton,
+            wifiButtonFab,
             isWifiEnabled,
-            icon, theSsid
+            icon,
+            theSsid
         )
     }
 
     private fun updateRingerButtonState() {
         if (!isWidgetEnabled("ringer")) return
         if (ringerButton == null && ringerButtonFab == null) return
+
         if (mAudioManager != null) {
             val soundActive = mAudioManager.ringerMode == AudioManager.RINGER_MODE_NORMAL
             updateTileButtonState(
-                ringerButton, ringerButtonFab,
+                ringerButton,
+                ringerButtonFab,
                 soundActive,
                 ringerDrawable,
                 ringerText
@@ -1484,6 +1518,7 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
     private fun updateMobileDataState(enabled: Boolean) {
         if (!isWidgetEnabled("data")) return
         if (dataButton == null && dataButtonFab == null) return
+
         val inactive = getString(DATA_LABEL, SYSTEMUI_PACKAGE)
         val networkName = activeMobileDataCarrier.ifEmpty { inactive }
         val hasNetwork = enabled && networkName.isNotEmpty()
@@ -1543,6 +1578,7 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
     private fun updateBtState() {
         if (!isWidgetEnabled("bt")) return
         if (btButton == null && btButtonFab == null) return
+
         val bluetoothController: Any? = ControllersProvider.mBluetoothController
         var deviceName: String? = ""
         if (isBluetoothEnabled && bluetoothController != null)
@@ -1553,7 +1589,9 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
             SYSTEMUI_PACKAGE
         )
         updateTileButtonState(
-            btButton, btButtonFab, isBluetoothOn,
+            btButton,
+            btButtonFab,
+            isBluetoothOn,
             icon,
             if (isConnected) deviceName!!
             else getString(BT_LABEL, SYSTEMUI_PACKAGE)
@@ -1562,6 +1600,7 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
 
     private fun updateHotspotButtonState(numDevices: Int) {
         if (!isWidgetEnabled("hotspot")) return
+
         val inactiveString = getString(HOTSPOT_LABEL, SYSTEMUI_PACKAGE)
         var activeString = inactiveString
         val hotspotEnabled = isHotspotEnabled()
@@ -1651,25 +1690,29 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
         lsWidgets: Boolean, deviceWidget: Boolean,
         mainWidgets: String, secondaryWidgets: String
     ) {
-        instance!!.apply {
+        instance?.apply {
             lockscreenWidgetsEnabled = lsWidgets
             deviceWidgetsEnabled = deviceWidget
             mMainLockscreenWidgetsList = mainWidgets
             mMainWidgetsList = listOf(
-                *mMainLockscreenWidgetsList!!.split(",".toRegex())
+                *mMainLockscreenWidgetsList!!
+                    .split(",".toRegex())
                     .dropLastWhile { it.isEmpty() }
-                    .toTypedArray())
+                    .toTypedArray()
+            )
             mSecondaryLockscreenWidgetsList = secondaryWidgets
             mSecondaryWidgetsList = listOf(
-                *mSecondaryLockscreenWidgetsList!!.split(",".toRegex())
+                *mSecondaryLockscreenWidgetsList!!
+                    .split(",".toRegex())
                     .dropLastWhile { it.isEmpty() }
-                    .toTypedArray())
+                    .toTypedArray()
+            )
             updateWidgetViews()
         }
     }
 
     fun setIsLargeClock(isLargeClock: Boolean) {
-        instance!!.apply {
+        instance?.apply {
             mIsLargeClock = isLargeClock
             updateContainerVisibility()
         }
@@ -1692,7 +1735,7 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
         textColor: Int,
         devName: String?
     ) {
-        instance!!.mDeviceWidgetView?.apply {
+        instance?.mDeviceWidgetView?.apply {
             setDeviceWidgetStyle(deviceWidgetStyle)
             setCustomColor(customColor, linearColor, circularColor)
             setTextCustomColor(textColor)
@@ -1705,7 +1748,7 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
         bigInactive: Int, bigActive: Int, smallInactive: Int, smallActive: Int,
         bigIconInactive: Int, bigIconActive: Int, smallIconInactive: Int, smallIconActive: Int
     ) {
-        instance!!.apply {
+        instance?.apply {
             mCustomColors = customColorsEnabled
             mBigInactiveColor = bigInactive
             mBigActiveColor = bigActive
@@ -1720,7 +1763,7 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
     }
 
     fun setScale(scale: Float) {
-        instance!!.apply {
+        instance?.apply {
             mWidgetsScale = scale
             removeAllViews()
             drawUI()
@@ -1733,7 +1776,7 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
     }
 
     fun setDozingState(isDozing: Boolean) {
-        instance!!.apply {
+        instance?.apply {
             mDozing = isDozing
             updateContainerVisibility()
         }
@@ -1777,30 +1820,17 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
             )
         } catch (t: Throwable) {
             // We have our own strings too, so return them if SystemUI doesn't
-            when (stringRes) {
-                HOME_CONTROLS_LABEL -> {
-                    return modRes.getString(R.string.home_controls)
-                }
-
-                CALCULATOR_LABEL -> {
-                    return modRes.getString(R.string.calculator)
-                }
-
-                CAMERA_LABEL -> {
-                    return modRes.getString(R.string.camera)
-                }
-
-                WALLET_LABEL -> {
-                    return modRes.getString(R.string.wallet)
-                }
-
-                MEDIA_PLAY_LABEL -> {
-                    return "Play"
+            return when (stringRes) {
+                HOME_CONTROLS_LABEL -> modRes.getString(R.string.home_controls)
+                CALCULATOR_LABEL -> modRes.getString(R.string.calculator)
+                CAMERA_LABEL -> modRes.getString(R.string.camera)
+                WALLET_LABEL -> modRes.getString(R.string.wallet)
+                MEDIA_PLAY_LABEL -> "Play"
+                else -> {
+                    log(this@LockscreenWidgetsView, "getString $stringRes from $pkg error $t")
+                    ""
                 }
             }
-
-            log(this@LockscreenWidgetsView, "getString $stringRes from $pkg error $t")
-            return ""
         }
     }
 
@@ -1855,7 +1885,8 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
         const val WIFI_INACTIVE: String = "ic_wifi_signal_0"
         const val HOME_CONTROLS: String = "controls_icon"
         const val CALCULATOR_ICON: String = "status_bar_qs_calculator_inactive"
-        const val CAMERA_ICON: String = "ic_camera" // Use qs camera access icon for camera
+        const val CAMERA_ICON1: String = "ic_camera_alt_24dp"
+        const val CAMERA_ICON2: String = "ic_camera"
         const val ALARM_ICON: String = "ic_alarm"
         const val WALLET_ICON: String = "ic_wallet_lockscreen"
         const val HOTSPOT_ACTIVE: String = "qs_hotspot_icon_on"
@@ -1865,9 +1896,6 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
         const val HOTSPOT_A12: String = "ic_hotspot"
         const val BT_A12: String = "ic_qs_bluetooth"
         const val TORCH_A12: String = "ic_qs_flashlight"
-
-        const val GENERAL_INACTIVE: String = "switch_bar_off"
-        const val GENERAL_ACTIVE: String = "switch_bar_on"
 
         const val BT_LABEL: String = "quick_settings_bluetooth_label"
         const val DATA_LABEL: String = "quick_settings_internet_label"

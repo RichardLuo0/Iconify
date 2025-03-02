@@ -35,17 +35,24 @@ import com.drdisagree.iconify.ui.fragments.tweaks.Statusbar
 import com.drdisagree.iconify.ui.fragments.tweaks.Tweaks
 import com.drdisagree.iconify.ui.fragments.tweaks.UiRoundness
 import com.drdisagree.iconify.ui.fragments.tweaks.VolumePanel
+import com.drdisagree.iconify.ui.fragments.xposed.AlbumArt
 import com.drdisagree.iconify.ui.fragments.xposed.BackgroundChip
 import com.drdisagree.iconify.ui.fragments.xposed.BatteryStyle
+import com.drdisagree.iconify.ui.fragments.xposed.ClockChip
 import com.drdisagree.iconify.ui.fragments.xposed.DepthWallpaper
+import com.drdisagree.iconify.ui.fragments.xposed.DualStatusbar
 import com.drdisagree.iconify.ui.fragments.xposed.HeaderClock
 import com.drdisagree.iconify.ui.fragments.xposed.HeaderImage
+import com.drdisagree.iconify.ui.fragments.xposed.Launcher
 import com.drdisagree.iconify.ui.fragments.xposed.Lockscreen
 import com.drdisagree.iconify.ui.fragments.xposed.LockscreenClock
 import com.drdisagree.iconify.ui.fragments.xposed.LockscreenWeather
 import com.drdisagree.iconify.ui.fragments.xposed.LockscreenWidget
+import com.drdisagree.iconify.ui.fragments.xposed.OpQsHeader
 import com.drdisagree.iconify.ui.fragments.xposed.Others
+import com.drdisagree.iconify.ui.fragments.xposed.QsMargins
 import com.drdisagree.iconify.ui.fragments.xposed.QuickSettings
+import com.drdisagree.iconify.ui.fragments.xposed.StatusIconsChip
 import com.drdisagree.iconify.ui.fragments.xposed.Themes
 import com.drdisagree.iconify.ui.fragments.xposed.TransparencyBlur
 import com.drdisagree.iconify.ui.fragments.xposed.Xposed
@@ -93,20 +100,27 @@ fun isInGroup(fragment: Fragment, group: FragmentGroup): Boolean {
 
         FragmentGroup.XPOSED -> {
             fragment is Xposed ||
+                    fragment is BackgroundChip ||
+                    fragment is ClockChip ||
+                    fragment is StatusIconsChip ||
                     fragment is TransparencyBlur ||
                     fragment is QuickSettings ||
                     fragment is Lockscreen ||
                     fragment is Themes ||
+                    fragment is OpQsHeader ||
                     fragment is BatteryStyle ||
+                    fragment is QsMargins ||
                     fragment is com.drdisagree.iconify.ui.fragments.xposed.Statusbar ||
                     fragment is com.drdisagree.iconify.ui.fragments.xposed.VolumePanel ||
+                    fragment is DualStatusbar ||
                     fragment is HeaderImage ||
                     fragment is HeaderClock ||
                     fragment is LockscreenClock ||
                     fragment is LockscreenWeather ||
                     fragment is LockscreenWidget ||
                     fragment is DepthWallpaper ||
-                    fragment is BackgroundChip ||
+                    fragment is AlbumArt ||
+                    fragment is Launcher ||
                     fragment is Others
         }
 

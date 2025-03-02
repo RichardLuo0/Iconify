@@ -16,12 +16,11 @@ import com.drdisagree.iconify.R
 import com.drdisagree.iconify.data.common.Const.FRAMEWORK_PACKAGE
 import com.drdisagree.iconify.data.common.Preferences.SELECTED_TOAST_FRAME
 import com.drdisagree.iconify.data.config.RPrefs
-import com.drdisagree.iconify.data.config.RPrefs.getInt
+import com.drdisagree.iconify.data.models.ToastModel
 import com.drdisagree.iconify.databinding.FragmentToastFrameBinding
 import com.drdisagree.iconify.ui.adapters.ToastAdapter
 import com.drdisagree.iconify.ui.base.BaseFragment
 import com.drdisagree.iconify.ui.dialogs.LoadingDialog
-import com.drdisagree.iconify.data.models.ToastModel
 import com.drdisagree.iconify.ui.utils.ViewHelper.setHeader
 import com.drdisagree.iconify.utils.SystemUtils.hasStoragePermission
 import com.drdisagree.iconify.utils.SystemUtils.requestStoragePermission
@@ -75,7 +74,6 @@ class ToastFrame : BaseFragment() {
     }
 
     private fun initToastFrameItems(): ToastAdapter {
-        val selectedStyle = getInt(SELECTED_TOAST_FRAME, -1)
         val toastFrameStyle = ArrayList<ToastModel>().apply {
             add(
                 ToastModel(

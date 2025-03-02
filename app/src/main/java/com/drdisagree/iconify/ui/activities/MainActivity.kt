@@ -20,12 +20,12 @@ import com.drdisagree.iconify.data.common.Preferences.ON_HOME_PAGE
 import com.drdisagree.iconify.data.common.Resources.searchConfiguration
 import com.drdisagree.iconify.data.common.Resources.searchableFragments
 import com.drdisagree.iconify.data.config.RPrefs
+import com.drdisagree.iconify.data.events.ColorDismissedEvent
+import com.drdisagree.iconify.data.events.ColorSelectedEvent
 import com.drdisagree.iconify.databinding.ActivityMainBinding
 import com.drdisagree.iconify.ui.base.BaseActivity
 import com.drdisagree.iconify.ui.base.BaseFragment
 import com.drdisagree.iconify.ui.base.ControlledPreferenceFragmentCompat
-import com.drdisagree.iconify.data.events.ColorDismissedEvent
-import com.drdisagree.iconify.data.events.ColorSelectedEvent
 import com.drdisagree.iconify.ui.fragments.home.Home
 import com.drdisagree.iconify.ui.fragments.settings.Settings
 import com.drdisagree.iconify.ui.fragments.tweaks.Tweaks
@@ -162,7 +162,7 @@ class MainActivity : BaseActivity(),
 
             Handler(Looper.getMainLooper()).postDelayed({
                 SystemUtils.restartDevice()
-            }, android.R.integer.config_longAnimTime.toLong())
+            }, 500)
         }
     }
 

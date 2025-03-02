@@ -23,6 +23,7 @@ import com.airbnb.lottie.model.KeyPath
 import com.airbnb.lottie.value.LottieValueCallback
 import com.drdisagree.iconify.BuildConfig
 import com.drdisagree.iconify.R
+import com.drdisagree.iconify.SplashActivity.Companion.FORCE_OVERLAY_INSTALLATION
 import com.drdisagree.iconify.data.common.Const.TRANSITION_DELAY
 import com.drdisagree.iconify.data.common.Dynamic.skippedInstallation
 import com.drdisagree.iconify.data.common.Preferences.FIRST_INSTALL
@@ -36,13 +37,15 @@ import com.drdisagree.iconify.data.config.RPrefs.getBoolean
 import com.drdisagree.iconify.data.config.RPrefs.getInt
 import com.drdisagree.iconify.data.config.RPrefs.putBoolean
 import com.drdisagree.iconify.data.config.RPrefs.putInt
+import com.drdisagree.iconify.data.database.DynamicResourceDatabase
+import com.drdisagree.iconify.data.entity.OnboardingPage
+import com.drdisagree.iconify.data.repository.DynamicResourceRepository
 import com.drdisagree.iconify.databinding.ViewOnboardingPageBinding
 import com.drdisagree.iconify.ui.activities.MainActivity
 import com.drdisagree.iconify.ui.adapters.OnboardingAdapter
 import com.drdisagree.iconify.ui.core.Transform
 import com.drdisagree.iconify.ui.dialogs.ErrorDialog
 import com.drdisagree.iconify.ui.dialogs.InstallationDialog
-import com.drdisagree.iconify.data.entity.OnboardingPage
 import com.drdisagree.iconify.ui.utils.Animatoo.animateSlideLeft
 import com.drdisagree.iconify.utils.FileUtils.copyAssets
 import com.drdisagree.iconify.utils.ModuleUtils.createModule
@@ -210,9 +213,23 @@ class OnboardingView : FrameLayout {
                 val moduleExists = moduleExists()
                 val overlayExists = overlayExists()
 
-                if (getInt(VER_CODE) != BuildConfig.VERSION_CODE || !moduleExists || !overlayExists) {
+                if (FORCE_OVERLAY_INSTALLATION ||
+                    getInt(VER_CODE) != BuildConfig.VERSION_CODE ||
+                    !moduleExists ||
+                    !overlayExists
+                ) {
                     if (!moduleExists || !overlayExists) {
+                        // Clear shared preferences
                         RPrefs.clearAllPrefs()
+
+                        // Clear dynamic resource database
+                        CoroutineScope(Dispatchers.IO).launch {
+                            DynamicResourceRepository(
+                                DynamicResourceDatabase.getInstance().dynamicResourceDao()
+                            ).apply {
+                                deleteResources(getAllResources())
+                            }
+                        }
                     }
 
                     handleInstallation()
@@ -269,7 +286,17 @@ class OnboardingView : FrameLayout {
                 }, (if (clickedButton) 10 else 1000).toLong())
             } else {
                 if (!moduleExists()) {
+                    // Clear shared preferences
                     RPrefs.clearAllPrefs()
+
+                    // Clear dynamic resource database
+                    CoroutineScope(Dispatchers.IO).launch {
+                        DynamicResourceRepository(
+                            DynamicResourceDatabase.getInstance().dynamicResourceDao()
+                        ).apply {
+                            deleteResources(getAllResources())
+                        }
+                    }
 
                     handleInstallation()
                 } else {

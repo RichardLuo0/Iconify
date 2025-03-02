@@ -10,7 +10,8 @@
     <uses-permission
         android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
         tools:ignore="ScopedStorage" /> <!-- Manage storage to be able to see what the compilation created -->
-    <queries> <!-- Checking for Installed Music Players -->
+    <queries>
+        <!-- Checking for Installed Music Players -->
         <package android:name="com.maxmpz.audioplayer" />
         <package android:name="code.name.monkey.retromusic" />
         <package android:name="com.awedea.nyx" />
@@ -21,6 +22,11 @@
         <package android:name="com.google.android.apps.youtube.music" />
         <package android:name="app.revanced.android.youtube" />
         <package android:name="app.revanced.android.apps.youtube.music" />
+
+        <!-- Other Apps -->
+        <package android:name="com.drdisagree.colorblendr" />
+        <package android:name="it.dhd.oxygencustomizer.aiplugin" />
+        <package android:name="org.lsposed.manager" />
     </queries>
 
     <!-- Weather Updater -->

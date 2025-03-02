@@ -48,7 +48,11 @@ class SplashActivity : AppCompatActivity() {
                             isVersionCodeCorrect)
                 ) {
                     keepShowing = false
-                    Intent(this@SplashActivity, MainActivity::class.java)
+                    Intent(
+                        this@SplashActivity,
+                        if (FORCE_OVERLAY_INSTALLATION) OnboardingActivity::class.java
+                        else MainActivity::class.java
+                    )
                 } else {
                     keepShowing = false
                     Intent(this@SplashActivity, OnboardingActivity::class.java)
@@ -68,8 +72,12 @@ class SplashActivity : AppCompatActivity() {
     }
 
     companion object {
+        // For testing purposes
         private const val SKIP_INSTALLATION = false
-        val SKIP_TO_HOMEPAGE_FOR_TESTING = SKIP_INSTALLATION && BuildConfig.DEBUG
+        const val FORCE_OVERLAY_INSTALLATION = false
+        val SKIP_TO_HOMEPAGE_FOR_TESTING = SKIP_INSTALLATION &&
+                !FORCE_OVERLAY_INSTALLATION &&
+                BuildConfig.DEBUG
 
         init {
             Shell.enableVerboseLogging = BuildConfig.DEBUG

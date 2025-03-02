@@ -29,6 +29,7 @@ import com.drdisagree.iconify.data.common.Preferences.BATTERY_STYLE_LANDSCAPE_BA
 import com.drdisagree.iconify.data.common.Preferences.BATTERY_STYLE_LANDSCAPE_BATTERYO
 import com.drdisagree.iconify.data.common.Preferences.BATTERY_STYLE_LANDSCAPE_IOS_16
 import com.drdisagree.iconify.data.common.Preferences.BATTERY_STYLE_LANDSCAPE_KIM
+import com.drdisagree.iconify.data.common.Preferences.BLUR_RADIUS_VALUE
 import com.drdisagree.iconify.data.common.Preferences.CHIP_STATUS_ICONS_SWITCH
 import com.drdisagree.iconify.data.common.Preferences.COLORED_NOTIFICATION_ALTERNATIVE_SWITCH
 import com.drdisagree.iconify.data.common.Preferences.COLORED_NOTIFICATION_VIEW_SWITCH
@@ -127,6 +128,8 @@ import com.drdisagree.iconify.data.common.Preferences.LSCLOCK_TOPMARGIN
 import com.drdisagree.iconify.data.common.Preferences.LSCLOCK_USERNAME
 import com.drdisagree.iconify.data.common.Preferences.NEW_UPDATE_FOUND
 import com.drdisagree.iconify.data.common.Preferences.NOTIF_TRANSPARENCY_SWITCH
+import com.drdisagree.iconify.data.common.Preferences.OP_QS_HEADER_BLUR_LEVEL
+import com.drdisagree.iconify.data.common.Preferences.OP_QS_HEADER_SHOW_ARTWORK
 import com.drdisagree.iconify.data.common.Preferences.PREF_KEY_UPDATE_STATUS
 import com.drdisagree.iconify.data.common.Preferences.QSALPHA_LEVEL
 import com.drdisagree.iconify.data.common.Preferences.QSPANEL_BLUR_SWITCH
@@ -329,6 +332,12 @@ object PrefsHelper {
                 ALBUM_ART_ON_LOCKSCREEN_FILTER,
                 "0"
             )!!.toInt() in setOf(3, 4)
+
+            OP_QS_HEADER_BLUR_LEVEL -> getBoolean(OP_QS_HEADER_SHOW_ARTWORK)
+
+            LOCKSCREEN_WIDGETS_DEVICE_WIDGET_STYLE -> getBoolean(LOCKSCREEN_WIDGETS_DEVICE_WIDGET)
+
+            BLUR_RADIUS_VALUE -> getBoolean(QSPANEL_BLUR_SWITCH)
 
             else -> true
         }

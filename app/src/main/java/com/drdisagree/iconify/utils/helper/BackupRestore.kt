@@ -18,6 +18,7 @@ import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import org.json.JSONException
 import org.json.JSONObject
 
 object BackupRestore {
@@ -132,26 +133,27 @@ object BackupRestore {
             val resourceEntries = ArrayList<DynamicResourceEntity>()
 
             for (i in resourceList.indices) {
-                val keys = resourceList[i].keys()
-
-                while (keys.hasNext()) {
-                    val packageName = keys.next()
-                    val value = resourceList[i].getString(packageName) ?: continue
-                    val valueJson = JSONObject(value)
+                for (packageName in resourceList[i].keys()) {
+                    val valueJson = try {
+                        resourceList[i].getJSONObject(packageName)
+                    } catch (_: JSONException) {
+                        null
+                    } ?: continue
 
                     if (DYNAMIC_OVERLAYABLE_PACKAGES.contains(packageName)) {
-                        val innerKeys = valueJson.keys()
+                        for (startEndTag in valueJson.keys()) {
+                            val innerValueJson = try {
+                                valueJson.getJSONObject(startEndTag)
+                            } catch (_: JSONException) {
+                                null
+                            } ?: continue
 
-                        while (innerKeys.hasNext()) {
-                            val startEndTag = innerKeys.next()
-                            val innerValue = valueJson.getString(startEndTag) ?: continue
-                            val innerValueJson = JSONObject(innerValue)
-                            val innerValueKeys = innerValueJson.keys()
-
-                            while (innerValueKeys.hasNext()) {
-                                val resourceName = innerValueKeys.next()
-                                val resourceValue = innerValueJson.getString(startEndTag)
-                                    ?: continue
+                            for (resourceName in innerValueJson.keys()) {
+                                val resourceValue = try {
+                                    innerValueJson.getString(resourceName)
+                                } catch (_: JSONException) {
+                                    null
+                                } ?: continue
 
                                 resourceEntries.add(
                                     DynamicResourceEntity(

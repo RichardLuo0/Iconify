@@ -16,8 +16,8 @@ android {
         applicationId = "com.drdisagree.iconify"
         minSdk = 31
         targetSdk = 35
-        versionCode = 23
-        versionName = "7.1.0"
+        versionCode = 24
+        versionName = "7.2.0"
         setProperty("archivesBaseName", "Iconify v${defaultConfig.versionName}")
         buildConfigField("int", "MIN_SDK_VERSION", "$minSdk")
 
@@ -48,7 +48,7 @@ android {
         debug {
             isMinifyEnabled = true
             isShrinkResources = true
-            isCrunchPngs = true
+            isCrunchPngs = false
             proguardFiles("proguard-android-optimize.txt", "proguard.pro", "proguard-rules.pro")
             applicationIdSuffix = ".debug"
             resValue("string", "derived_app_name", "Iconify (Debug)")
@@ -58,7 +58,7 @@ android {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
-            isCrunchPngs = true
+            isCrunchPngs = false
             proguardFiles("proguard-android-optimize.txt", "proguard.pro", "proguard-rules.pro")
             resValue("string", "derived_app_name", "Iconify")
             signingConfig = releaseSigning

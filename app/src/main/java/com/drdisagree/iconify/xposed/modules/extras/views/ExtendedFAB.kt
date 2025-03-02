@@ -13,9 +13,12 @@ class ExtendedFAB @JvmOverloads constructor(
     context: Context?,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
-) :
-    ExtendedFloatingActionButton(ContextThemeWrapper(object : ContextWrapper(context) {
+) : ExtendedFloatingActionButton(
+    ContextThemeWrapper(object : ContextWrapper(context) {
         override fun getResources(): Resources {
             return modRes
         }
-    }, R.style.Theme_MaterialComponents_DayNight), attrs, defStyleAttr)
+    }, R.style.Theme_MaterialComponents_DayNight),
+    attrs,
+    defStyleAttr
+)

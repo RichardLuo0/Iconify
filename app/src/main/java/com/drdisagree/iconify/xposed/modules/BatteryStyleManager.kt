@@ -173,8 +173,6 @@ class BatteryStyleManager(context: Context) : ModPack(context) {
     private var mChargingIconML = 1
     private var mChargingIconMR = 0
     private var mChargingIconWH = 14
-    private var mIsChargingImpl = false
-    private var mIsCharging = false
 
     override fun updatePrefs(vararg key: String) {
         var batteryStyle: Int
@@ -243,7 +241,7 @@ class BatteryStyleManager(context: Context) : ModPack(context) {
                 val mBatteryPercentView = view.getFieldSilently("mBatteryPercentView") as? TextView
                 mBatteryPercentView?.visibility = if (mHidePercentage) View.GONE else View.VISIBLE
 
-                val mCharging = isBatteryCharging(view)
+                val mCharging = view.isBatteryCharging()
                 val mLevel = view.getField("mLevel") as Int
 
                 if (customBatteryEnabled) {
@@ -268,41 +266,41 @@ class BatteryStyleManager(context: Context) : ModPack(context) {
 
         refreshBatteryIcons()
 
-        if (key.isNotEmpty()) {
-            if (key[0] == CUSTOM_BATTERY_WIDTH ||
-                key[0] == CUSTOM_BATTERY_HEIGHT
-            ) {
-                setDefaultBatteryDimens()
-            }
+        when (key.firstOrNull()) {
+            in setOf(
+                CUSTOM_BATTERY_WIDTH,
+                CUSTOM_BATTERY_HEIGHT
+            ) -> setDefaultBatteryDimens()
 
-            if (key[0] == CUSTOM_BATTERY_STYLE ||
-                key[0] == CUSTOM_BATTERY_HIDE_PERCENTAGE ||
-                key[0] == CUSTOM_BATTERY_LAYOUT_REVERSE ||
-                key[0] == CUSTOM_BATTERY_DIMENSION ||
-                key[0] == CUSTOM_BATTERY_WIDTH ||
-                key[0] == CUSTOM_BATTERY_HEIGHT ||
-                key[0] == CUSTOM_BATTERY_PERIMETER_ALPHA ||
-                key[0] == CUSTOM_BATTERY_FILL_ALPHA ||
-                key[0] == CUSTOM_BATTERY_RAINBOW_FILL_COLOR ||
-                key[0] == CUSTOM_BATTERY_BLEND_COLOR ||
-                key[0] == CUSTOM_BATTERY_CHARGING_COLOR ||
-                key[0] == CUSTOM_BATTERY_FILL_COLOR ||
-                key[0] == CUSTOM_BATTERY_FILL_GRAD_COLOR ||
-                key[0] == CUSTOM_BATTERY_POWERSAVE_INDICATOR_COLOR ||
-                key[0] == CUSTOM_BATTERY_POWERSAVE_FILL_COLOR ||
-                key[0] == CUSTOM_BATTERY_SWAP_PERCENTAGE ||
-                key[0] == CUSTOM_BATTERY_CHARGING_ICON_SWITCH ||
-                key[0] == CUSTOM_BATTERY_CHARGING_ICON_STYLE ||
-                key[0] == CUSTOM_BATTERY_CHARGING_ICON_MARGIN_LEFT ||
-                key[0] == CUSTOM_BATTERY_CHARGING_ICON_MARGIN_RIGHT ||
-                key[0] == CUSTOM_BATTERY_CHARGING_ICON_WIDTH_HEIGHT ||
-                key[0] == CUSTOM_BATTERY_MARGIN_LEFT ||
-                key[0] == CUSTOM_BATTERY_MARGIN_TOP ||
-                key[0] == CUSTOM_BATTERY_MARGIN_RIGHT ||
-                key[0] == CUSTOM_BATTERY_MARGIN_BOTTOM
-            ) {
-                if (batteryMeterViewParam != null) {
-                    updateSettings(batteryMeterViewParam!!)
+            in setOf(
+                CUSTOM_BATTERY_STYLE,
+                CUSTOM_BATTERY_HIDE_PERCENTAGE,
+                CUSTOM_BATTERY_LAYOUT_REVERSE,
+                CUSTOM_BATTERY_DIMENSION,
+                CUSTOM_BATTERY_WIDTH,
+                CUSTOM_BATTERY_HEIGHT,
+                CUSTOM_BATTERY_PERIMETER_ALPHA,
+                CUSTOM_BATTERY_FILL_ALPHA,
+                CUSTOM_BATTERY_RAINBOW_FILL_COLOR,
+                CUSTOM_BATTERY_BLEND_COLOR,
+                CUSTOM_BATTERY_CHARGING_COLOR,
+                CUSTOM_BATTERY_FILL_COLOR,
+                CUSTOM_BATTERY_FILL_GRAD_COLOR,
+                CUSTOM_BATTERY_POWERSAVE_INDICATOR_COLOR,
+                CUSTOM_BATTERY_POWERSAVE_FILL_COLOR,
+                CUSTOM_BATTERY_SWAP_PERCENTAGE,
+                CUSTOM_BATTERY_CHARGING_ICON_SWITCH,
+                CUSTOM_BATTERY_CHARGING_ICON_STYLE,
+                CUSTOM_BATTERY_CHARGING_ICON_MARGIN_LEFT,
+                CUSTOM_BATTERY_CHARGING_ICON_MARGIN_RIGHT,
+                CUSTOM_BATTERY_CHARGING_ICON_WIDTH_HEIGHT,
+                CUSTOM_BATTERY_MARGIN_LEFT,
+                CUSTOM_BATTERY_MARGIN_TOP,
+                CUSTOM_BATTERY_MARGIN_RIGHT,
+                CUSTOM_BATTERY_MARGIN_BOTTOM
+            ) -> {
+                batteryMeterViewParam?.let {
+                    updateSettings(it)
                 }
             }
         }
@@ -339,17 +337,15 @@ class BatteryStyleManager(context: Context) : ModPack(context) {
 
         val batteryDataRefreshHook: XC_MethodHook = object : XC_MethodHook() {
             override fun afterHookedMethod(param: MethodHookParam) {
-                val mLevel = param.thisObject.getField("mLevel") as Int
-                mIsChargingImpl = (getBooleanField(param.thisObject, "mPluggedIn")
-                        || getBooleanField(param.thisObject, "mCharging")
-                        || getBooleanField(param.thisObject, "mWirelessCharging"))
-                val mPowerSave = getBooleanField(param.thisObject, "mPowerSave")
-
                 if (!customBatteryEnabled) return
 
-                refreshBatteryData(mLevel, mIsChargingImpl, mPowerSave)
+                val mLevel = param.thisObject.getField("mLevel") as Int
+                val mCharging = param.thisObject.isBatteryCharging()
+                val mPowerSave = getBooleanField(param.thisObject, "mPowerSave")
+
+                refreshBatteryData(mLevel, mCharging, mPowerSave)
                 // refreshing twice to avoid a bug where the battery icon updates incorrectly
-                refreshBatteryData(mLevel, mIsChargingImpl, mPowerSave)
+                refreshBatteryData(mLevel, mCharging, mPowerSave)
             }
         }
 
@@ -461,8 +457,7 @@ class BatteryStyleManager(context: Context) : ModPack(context) {
                     mBatteryIconView.setVisibility(if (mHideBattery) View.GONE else View.VISIBLE)
                 }
 
-                val mCharging = isBatteryCharging(param.thisObject)
-                updateChargingIconView(param.thisObject, mCharging)
+                updateChargingIconView(param.thisObject)
                 updateSettings(param)
 
                 batteryController?.callMethod("fireBatteryLevelChanged")
@@ -540,16 +535,6 @@ class BatteryStyleManager(context: Context) : ModPack(context) {
         }
 
         batteryMeterViewClass
-            .hookMethod("onBatteryLevelChanged")
-            .runAfter { param ->
-                if (batteryMeterViewParam == null) {
-                    batteryMeterViewParam = param
-                }
-
-                mIsCharging = param.args[1] as Boolean
-            }
-
-        batteryMeterViewClass
             .hookMethod("setPercentShowMode")
             .runBefore { param ->
                 if (batteryMeterViewParam == null) {
@@ -579,7 +564,7 @@ class BatteryStyleManager(context: Context) : ModPack(context) {
         setDefaultBatteryDimens()
     }
 
-    private fun refreshBatteryData(mLevel: Int, mIsCharging: Boolean, mPowerSave: Boolean) {
+    private fun refreshBatteryData(mLevel: Int, mCharging: Boolean, mPowerSave: Boolean) {
         for (view in batteryViews) {
             try {
                 view.post {
@@ -589,7 +574,7 @@ class BatteryStyleManager(context: Context) : ModPack(context) {
 
                     mBatteryDrawable?.let {
                         it.setBatteryLevel(mLevel)
-                        it.setChargingEnabled(mIsCharging)
+                        it.setChargingEnabled(mCharging)
                         it.setPowerSavingEnabled(mPowerSave)
                         updateCustomizeBatteryDrawable(it)
                     }
@@ -600,7 +585,7 @@ class BatteryStyleManager(context: Context) : ModPack(context) {
                         if (mHidePercentage) View.GONE else View.VISIBLE
 
                     scaleBatteryMeterViews(view)
-                    updateChargingIconView(view, mIsCharging)
+                    updateChargingIconView(view, mCharging)
                 }
             } catch (ignored: Throwable) {
             }
@@ -686,24 +671,18 @@ class BatteryStyleManager(context: Context) : ModPack(context) {
                 }
             }
 
-            val mCharging = isBatteryCharging(view)
-            updateChargingIconView(view, mCharging)
+            updateChargingIconView(view)
         }
     }
 
-    private fun isBatteryCharging(thisObject: Any): Boolean {
-        val mCharging: Boolean = try {
-            thisObject.getField("mCharging") as Boolean
-        } catch (ignored: Throwable) {
-            try {
-                thisObject.getField("mPluggedIn") as Boolean
-            } catch (ignored: Throwable) {
-                mIsCharging
-            }
-        }
+    private fun Any.isBatteryCharging(): Boolean {
+        val mCharging = getFieldSilently("mPluggedIn") as? Boolean == true
+                || getFieldSilently("mCharging") as? Boolean == true
+                || getFieldSilently("mWirelessCharging") as? Boolean == true
+                || batteryMeterViewParam?.thisObject?.getFieldSilently("mPluggedIn") as? Boolean == true
 
-        val mIsIncompatibleCharging =
-            thisObject.getFieldSilently("mIsIncompatibleCharging") as? Boolean ?: false
+        val mIsIncompatibleCharging = getFieldSilently("mIsIncompatibleCharging") as? Boolean
+            ?: false
 
         return mCharging && !mIsIncompatibleCharging
     }
@@ -936,13 +915,10 @@ class BatteryStyleManager(context: Context) : ModPack(context) {
         }
     }
 
-    private fun updateChargingIconView() {
-        for (view in batteryViews) {
-            updateChargingIconView(view, mIsChargingImpl)
-        }
-    }
-
-    private fun updateChargingIconView(thisObject: Any, mCharging: Boolean = mIsChargingImpl) {
+    private fun updateChargingIconView(
+        thisObject: Any,
+        mCharging: Boolean = thisObject.isBatteryCharging()
+    ) {
         var mChargingIconView =
             (thisObject as ViewGroup).findViewWithTag<ImageView>(ICONIFY_CHARGING_ICON_TAG)
 
@@ -1119,7 +1095,6 @@ class BatteryStyleManager(context: Context) : ModPack(context) {
         updateChargingIconView(param.thisObject)
         updateBatteryRotation(param.thisObject)
         updateFlipper(param.thisObject)
-        updateChargingIconView()
     }
 
     private fun updateFlipper(thisObject: Any) {

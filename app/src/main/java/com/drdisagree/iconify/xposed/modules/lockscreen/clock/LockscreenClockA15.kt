@@ -75,6 +75,7 @@ import com.drdisagree.iconify.xposed.modules.extras.utils.ViewHelper.findViewWit
 import com.drdisagree.iconify.xposed.modules.extras.utils.ViewHelper.getLsItemsContainer
 import com.drdisagree.iconify.xposed.modules.extras.utils.ViewHelper.hideView
 import com.drdisagree.iconify.xposed.modules.extras.utils.ViewHelper.reAddView
+import com.drdisagree.iconify.xposed.modules.extras.utils.ViewHelper.removeViewFromParent
 import com.drdisagree.iconify.xposed.modules.extras.utils.ViewHelper.setMargins
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.XposedHook.Companion.findClass
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.getFieldSilently
@@ -329,6 +330,33 @@ class LockscreenClockA15(context: Context) : ModPack(context) {
                 initializeLockscreenLayout(param)
             }
 
+        // Hide stock clock for ROMs with MigrateClocksToBlueprint disabled
+        val keyguardClockSwitchClass = findClass("com.android.keyguard.KeyguardClockSwitch")
+
+        keyguardClockSwitchClass
+            .hookMethod("onFinishInflate")
+            .runAfter { param ->
+                if (!showLockscreenClock) return@runAfter
+
+                val parent = param.thisObject as ViewGroup
+
+                parent.findViewById<View?>(
+                    mContext.resources.getIdentifier(
+                        "lockscreen_clock_view",
+                        "id",
+                        SYSTEMUI_PACKAGE
+                    )
+                ).hideView()
+
+                parent.findViewById<View?>(
+                    mContext.resources.getIdentifier(
+                        "lockscreen_clock_view_large",
+                        "id",
+                        SYSTEMUI_PACKAGE
+                    )
+                ).hideView()
+            }
+
         val defaultNotificationStackScrollLayoutSectionClass =
             findClass("$SYSTEMUI_PACKAGE.keyguard.ui.view.layout.sections.DefaultNotificationStackScrollLayoutSection")
 
@@ -492,6 +520,16 @@ class LockscreenClockA15(context: Context) : ModPack(context) {
                     }
             }
 
+        val dozeTriggersClass = findClass("$SYSTEMUI_PACKAGE.doze.DozeTriggers")
+
+        dozeTriggersClass
+            .hookMethod("gentleWakeUp")
+            .runAfter {
+                if (!showLockscreenClock) return@runAfter
+
+                Handler(Looper.getMainLooper()).post { updateClockView() }
+            }
+
         fun onDozingChanged(isDozing: Boolean) {
             aodBurnInProtection?.setMovementEnabled(isDozing)
         }
@@ -627,12 +665,14 @@ class LockscreenClockA15(context: Context) : ModPack(context) {
         }
     }
 
+    @Synchronized
     private fun updateClockView() {
         if (mLsItemsContainer == null) return
 
         val currentTime = System.currentTimeMillis()
-        val isClockAdded =
-            mLsItemsContainer!!.findViewWithTag<View?>(ICONIFY_LOCKSCREEN_CLOCK_TAG) != null
+        var currentClockView =
+            mLsItemsContainer!!.findViewWithTag<View?>(ICONIFY_LOCKSCREEN_CLOCK_TAG)
+        val isClockAdded = currentClockView != null
 
         if (isClockAdded && currentTime - lastUpdated < THRESHOLD_TIME) {
             return
@@ -641,12 +681,9 @@ class LockscreenClockA15(context: Context) : ModPack(context) {
         }
 
         // Remove existing clock view
-        if (isClockAdded) {
-            mLsItemsContainer!!.removeView(
-                mLsItemsContainer!!.findViewWithTag(
-                    ICONIFY_LOCKSCREEN_CLOCK_TAG
-                )
-            )
+        while (currentClockView != null) {
+            currentClockView.removeViewFromParent()
+            currentClockView = mLsItemsContainer?.findViewWithTag(ICONIFY_LOCKSCREEN_CLOCK_TAG)
         }
 
         clockViewLayout?.apply {

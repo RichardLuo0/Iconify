@@ -175,8 +175,7 @@ object OnDemandCompiler {
         if (mOverlayName != "TSTFRM" || !requiresNewToastStyle()) return
 
         Shell.cmd(
-            "find \"$TEMP_CACHE_DIR/$mPackage/$mOverlayName\" -type d -name \"*-night\" -exec rm -rf {} +",
-            "find \"$TEMP_CACHE_DIR/$mPackage/$mOverlayName\" -type f -exec sed -i 's/?android:colorBackgroundFloating/@*android:color\\/system_neutral2_10/g' {} +"
+            "find \"$TEMP_CACHE_DIR/$mPackage/$mOverlayName/\" -type f -name \"*.xml\" -exec sh -c 'for file; do if echo \"\$file\" | grep -q \"/[^/]*-night/\"; then sed -i \"s/?android:colorBackgroundFloating/@*android:color\\/system_neutral2_800/g\" \"\$file\"; else sed -i \"s/?android:colorBackgroundFloating/@*android:color\\/system_neutral2_10/g\" \"\$file\"; fi; done' sh {} +"
         ).exec()
     }
 }

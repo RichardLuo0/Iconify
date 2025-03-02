@@ -35,13 +35,6 @@ object DynamicCompiler {
     private var mPackage: String? = null
     private var mOverlayName: String? = null
     private val mResource: MutableMap<ResourceType, ArrayList<String>> = mutableMapOf()
-    private val dynamicOverlayList = listOf(
-        "IconifyComponentDynamic1.overlay",
-        "IconifyComponentDynamic2.overlay",
-        "IconifyComponentDynamic3.overlay",
-        "IconifyComponentDynamic4.overlay",
-        "IconifyComponentDynamic5.overlay"
-    )
 
     @JvmOverloads
     @Throws(IOException::class)
@@ -121,9 +114,12 @@ object DynamicCompiler {
 
             if (mForce) {
                 Shell.cmd("rm -rf $BACKUP_DIR").exec()
+                val overlayPackageNames = resourcesMap.keys
+                    .map { "IconifyComponent${getOverlayName(it)}.overlay" }
+                    .toTypedArray()
 
                 // Disable the overlays in case they are already enabled
-                disableOverlays(*dynamicOverlayList.toTypedArray())
+                disableOverlays(*overlayPackageNames)
 
                 // Install from files dir
                 for (packageName in resourcesMap.keys) {
@@ -146,7 +142,7 @@ object DynamicCompiler {
                 mountRO()
 
                 // Enable the overlays
-                enableOverlays(*dynamicOverlayList.toTypedArray())
+                enableOverlays(*overlayPackageNames)
             }
         } catch (e: Exception) {
             Log.e(TAG, "Failed to build overlay! Exiting...", e)
@@ -241,9 +237,7 @@ object DynamicCompiler {
                     "rm -f $filePath",              // Remove the file if it exists
                     "touch $filePath"               // Create an empty file
                 ).apply {
-                    resourceList.forEach { line ->
-                        add("echo '$line\n' >> $filePath")
-                    }
+                    add("echo '${resourceList.joinToString("\n")}' >> $filePath")
                 }
 
                 Shell.cmd(*commands.toTypedArray()).exec()

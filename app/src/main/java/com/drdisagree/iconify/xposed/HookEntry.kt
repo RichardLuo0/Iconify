@@ -1,6 +1,5 @@
 package com.drdisagree.iconify.xposed
 
-import android.annotation.SuppressLint
 import android.app.Instrumentation
 import android.content.ComponentName
 import android.content.Context
@@ -28,6 +27,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.lang.ref.WeakReference
 import java.lang.reflect.InvocationTargetException
 import java.util.LinkedList
 import java.util.Queue
@@ -131,19 +131,19 @@ class HookEntry : ServiceConnection {
 
         for (mod in EntryList.getEntries(loadPackageParam.packageName)) {
             try {
-                val instance = mod.getConstructor(Context::class.java).newInstance(mContext)
+                val modInstance = mod.getConstructor(Context::class.java).newInstance(mContext)
 
                 if (XprefsIsInitialized) {
                     try {
-                        instance.updatePrefs()
+                        modInstance.updatePrefs()
                     } catch (throwable: Throwable) {
                         log(this@HookEntry, "Failed to update prefs in ${mod.name}")
                         log(this@HookEntry, throwable)
                     }
                 }
 
-                instance.handleLoadPackage(loadPackageParam)
-                runningMods.add(instance)
+                modInstance.handleLoadPackage(loadPackageParam)
+                runningMods.add(modInstance)
             } catch (invocationTargetException: InvocationTargetException) {
                 log(this@HookEntry, "Start Error Dump - Occurred in ${mod.name}")
                 log(this@HookEntry, invocationTargetException.cause)
@@ -165,6 +165,7 @@ class HookEntry : ServiceConnection {
         }
 
         log("Iconify Version: ${BuildConfig.VERSION_NAME}")
+        log("Hooked ${loadPackageParam.packageName}")
 
         onXPrefsReady(loadPackageParam)
     }
@@ -236,12 +237,18 @@ class HookEntry : ServiceConnection {
     }
 
     companion object {
-        @SuppressLint("StaticFieldLeak")
-        var instance: HookEntry? = null
+        private var _instance: WeakReference<HookEntry>? = null
+        private var instance: HookEntry?
+            get() = _instance?.get()
+            set(value) {
+                _instance = value?.let { WeakReference(it) }
+            }
+
         val runningMods = ArrayList<ModPack>()
         var isChildProcess = false
-        var rootProxyIPC: IRootProviderProxy? = null
-        val proxyQueue: Queue<ProxyRunnable> = LinkedList()
+
+        private var rootProxyIPC: IRootProviderProxy? = null
+        private val proxyQueue: Queue<ProxyRunnable> = LinkedList()
 
         fun enqueueProxyCommand(runnable: ProxyRunnable) {
             rootProxyIPC?.let {

@@ -62,6 +62,8 @@ import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.hookMethod
 import com.drdisagree.iconify.xposed.modules.extras.views.AodBurnInProtection
 import com.drdisagree.iconify.xposed.modules.extras.views.LockscreenWidgetsView
 import com.drdisagree.iconify.xposed.modules.lockscreen.Lockscreen.Companion.isComposeLockscreen
+import com.drdisagree.iconify.xposed.modules.lockscreen.widgets.LockscreenWidgets.Companion.launchableImageViewClass
+import com.drdisagree.iconify.xposed.modules.lockscreen.widgets.LockscreenWidgets.Companion.launchableLinearLayoutClass
 import com.drdisagree.iconify.xposed.utils.XPrefs.Xprefs
 import com.drdisagree.iconify.xposed.utils.XPrefs.XprefsIsInitialized
 import de.robv.android.xposed.XC_MethodHook
@@ -250,6 +252,11 @@ class LockscreenWidgetsA15(context: Context) : ModPack(context) {
                 ViewGroup.LayoutParams.WRAP_CONTENT
             )
         }
+
+        launchableImageViewClass = findClass("$SYSTEMUI_PACKAGE.animation.view.LaunchableImageView")
+
+        launchableLinearLayoutClass =
+            findClass("$SYSTEMUI_PACKAGE.animation.view.LaunchableLinearLayout")
 
         val keyguardQuickAffordanceInteractorClass =
             findClass("$SYSTEMUI_PACKAGE.keyguard.domain.interactor.KeyguardQuickAffordanceInteractor")
@@ -539,19 +546,18 @@ class LockscreenWidgetsA15(context: Context) : ModPack(context) {
             (mWeatherEnabled && !mWeatherInflated)
         ) return
 
-        try {
-            LockscreenWidgetsView.getInstance(mContext, mActivityStarter).apply {
-                (parent as? ViewGroup)?.removeView(this)
-                mWidgetsContainer.addView(this)
-            }
+        val widgetView = LockscreenWidgetsView.getInstance(mContext, mActivityStarter)
 
-            updateLockscreenWidgets()
-            updateLsDeviceWidget()
-            updateLockscreenWidgetsColors()
-            updateMargins()
-            updateLockscreenWidgetsScale()
-        } catch (ignored: Throwable) {
+        if (widgetView.parent != mWidgetsContainer) {
+            (mWidgetsContainer.parent as? ViewGroup)?.removeView(widgetView)
+            mWidgetsContainer.addView(widgetView)
         }
+
+        updateLockscreenWidgets()
+        updateLsDeviceWidget()
+        updateLockscreenWidgetsColors()
+        updateMargins()
+        updateLockscreenWidgetsScale()
     }
 
     @SuppressLint("DiscouragedApi")

@@ -79,7 +79,7 @@ class Xposed : ControlledPreferenceFragmentCompat() {
     override fun onResume() {
         super.onResume()
 
-        hookCheckPreference?.isHooked = false
+        HookCheckPreference.isHooked = false
         hookCheckPreference?.initializeHookCheck()
     }
 }

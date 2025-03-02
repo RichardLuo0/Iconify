@@ -45,6 +45,7 @@
             android:key="xposed_desktopdockspacing"
             android:title="@string/dock_spacing_title"
             app:defaultValue="-1"
+            app:showResetButton="true"
             app:iconSpaceReserved="false"
             app:maxVal="260"
             app:minVal="-1"
@@ -91,9 +92,9 @@
         search:ignore="true">
 
         <com.drdisagree.iconify.ui.preferences.SwitchPreference
-            android:key="xposed_disablerecentsblur"
-            android:summary="@string/disable_recents_blur_desc"
-            android:title="@string/disable_recents_blur_title"
+            android:key="xposed_disablerecentslivetile"
+            android:summary="@string/disable_recents_live_tile_desc"
+            android:title="@string/disable_recents_live_tile_title"
             app:iconSpaceReserved="false" />
 
         <com.drdisagree.iconify.ui.preferences.SliderPreference

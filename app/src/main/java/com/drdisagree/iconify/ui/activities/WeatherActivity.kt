@@ -7,20 +7,20 @@ import android.os.Bundle
 import android.text.format.DateFormat
 import android.view.View
 import androidx.activity.OnBackPressedCallback
-import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.drdisagree.iconify.Iconify.Companion.appContextLocale
 import com.drdisagree.iconify.R
 import com.drdisagree.iconify.databinding.ActivityWeatherBinding
 import com.drdisagree.iconify.ui.adapters.ForecastDayAdapter
 import com.drdisagree.iconify.ui.adapters.ForecastHourAdapter
+import com.drdisagree.iconify.ui.base.BaseActivity
 import com.drdisagree.iconify.utils.OmniJawsClient
 import com.drdisagree.iconify.utils.weather.WeatherContentProvider
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 
-class WeatherActivity : AppCompatActivity(), OmniJawsClient.OmniJawsObserver {
+class WeatherActivity : BaseActivity(), OmniJawsClient.OmniJawsObserver {
 
     private lateinit var mWeatherClient: OmniJawsClient
     private lateinit var binding: ActivityWeatherBinding
