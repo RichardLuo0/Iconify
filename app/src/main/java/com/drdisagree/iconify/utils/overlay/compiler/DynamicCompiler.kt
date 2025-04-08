@@ -6,8 +6,8 @@ import com.drdisagree.iconify.data.common.Const.LAUNCHER3_PACKAGE
 import com.drdisagree.iconify.data.common.Const.PIXEL_LAUNCHER_PACKAGE
 import com.drdisagree.iconify.data.common.Const.SETTINGS_PACKAGE
 import com.drdisagree.iconify.data.common.Const.SYSTEMUI_PACKAGE
+import com.drdisagree.iconify.data.common.Dynamic.DATA_DIR
 import com.drdisagree.iconify.data.common.Resources.BACKUP_DIR
-import com.drdisagree.iconify.data.common.Resources.DATA_DIR
 import com.drdisagree.iconify.data.common.Resources.OVERLAY_DIR
 import com.drdisagree.iconify.data.common.Resources.SIGNED_DIR
 import com.drdisagree.iconify.data.common.Resources.SYSTEM_OVERLAY_DIR
@@ -26,6 +26,8 @@ import com.drdisagree.iconify.utils.overlay.OverlayUtils.enableOverlays
 import com.drdisagree.iconify.utils.overlay.manager.resource.ResourceManager.ResourceType
 import com.drdisagree.iconify.utils.overlay.manager.resource.ResourceManager.generateXmlStructureForAllResources
 import com.topjohnwu.superuser.Shell
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.IOException
 
 object DynamicCompiler {
@@ -154,7 +156,7 @@ object DynamicCompiler {
     }
 
     @Throws(IOException::class)
-    private fun preExecute() {
+    private suspend fun preExecute() = withContext(Dispatchers.IO) {
         // Create symbolic link
         symLinkBinaries()
 

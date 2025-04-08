@@ -106,17 +106,25 @@ class VolumePanelStyle(context: Context) : ModPack(context) {
             else -> null
         }
 
-        xResources.setReplacement(
-            SYSTEMUI_PACKAGE,
-            "drawable",
+        listOf(
             "volume_drawer_selection_bg",
-            object : DrawableLoader() {
-                override fun newDrawable(res: XResources, id: Int): Drawable? {
-                    return volumeStyle?.createVolumeDrawerSelectionBgDrawable()
-                        ?.constantState?.newDrawable()
-                }
+            "volume_drawer_selection_bg_legacy"
+        ).forEach { drawableName ->
+            try {
+                xResources.setReplacement(
+                    SYSTEMUI_PACKAGE,
+                    "drawable",
+                    drawableName,
+                    object : DrawableLoader() {
+                        override fun newDrawable(res: XResources, id: Int): Drawable? {
+                            return volumeStyle?.createVolumeDrawerSelectionBgDrawable()
+                                ?.constantState?.newDrawable()
+                        }
+                    }
+                )
+            } catch (_: Throwable) {
             }
-        )
+        }
 
         xResources.setReplacement(
             SYSTEMUI_PACKAGE,

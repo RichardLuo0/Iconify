@@ -8,7 +8,6 @@ import android.content.IntentFilter
 import android.graphics.Color
 import android.graphics.Typeface
 import android.os.Build
-import android.os.Environment
 import android.os.Handler
 import android.os.Looper
 import android.view.Gravity
@@ -41,7 +40,10 @@ import com.drdisagree.iconify.data.common.Preferences.WEATHER_TEXT_COLOR
 import com.drdisagree.iconify.data.common.Preferences.WEATHER_TEXT_COLOR_SWITCH
 import com.drdisagree.iconify.data.common.Preferences.WEATHER_TEXT_SIZE
 import com.drdisagree.iconify.data.common.Preferences.WEATHER_TRIGGER_UPDATE
+import com.drdisagree.iconify.data.common.XposedConst.LOCKSCREEN_WEATHER_FONT_FILE
 import com.drdisagree.iconify.xposed.ModPack
+import com.drdisagree.iconify.xposed.modules.extras.callbacks.BootCallback
+import com.drdisagree.iconify.xposed.modules.extras.callbacks.DozeCallback
 import com.drdisagree.iconify.xposed.modules.extras.utils.MyConstraintSet.Companion.applyTo
 import com.drdisagree.iconify.xposed.modules.extras.utils.MyConstraintSet.Companion.clear
 import com.drdisagree.iconify.xposed.modules.extras.utils.MyConstraintSet.Companion.clone
@@ -50,9 +52,10 @@ import com.drdisagree.iconify.xposed.modules.extras.utils.MyConstraintSet.Compan
 import com.drdisagree.iconify.xposed.modules.extras.utils.ViewHelper.applyFontRecursively
 import com.drdisagree.iconify.xposed.modules.extras.utils.ViewHelper.assignIdsToViews
 import com.drdisagree.iconify.xposed.modules.extras.utils.ViewHelper.getLsItemsContainer
+import com.drdisagree.iconify.xposed.modules.extras.utils.ViewHelper.reAddView
+import com.drdisagree.iconify.xposed.modules.extras.utils.ViewHelper.removeViewFromParent
 import com.drdisagree.iconify.xposed.modules.extras.utils.ViewHelper.setMargins
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.XposedHook.Companion.findClass
-import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.getFieldSilently
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.hookConstructor
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.hookMethod
 import com.drdisagree.iconify.xposed.modules.extras.views.AodBurnInProtection
@@ -65,9 +68,6 @@ import de.robv.android.xposed.callbacks.XC_LoadPackage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import java.io.File
 
 class LockscreenWeatherA15(context: Context) : ModPack(context) {
 
@@ -95,8 +95,6 @@ class LockscreenWeatherA15(context: Context) : ModPack(context) {
     private val coroutineScope = CoroutineScope(Dispatchers.Main + Job())
     private var aodBurnInProtection: AodBurnInProtection? = null
     private var mCustomFontEnabled = false
-    private val mCustomFontLocation = Environment.getExternalStorageDirectory().toString() +
-            "/.iconify_files/lockscreen_weather_font.ttf"
 
     private var mBroadcastRegistered = false
     private val mReceiver: BroadcastReceiver = object : BroadcastReceiver() {
@@ -199,7 +197,10 @@ class LockscreenWeatherA15(context: Context) : ModPack(context) {
 
         // Apparently ROMs like CrDroid doesn't even use AodBurnInLayer class
         // So we hook which ever is available
-        val keyguardStatusViewClass = findClass("com.android.keyguard.KeyguardStatusView")
+        val keyguardStatusViewClass = findClass(
+            "com.android.keyguard.KeyguardStatusView",
+            suppressError = Build.VERSION.SDK_INT >= 36
+        )
         var keyguardStatusViewHooked = false
 
         fun initializeLockscreenLayout(param: XC_MethodHook.MethodHookParam) {
@@ -236,7 +237,7 @@ class LockscreenWeatherA15(context: Context) : ModPack(context) {
 
                         mLockscreenRootView = rootView
 
-                        (mWeatherContainer.parent as? ViewGroup)?.removeView(mWeatherContainer)
+                        mWeatherContainer.removeViewFromParent()
 
                         if (mLockscreenClockEnabled || mWidgetsEnabled) {
                             mLsItemsContainer = rootView.getLsItemsContainer()
@@ -379,81 +380,46 @@ class LockscreenWeatherA15(context: Context) : ModPack(context) {
                 }
             }
 
-        fun onDozingChanged(isDozing: Boolean) {
-            aodBurnInProtection?.setMovementEnabled(isDozing)
-        }
-
-        val collapsedStatusBarFragment = findClass(
-            "$SYSTEMUI_PACKAGE.statusbar.phone.CollapsedStatusBarFragment",
-            "$SYSTEMUI_PACKAGE.statusbar.phone.fragment.CollapsedStatusBarFragment"
-        )
-
-        collapsedStatusBarFragment
-            .hookMethod("onDozingChanged")
-            .runAfter { param -> onDozingChanged(param.args[0] as Boolean) }
-
-        val dozeScrimControllerClass =
-            findClass("$SYSTEMUI_PACKAGE.statusbar.phone.DozeScrimController")
-
-        dozeScrimControllerClass
-            .hookMethod("onDozingChanged")
-            .runAfter { param -> onDozingChanged(param.args[0] as Boolean) }
-
         // For unknown reason, rotating device makes the height of view to 0
         // This is a workaround to make sure the view is visible
-        fun updateLayoutParams() {
-            if (!mWeatherEnabled) return
+        DozeCallback.getInstance().registerDozeChangeListener(
+            object : DozeCallback.DozeListener {
+                fun updateLayoutParams() {
+                    if (!mWeatherEnabled || !::mWeatherContainer.isInitialized) return
 
-            if (::mWeatherContainer.isInitialized) {
-                (mLsItemsContainer ?: mWeatherContainer).layoutParams.apply {
-                    width = ViewGroup.LayoutParams.MATCH_PARENT
-                    height = ViewGroup.LayoutParams.WRAP_CONTENT
-                }
-            }
-        }
-
-        val statusBarKeyguardViewManagerClass =
-            findClass("$SYSTEMUI_PACKAGE.statusbar.phone.StatusBarKeyguardViewManager")
-
-        statusBarKeyguardViewManagerClass
-            .hookMethod("onStartedWakingUp")
-            .suppressError()
-            .runAfter { updateLayoutParams() }
-
-        val centralSurfacesImplClass = findClass(
-            "$SYSTEMUI_PACKAGE.statusbar.phone.CentralSurfacesImpl",
-            suppressError = true
-        )
-
-        centralSurfacesImplClass
-            .hookMethod("onStartedWakingUp")
-            .suppressError()
-            .runAfter { updateLayoutParams() }
-
-        centralSurfacesImplClass
-            .hookConstructor()
-            .runAfter { param ->
-                if (!mWeatherEnabled) return@runAfter
-
-                val mWakefulnessObserver = param.thisObject.getFieldSilently("mWakefulnessObserver")
-
-                mWakefulnessObserver?.javaClass
-                    .hookMethod("onStartedWakingUp")
-                    .runAfter { updateLayoutParams() }
-            }
-
-        val dozeServiceClass = findClass("$SYSTEMUI_PACKAGE.doze.DozeService")
-
-        dozeServiceClass
-            .hookMethod("onDreamingStarted")
-            .runAfter {
-                coroutineScope.launch {
-                    repeat(5) {
-                        updateLayoutParams()
-                        delay(500L)
+                    if (mLsItemsContainer?.width == 0 || mLsItemsContainer?.height == 0) {
+                        mLsItemsContainer?.layoutParams?.apply {
+                            width = ViewGroup.LayoutParams.MATCH_PARENT
+                            height = ViewGroup.LayoutParams.WRAP_CONTENT
+                        }
+                    }
+                    if (mWeatherContainer.width == 0 || mWeatherContainer.height == 0) {
+                        mWeatherContainer.layoutParams.apply {
+                            width = ViewGroup.LayoutParams.MATCH_PARENT
+                            height = ViewGroup.LayoutParams.WRAP_CONTENT
+                        }
                     }
                 }
+
+                override fun onDozingStarted() {
+                    aodBurnInProtection?.setMovementEnabled(true)
+                    updateLayoutParams()
+                }
+
+                override fun onDozingStopped() {
+                    aodBurnInProtection?.setMovementEnabled(false)
+                    updateLayoutParams()
+                }
             }
+        )
+
+        BootCallback.registerBootListener(
+            object : BootCallback.BootListener {
+                override fun onDeviceBooted() {
+                    updateWeatherView()
+                }
+            }
+        )
     }
 
     @SuppressLint("DiscouragedApi")
@@ -468,8 +434,7 @@ class LockscreenWeatherA15(context: Context) : ModPack(context) {
         )
 
         if (currentWeatherView.parent != mWeatherContainer) {
-            (currentWeatherView.parent as? ViewGroup)?.removeView(currentWeatherView)
-            mWeatherContainer.addView(currentWeatherView)
+            mWeatherContainer.reAddView(currentWeatherView)
 
             refreshWeatherView(currentWeatherView)
             applyLayoutConstraints(mLsItemsContainer ?: mWeatherContainer)
@@ -487,7 +452,7 @@ class LockscreenWeatherA15(context: Context) : ModPack(context) {
 
         mLockscreenRootView.assignIdsToViews()
 
-        weatherView.getChildAt(0)?.layoutParams?.width = LinearLayout.LayoutParams.MATCH_PARENT
+        mLsItemsContainer?.layoutParams?.width = LinearLayout.LayoutParams.MATCH_PARENT
 
         val notificationContainerId = mContext.resources.getIdentifier(
             "nssl_placeholder",
@@ -520,7 +485,7 @@ class LockscreenWeatherA15(context: Context) : ModPack(context) {
             if ((weatherView == mWeatherContainer && !mLockscreenClockEnabled && !mWidgetsEnabled) ||
                 (weatherView == mLsItemsContainer && !mLockscreenClockEnabled && mWidgetsEnabled)
             ) {
-                val dateSmartspaceViewId = if (dateSmartSpaceViewAvailable) {
+                val smartspaceViewId = if (dateSmartSpaceViewAvailable) {
                     mContext.resources.getIdentifier(
                         "date_smartspace_view",
                         "id",
@@ -539,7 +504,7 @@ class LockscreenWeatherA15(context: Context) : ModPack(context) {
                 constraintSet.connect(
                     weatherView.id,
                     ConstraintSet.TOP,
-                    dateSmartspaceViewId,
+                    smartspaceViewId,
                     ConstraintSet.BOTTOM
                 )
             } else if (weatherView == mLsItemsContainer && mLockscreenClockEnabled) {
@@ -593,23 +558,23 @@ class LockscreenWeatherA15(context: Context) : ModPack(context) {
             updateSizes(
                 weatherTextSize,
                 weatherImageSize,
-                LOCKSCREEN_WEATHER
+                getName()
             )
             updateColors(
                 if (weatherCustomColor) weatherColor else Color.WHITE,
-                LOCKSCREEN_WEATHER
+                getName()
             )
             updateWeatherSettings(
                 weatherShowLocation,
                 weatherShowCondition,
                 weatherShowHumidity,
                 weatherShowWind,
-                LOCKSCREEN_WEATHER
+                getName()
             )
             visibility = if (mWeatherEnabled) View.VISIBLE else View.GONE
             updateWeatherBg(
                 mWeatherBackground,
-                LOCKSCREEN_WEATHER
+                getName()
             )
         }
 
@@ -647,8 +612,8 @@ class LockscreenWeatherA15(context: Context) : ModPack(context) {
     }
 
     private fun updateFont() {
-        if (mCustomFontEnabled && File(mCustomFontLocation).exists()) {
-            Typeface.createFromFile(File(mCustomFontLocation))
+        if (mCustomFontEnabled && LOCKSCREEN_WEATHER_FONT_FILE.exists()) {
+            Typeface.createFromFile(LOCKSCREEN_WEATHER_FONT_FILE)
         } else {
             Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
         }.also { typeface ->

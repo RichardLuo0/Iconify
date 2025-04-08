@@ -447,24 +447,28 @@ class NavigationBar : BaseFragment() {
         })
 
         // Apply button
-        val pillShapeResources = mutableListOf(
+        fun getPillShapeResources(
+            pillWidth: Int,
+            pillThickness: Int,
+            bottomSpace: Int
+        ) = mutableListOf(
             ResourceEntry(
                 SYSTEMUI_PACKAGE,
                 "dimen",
                 "navigation_home_handle_width",
-                finalPillWidth[0].toString() + "dp"
+                pillWidth.toString() + "dp"
             ),
             ResourceEntry(
                 SYSTEMUI_PACKAGE,
                 "dimen",
                 "navigation_handle_radius",
-                finalPillThickness[0].toString() + "dp"
+                pillThickness.toString() + "dp"
             ),
             ResourceEntry(
                 SYSTEMUI_PACKAGE,
                 "dimen",
                 "navigation_handle_bottom",
-                finalBottomSpace[0].toString() + "dp"
+                bottomSpace.toString() + "dp"
             )
         ).apply {
             if (isAtleastA14) {
@@ -474,13 +478,13 @@ class NavigationBar : BaseFragment() {
                             PIXEL_LAUNCHER_PACKAGE,
                             "dimen",
                             "taskbar_stashed_handle_width",
-                            finalPillWidth[0].toString() + "dp"
+                            pillWidth.toString() + "dp"
                         ),
                         ResourceEntry(
                             LAUNCHER3_PACKAGE,
                             "dimen",
                             "taskbar_stashed_handle_width",
-                            finalPillWidth[0].toString() + "dp"
+                            pillWidth.toString() + "dp"
                         )
                     )
                 )
@@ -500,7 +504,13 @@ class NavigationBar : BaseFragment() {
                 putInt(FABRICATED_PILL_THICKNESS, finalPillThickness[0])
                 putInt(FABRICATED_PILL_BOTTOM_SPACE, finalBottomSpace[0])
 
-                buildOverlayWithResource(*pillShapeResources.toTypedArray())
+                buildOverlayWithResource(
+                    *getPillShapeResources(
+                        pillWidth = finalPillWidth[0],
+                        pillThickness = finalPillThickness[0],
+                        bottomSpace = finalBottomSpace[0]
+                    ).toTypedArray()
+                )
 
                 withContext(Dispatchers.Main) {
                     binding.pillShape.pillShapeReset.visibility = View.VISIBLE
@@ -528,7 +538,13 @@ class NavigationBar : BaseFragment() {
             CoroutineScope(Dispatchers.IO).launch {
                 putBoolean(PILL_SHAPE_SWITCH, false)
 
-                removeResourceFromOverlay(*pillShapeResources.toTypedArray())
+                removeResourceFromOverlay(
+                    *getPillShapeResources(
+                        pillWidth = finalPillWidth[0],
+                        pillThickness = finalPillThickness[0],
+                        bottomSpace = finalBottomSpace[0]
+                    ).toTypedArray()
+                )
 
                 withContext(Dispatchers.Main) {
                     binding.pillShape.pillShapeReset.visibility = View.GONE

@@ -27,9 +27,11 @@ import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.XposedHook.Com
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.callMethod
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.getField
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.getFieldSilently
+import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.hookConstructor
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.hookLayout
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.hookMethod
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.setField
+import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.setFieldSilently
 import com.drdisagree.iconify.xposed.utils.XPrefs.Xprefs
 import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam
 
@@ -62,28 +64,19 @@ class Miscellaneous(context: Context) : ModPack(context) {
                     getString(FABRICATED_SB_COLOR_SOURCE, "System") == "Custom"
         }
 
-        if (key.isNotEmpty()) {
-            key[0].let {
-                if (it == QSPANEL_HIDE_CARRIER) {
-                    hideQSCarrierGroup()
-                }
+        when (key.firstOrNull()) {
+            QSPANEL_HIDE_CARRIER -> hideQSCarrierGroup()
 
-                if (it == HIDE_STATUS_ICONS_SWITCH) {
-                    hideStatusIcons()
-                }
+            HIDE_STATUS_ICONS_SWITCH -> hideStatusIcons()
 
-                if (it == FIXED_STATUS_ICONS_SWITCH ||
-                    it == HIDE_STATUS_ICONS_SWITCH ||
-                    it == FIXED_STATUS_ICONS_TOPMARGIN ||
-                    it == FIXED_STATUS_ICONS_SIDEMARGIN
-                ) {
-                    fixedStatusIconsA12()
-                }
+            in setOf(
+                FIXED_STATUS_ICONS_SWITCH,
+                HIDE_STATUS_ICONS_SWITCH,
+                FIXED_STATUS_ICONS_TOPMARGIN,
+                FIXED_STATUS_ICONS_SIDEMARGIN
+            ) -> fixedStatusIconsA12()
 
-                if (it == HIDE_DATA_DISABLED_ICON && mobileSignalControllerParam != null) {
-                    mobileSignalControllerParam.callMethod("updateTelephony")
-                }
-            }
+            HIDE_DATA_DISABLED_ICON -> mobileSignalControllerParam.callMethod("updateTelephony")
         }
     }
 
@@ -163,12 +156,17 @@ class Miscellaneous(context: Context) : ModPack(context) {
     }
 
     private fun hideDataDisabledIcon() {
-        val mobileSignalController =
+        val mobileSignalControllerClass =
             findClass("$SYSTEMUI_PACKAGE.statusbar.connectivity.MobileSignalController")
-        val alwaysShowDataRatIcon = booleanArrayOf(false)
-        val mDataDisabledIcon = booleanArrayOf(false)
+        val signalIconModelCellularClass = findClass(
+            "$SYSTEMUI_PACKAGE.statusbar.pipeline.mobile.domain.model.SignalIconModel\$Cellular",
+            suppressError = true
+        )
 
-        mobileSignalController
+        var alwaysShowDataRatIcon = false
+        var mDataDisabledIcon = false
+
+        mobileSignalControllerClass
             .hookMethod("updateTelephony")
             .runBefore { param ->
                 if (mobileSignalControllerParam == null) {
@@ -177,17 +175,16 @@ class Miscellaneous(context: Context) : ModPack(context) {
 
                 if (!hideDataDisabledIcon) return@runBefore
 
-                alwaysShowDataRatIcon[0] = param.thisObject
+                alwaysShowDataRatIcon = param.thisObject
                     .getField("mConfig")
                     .getField("alwaysShowDataRatIcon") as Boolean
 
-                param.thisObject.getField("mConfig").setField(
-                    "alwaysShowDataRatIcon",
-                    false
-                )
+                param.thisObject
+                    .getField("mConfig")
+                    .setField("alwaysShowDataRatIcon", true)
 
                 try {
-                    mDataDisabledIcon[0] = param.thisObject.getField(
+                    mDataDisabledIcon = param.thisObject.getField(
                         "mDataDisabledIcon"
                     ) as Boolean
 
@@ -202,18 +199,19 @@ class Miscellaneous(context: Context) : ModPack(context) {
 
                 if (!hideDataDisabledIcon) return@runAfter
 
-                param.thisObject.getField("mConfig").setField(
-                    "alwaysShowDataRatIcon",
-                    alwaysShowDataRatIcon[0]
-                )
+                param.thisObject
+                    .getField("mConfig")
+                    .setField("alwaysShowDataRatIcon", alwaysShowDataRatIcon)
 
-                try {
-                    param.thisObject.setField(
-                        "mDataDisabledIcon",
-                        mDataDisabledIcon[0]
-                    )
-                } catch (ignored: Throwable) {
-                }
+                param.thisObject.setFieldSilently("mDataDisabledIcon", mDataDisabledIcon)
+            }
+
+        signalIconModelCellularClass
+            .hookConstructor()
+            .runAfter { param ->
+                if (!hideDataDisabledIcon) return@runAfter
+
+                param.thisObject.setField("showExclamationMark", false)
             }
     }
 

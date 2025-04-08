@@ -27,6 +27,7 @@ import com.drdisagree.iconify.data.common.Preferences.LOCKSCREEN_WIDGETS_DEVICE_
 import com.drdisagree.iconify.data.common.Preferences.LOCKSCREEN_WIDGETS_DEVICE_WIDGET_TEXT_COLOR
 import com.drdisagree.iconify.data.common.Preferences.LOCKSCREEN_WIDGETS_ENABLED
 import com.drdisagree.iconify.data.common.Preferences.LOCKSCREEN_WIDGETS_EXTRAS
+import com.drdisagree.iconify.data.common.Preferences.LOCKSCREEN_WIDGETS_ROUNDNESS
 import com.drdisagree.iconify.data.common.Preferences.LOCKSCREEN_WIDGETS_SCALE
 import com.drdisagree.iconify.data.common.Preferences.LOCKSCREEN_WIDGETS_SMALL_ACTIVE
 import com.drdisagree.iconify.data.common.Preferences.LOCKSCREEN_WIDGETS_SMALL_ICON_ACTIVE
@@ -90,6 +91,7 @@ class LockscreenWidgets(context: Context) : ModPack(context) {
     private var mExtraWidgets: String = ""
     private var mTopMargin = 0
     private var mBottomMargin = 0
+    private var mWidgetsRoundness = 100
     private var mWidgetsScale = 1.0f
     private var mDeviceWidgetStyle = 0
 
@@ -138,6 +140,7 @@ class LockscreenWidgets(context: Context) : ModPack(context) {
             mSmallIconInactiveColor = getInt(LOCKSCREEN_WIDGETS_SMALL_ICON_INACTIVE, Color.WHITE)
             mTopMargin = getSliderInt(LOCKSCREEN_WIDGETS_TOP_MARGIN, 0)
             mBottomMargin = getSliderInt(LOCKSCREEN_WIDGETS_BOTTOM_MARGIN, 0)
+            mWidgetsRoundness = getSliderInt(LOCKSCREEN_WIDGETS_ROUNDNESS, 100)
             mWidgetsScale = getSliderFloat(LOCKSCREEN_WIDGETS_SCALE, 1.0f)
             mDeviceWidgetStyle = getString(LOCKSCREEN_WIDGETS_DEVICE_WIDGET_STYLE, "0")!!.toInt()
         }
@@ -175,6 +178,8 @@ class LockscreenWidgets(context: Context) : ModPack(context) {
                 LOCKSCREEN_WIDGETS_TOP_MARGIN,
                 LOCKSCREEN_WIDGETS_BOTTOM_MARGIN
             ) -> updateMargins()
+
+            LOCKSCREEN_WIDGETS_ROUNDNESS -> updateLockscreenWidgetsRoundness()
 
             LOCKSCREEN_WIDGETS_SCALE -> updateLockscreenWidgetsScale()
         }
@@ -307,6 +312,7 @@ class LockscreenWidgets(context: Context) : ModPack(context) {
             updateLsDeviceWidget()
             updateLockscreenWidgetsColors()
             updateMargins()
+            updateLockscreenWidgetsRoundness()
             updateLockscreenWidgetsScale()
         } catch (ignored: Throwable) {
         }
@@ -357,6 +363,10 @@ class LockscreenWidgets(context: Context) : ModPack(context) {
             0,
             mBottomMargin
         )
+    }
+
+    private fun updateLockscreenWidgetsRoundness() {
+        LockscreenWidgetsView.getInstance()?.setRoundness(mWidgetsRoundness)
     }
 
     private fun updateLockscreenWidgetsScale() {

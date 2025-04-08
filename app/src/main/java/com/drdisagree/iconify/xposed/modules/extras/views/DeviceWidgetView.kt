@@ -17,9 +17,10 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import com.drdisagree.iconify.BuildConfig
 import com.drdisagree.iconify.R
-import com.drdisagree.iconify.xposed.modules.extras.callbacks.ThemeChange
+import com.drdisagree.iconify.xposed.modules.extras.callbacks.ThemeChangeCallback
 import com.drdisagree.iconify.xposed.modules.extras.utils.ViewHelper.findViewContainsTag
 import com.drdisagree.iconify.xposed.modules.extras.utils.ViewHelper.findViewWithTagAndChangeColor
+import com.drdisagree.iconify.xposed.modules.extras.utils.ViewHelper.toPx
 
 class DeviceWidgetView(private val mContext: Context) : FrameLayout(mContext) {
 
@@ -45,6 +46,7 @@ class DeviceWidgetView(private val mContext: Context) : FrameLayout(mContext) {
     private var mProgressColor = 0
     private var mLinearProgressColor = 0
     private var mTextColor = 0
+    private var mScaling = 1f
 
     private val batteryRegistered = false
     private val mBatteryReceiver: BroadcastReceiver = object : BroadcastReceiver() {
@@ -58,8 +60,8 @@ class DeviceWidgetView(private val mContext: Context) : FrameLayout(mContext) {
         }
     }
 
-    private val mThemeChangeCallback: ThemeChange.OnThemeChangedListener =
-        object : ThemeChange.OnThemeChangedListener {
+    private val mThemeChangeCallback: ThemeChangeCallback.OnThemeChangedListener =
+        object : ThemeChangeCallback.OnThemeChangedListener {
             override fun onThemeChanged() {
                 reloadView()
             }
@@ -73,7 +75,7 @@ class DeviceWidgetView(private val mContext: Context) : FrameLayout(mContext) {
 
         inflateView()
 
-        ThemeChange.getInstance().registerThemeChangedCallback(mThemeChangeCallback)
+        ThemeChangeCallback.getInstance().registerThemeChangedCallback(mThemeChangeCallback)
     }
 
     private fun inflateView() {
@@ -144,6 +146,7 @@ class DeviceWidgetView(private val mContext: Context) : FrameLayout(mContext) {
         batteryTemp.addView(mBatteryTempArc)
 
         setupRows()
+        updateScaling()
     }
 
     private fun setupRows() {
@@ -164,10 +167,41 @@ class DeviceWidgetView(private val mContext: Context) : FrameLayout(mContext) {
         mArcRow!!.visibility = if (isCircularWidget) VISIBLE else GONE
     }
 
+    private fun updateScaling() {
+        val arcContainerSize = context.toPx(60)
+        val batteryProgressContainerSize = context.toPx(120)
+
+        listOf(
+            mVolumeLevelArcProgress,
+            mRamUsageArcProgress,
+            mBatteryPercentArc,
+            mBatteryTempArc
+        ).forEach { arcProgressImageView ->
+            (arcProgressImageView?.parent as? ViewGroup)?.layoutParams?.apply {
+                width = (arcContainerSize * mScaling).toInt()
+                height = (arcContainerSize * mScaling).toInt()
+            }
+            (arcProgressImageView?.parent?.parent as? ViewGroup)?.requestLayout()
+        }
+
+        (mBatteryProgress?.parent as ViewGroup?)?.apply {
+            layoutParams?.apply {
+                width = (batteryProgressContainerSize * mScaling).toInt()
+            }
+            requestLayout()
+        }
+    }
+
+    fun setScaling(scaling: Float) {
+        mScaling = scaling
+        updateScaling()
+    }
+
     fun setDeviceWidgetStyle(newStyle: Int) {
         if (mDeviceWidgetStyle == newStyle) return
         mDeviceWidgetStyle = newStyle
         setupRows()
+        updateScaling()
     }
 
     @SuppressLint("DiscouragedApi")

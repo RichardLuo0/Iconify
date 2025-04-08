@@ -7,14 +7,13 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.graphics.Typeface
-import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.media.AudioManager
 import android.os.BatteryManager
 import android.os.Build
-import android.os.Environment
 import android.os.Handler
 import android.os.Looper
 import android.os.UserHandle
@@ -31,6 +30,8 @@ import android.widget.RelativeLayout
 import android.widget.TextClock
 import android.widget.TextView
 import androidx.core.content.res.ResourcesCompat
+import androidx.core.graphics.drawable.RoundedBitmapDrawableFactory
+import androidx.core.graphics.drawable.toDrawable
 import com.drdisagree.iconify.BuildConfig
 import com.drdisagree.iconify.R
 import com.drdisagree.iconify.data.common.Const.RESET_LOCKSCREEN_CLOCK_COMMAND
@@ -50,16 +51,21 @@ import com.drdisagree.iconify.data.common.Preferences.LSCLOCK_DEVICENAME
 import com.drdisagree.iconify.data.common.Preferences.LSCLOCK_FONT_LINEHEIGHT
 import com.drdisagree.iconify.data.common.Preferences.LSCLOCK_FONT_SWITCH
 import com.drdisagree.iconify.data.common.Preferences.LSCLOCK_FONT_TEXT_SCALING
+import com.drdisagree.iconify.data.common.Preferences.LSCLOCK_IMAGE_SWITCH
 import com.drdisagree.iconify.data.common.Preferences.LSCLOCK_MOVE_NOTIFICATION_ICONS
 import com.drdisagree.iconify.data.common.Preferences.LSCLOCK_STYLE
 import com.drdisagree.iconify.data.common.Preferences.LSCLOCK_SWITCH
 import com.drdisagree.iconify.data.common.Preferences.LSCLOCK_TOPMARGIN
 import com.drdisagree.iconify.data.common.Preferences.LSCLOCK_USERNAME
 import com.drdisagree.iconify.data.common.Resources.LOCKSCREEN_CLOCK_LAYOUT
+import com.drdisagree.iconify.data.common.XposedConst.LSCLOCK_FONT_FILE
+import com.drdisagree.iconify.data.common.XposedConst.LSCLOCK_IMAGE1_FILE
+import com.drdisagree.iconify.data.common.XposedConst.LSCLOCK_IMAGE2_FILE
 import com.drdisagree.iconify.utils.TextUtils
 import com.drdisagree.iconify.xposed.HookEntry.Companion.enqueueProxyCommand
 import com.drdisagree.iconify.xposed.ModPack
-import com.drdisagree.iconify.xposed.modules.extras.callbacks.ThemeChange
+import com.drdisagree.iconify.xposed.modules.extras.callbacks.BootCallback
+import com.drdisagree.iconify.xposed.modules.extras.callbacks.ThemeChangeCallback
 import com.drdisagree.iconify.xposed.modules.extras.utils.TimeUtils
 import com.drdisagree.iconify.xposed.modules.extras.utils.ViewHelper.applyFontRecursively
 import com.drdisagree.iconify.xposed.modules.extras.utils.ViewHelper.applyTextMarginRecursively
@@ -129,20 +135,18 @@ class LockscreenClock(context: Context) : ModPack(context) {
             initSoundManager()
         }
     }
-    private val mThemeChangeCallback: ThemeChange.OnThemeChangedListener =
-        object : ThemeChange.OnThemeChangedListener {
+    private val mThemeChangeCallback: ThemeChangeCallback.OnThemeChangedListener =
+        object : ThemeChangeCallback.OnThemeChangedListener {
             override fun onThemeChanged() {
                 loadColors()
                 updateClockView()
             }
         }
     private var customFontEnabled: Boolean = false
-    private var customTypeface: Typeface? = null
-    private val customFontDirectory = Environment.getExternalStorageDirectory().toString() +
-            "/.iconify_files/lsclock_font.ttf"
+    private var customImageEnabled = false
 
     init {
-        ThemeChange.getInstance().registerThemeChangedCallback(mThemeChangeCallback)
+        ThemeChangeCallback.getInstance().registerThemeChangedCallback(mThemeChangeCallback)
     }
 
     override fun updatePrefs(vararg key: String) {
@@ -152,12 +156,8 @@ class LockscreenClock(context: Context) : ModPack(context) {
             showLockscreenClock = getBoolean(LSCLOCK_SWITCH, false)
             showDepthWallpaper = isAndroid13OrBelow && getBoolean(DEPTH_WALLPAPER_SWITCH, false)
             moveNotificationIcons = getBoolean(LSCLOCK_MOVE_NOTIFICATION_ICONS, !isAndroid13OrBelow)
+            customImageEnabled = getBoolean(LSCLOCK_IMAGE_SWITCH, false)
             customFontEnabled = getBoolean(LSCLOCK_FONT_SWITCH, false)
-            customTypeface = if (customFontEnabled && File(customFontDirectory).exists()) {
-                Typeface.createFromFile(File(customFontDirectory))
-            } else {
-                null
-            }
         }
 
         resetStockClock()
@@ -171,6 +171,7 @@ class LockscreenClock(context: Context) : ModPack(context) {
                 LSCLOCK_BOTTOMMARGIN,
                 LSCLOCK_FONT_LINEHEIGHT,
                 LSCLOCK_FONT_SWITCH,
+                LSCLOCK_IMAGE_SWITCH,
                 LSCLOCK_FONT_TEXT_SCALING,
                 LSCLOCK_USERNAME,
                 LSCLOCK_DEVICENAME
@@ -311,7 +312,7 @@ class LockscreenClock(context: Context) : ModPack(context) {
                             executor.shutdownNow()
                         }
                     }, 0, 200, TimeUnit.MILLISECONDS)
-                } catch (ignored: Throwable) {
+                } catch (_: Throwable) {
                 }
             }
 
@@ -383,20 +384,13 @@ class LockscreenClock(context: Context) : ModPack(context) {
                 param.result = null
             }
 
-        try {
-            val executor = Executors.newSingleThreadScheduledExecutor()
-            executor.scheduleAtFixedRate({
-                val androidDir =
-                    File(Environment.getExternalStorageDirectory().toString() + "/Android")
-
-                if (androidDir.isDirectory) {
+        BootCallback.registerBootListener(
+            object : BootCallback.BootListener {
+                override fun onDeviceBooted() {
                     updateClockView()
-                    executor.shutdown()
-                    executor.shutdownNow()
                 }
-            }, 0, 5, TimeUnit.SECONDS)
-        } catch (ignored: Throwable) {
-        }
+            }
+        )
     }
 
     private fun initResources(context: Context) {
@@ -408,7 +402,7 @@ class LockscreenClock(context: Context) : ModPack(context) {
 
         try {
             context.registerReceiver(mBatteryReceiver, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
-        } catch (ignored: Exception) {
+        } catch (_: Exception) {
         }
 
         try {
@@ -416,7 +410,7 @@ class LockscreenClock(context: Context) : ModPack(context) {
                 mVolumeReceiver,
                 IntentFilter("android.media.VOLUME_CHANGED_ACTION")
             )
-        } catch (ignored: Exception) {
+        } catch (_: Exception) {
         }
 
         loadColors()
@@ -558,6 +552,11 @@ class LockscreenClock(context: Context) : ModPack(context) {
         val customColorEnabled: Boolean = Xprefs.getBoolean(LSCLOCK_COLOR_SWITCH, false)
         val customUserName: String = Xprefs.getString(LSCLOCK_USERNAME, "")!!
         val customDeviceName: String = Xprefs.getString(LSCLOCK_DEVICENAME, "")!!
+        var customTypeface = if (customFontEnabled && LSCLOCK_FONT_FILE.exists()) {
+            Typeface.createFromFile(LSCLOCK_FONT_FILE)
+        } else {
+            null
+        }
 
         setMargins(clockView, mContext, 0, topMargin, 0, bottomMargin)
 
@@ -577,6 +576,47 @@ class LockscreenClock(context: Context) : ModPack(context) {
 
         if (clockStyle != 10) {
             TextUtils.convertTextViewsToTitleCase(clockView)
+        }
+
+        if (customImageEnabled) {
+            listOf(
+                "custom_image1" to LSCLOCK_IMAGE1_FILE.absolutePath,
+                "custom_image2" to LSCLOCK_IMAGE2_FILE.absolutePath
+            ).forEach { (tag, path) ->
+                if (File(path).exists()) {
+                    clockView.findViewContainsTag(tag)?.let { view ->
+                        val bitmap = BitmapFactory.decodeFile(path)
+
+                        val isRoundedImage = (clockStyle == 26 && tag.contains("1")) ||
+                                clockStyle in setOf(27, 30, 40, 53)
+                        val isCircleImage = (clockStyle == 26 && tag.contains("2")) ||
+                                clockStyle == 39
+                        val roundedSize = 32f
+
+                        val drawable: Drawable = when {
+                            isRoundedImage -> RoundedBitmapDrawableFactory
+                                .create(mContext.resources, bitmap)
+                                .apply {
+                                    setCornerRadius(roundedSize)
+                                }
+
+                            isCircleImage -> RoundedBitmapDrawableFactory
+                                .create(mContext.resources, bitmap)
+                                .apply {
+                                    setCornerRadius(12000f)
+                                }
+
+                            else -> bitmap.toDrawable(view.resources)
+                        }
+
+                        if (view is ImageView) {
+                            view.setImageDrawable(drawable)
+                        } else {
+                            view.background = drawable
+                        }
+                    }
+                }
+            }
         }
 
         mBatteryLevelView = null
@@ -850,7 +890,7 @@ class LockscreenClock(context: Context) : ModPack(context) {
             val userId = UserHandle::class.java.getDeclaredMethod("myUserId").invoke(null) as Int
             val bitmapUserIcon = getUserIconMethod.invoke(mUserManager, userId) as Bitmap
 
-            BitmapDrawable(mContext.resources, bitmapUserIcon)
+            bitmapUserIcon.toDrawable(mContext.resources)
         } catch (throwable: Throwable) {
             if (throwable !is NullPointerException) {
                 log(this@LockscreenClock, throwable)

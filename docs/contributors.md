@@ -72,17 +72,17 @@ This project exists thanks to the following contributors:
                 </a>
             </td>
             <td align="center">
-                <a href="https://github.com/igormiguell">
-                    <img src="https://avatars.githubusercontent.com/u/134963561?v=4" width="100;" alt="igormiguell"/>
-                    <br />
-                    <sub><b>igor</b></sub>
-                </a>
-            </td>
-            <td align="center">
                 <a href="https://github.com/KaeruShi">
                     <img src="https://avatars.githubusercontent.com/u/89345339?v=4" width="100;" alt="KaeruShi"/>
                     <br />
                     <sub><b>KaeruShi</b></sub>
+                </a>
+            </td>
+            <td align="center">
+                <a href="https://github.com/igormiguell">
+                    <img src="https://avatars.githubusercontent.com/u/134963561?v=4" width="100;" alt="igormiguell"/>
+                    <br />
+                    <sub><b>igor</b></sub>
                 </a>
             </td>
             <td align="center">
@@ -99,6 +99,13 @@ This project exists thanks to the following contributors:
                     <img src="https://avatars.githubusercontent.com/u/123580315?v=4" width="100;" alt="MXC48"/>
                     <br />
                     <sub><b>MXC48</b></sub>
+                </a>
+            </td>
+            <td align="center">
+                <a href="https://github.com/Ventiqu">
+                    <img src="https://avatars.githubusercontent.com/u/114502891?v=4" width="100;" alt="Ventiqu"/>
+                    <br />
+                    <sub><b>Ventiqu</b></sub>
                 </a>
             </td>
             <td align="center">
@@ -129,6 +136,15 @@ This project exists thanks to the following contributors:
                     <sub><b>armv7a</b></sub>
                 </a>
             </td>
+		</tr>
+		<tr>
+            <td align="center">
+                <a href="https://github.com/FlazeIGuess">
+                    <img src="https://avatars.githubusercontent.com/u/61559082?v=4" width="100;" alt="FlazeIGuess"/>
+                    <br />
+                    <sub><b>Flaze</b></sub>
+                </a>
+            </td>
             <td align="center">
                 <a href="https://github.com/HiFiiDev">
                     <img src="https://avatars.githubusercontent.com/u/46557883?v=4" width="100;" alt="HiFiiDev"/>
@@ -136,8 +152,6 @@ This project exists thanks to the following contributors:
                     <sub><b>Kyler</b></sub>
                 </a>
             </td>
-		</tr>
-		<tr>
             <td align="center">
                 <a href="https://github.com/IzzySoft">
                     <img src="https://avatars.githubusercontent.com/u/6781438?v=4" width="100;" alt="IzzySoft"/>

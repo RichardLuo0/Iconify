@@ -3,11 +3,7 @@ package com.drdisagree.iconify.data.common
 import android.os.Build
 import android.os.Environment
 import com.drdisagree.iconify.BuildConfig
-import com.drdisagree.iconify.Iconify.Companion.appContext
 import com.drdisagree.iconify.R
-import com.drdisagree.iconify.data.common.Preferences.FIRST_INSTALL
-import com.drdisagree.iconify.data.common.Preferences.UPDATE_DETECTED
-import com.drdisagree.iconify.data.config.RPrefs.getBoolean
 import com.drdisagree.iconify.data.models.SearchPreferenceItem
 import com.drdisagree.iconify.ui.fragments.home.Home
 import com.drdisagree.iconify.ui.fragments.settings.Settings
@@ -18,7 +14,6 @@ import com.drdisagree.iconify.ui.fragments.xposed.BatteryStyle
 import com.drdisagree.iconify.ui.fragments.xposed.DepthWallpaper
 import com.drdisagree.iconify.ui.fragments.xposed.DualStatusbar
 import com.drdisagree.iconify.ui.fragments.xposed.HeaderClock
-import com.drdisagree.iconify.ui.fragments.xposed.Launcher
 import com.drdisagree.iconify.ui.fragments.xposed.Lockscreen
 import com.drdisagree.iconify.ui.fragments.xposed.LockscreenClockParent
 import com.drdisagree.iconify.ui.fragments.xposed.LockscreenWeather
@@ -27,12 +22,12 @@ import com.drdisagree.iconify.ui.fragments.xposed.OpQsHeader
 import com.drdisagree.iconify.ui.fragments.xposed.Others
 import com.drdisagree.iconify.ui.fragments.xposed.QuickSettings
 import com.drdisagree.iconify.ui.fragments.xposed.Statusbar
+import com.drdisagree.iconify.ui.fragments.xposed.StatusbarLogo
 import com.drdisagree.iconify.ui.fragments.xposed.Themes
 import com.drdisagree.iconify.ui.fragments.xposed.TransparencyBlur
 import com.drdisagree.iconify.ui.fragments.xposed.VolumePanelParent
 import com.drdisagree.iconify.ui.fragments.xposed.Xposed
 import com.drdisagree.iconify.ui.preferences.preferencesearch.SearchConfiguration
-import com.drdisagree.iconify.utils.RootUtils.folderExists
 
 object Resources {
 
@@ -42,54 +37,25 @@ object Resources {
     // Storage location
     val DOCUMENTS_DIR: String =
         Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS).absolutePath
-
     val DOWNLOADS_DIR: String =
         Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).absolutePath
 
     val LOG_DIR = "$DOCUMENTS_DIR/Iconify"
     const val MODULE_DIR = "/data/adb/modules/Iconify"
     const val SYSTEM_OVERLAY_DIR = "/system/product/overlay"
-
-    val DATA_DIR: String = appContext.filesDir.absolutePath
     const val OVERLAY_DIR = "$MODULE_DIR/system/product/overlay"
-
-    val BIN_DIR = appContext.dataDir.toString() + "/bin"
-
     val BACKUP_DIR = Environment.getExternalStorageDirectory().absolutePath + "/.iconify_backup"
-
     val TEMP_DIR = Environment.getExternalStorageDirectory().absolutePath + "/.iconify"
-
     val TEMP_MODULE_DIR = "$TEMP_DIR/Iconify"
-
     val TEMP_MODULE_OVERLAY_DIR = "$TEMP_MODULE_DIR/system/product/overlay"
-
     val TEMP_OVERLAY_DIR = "$TEMP_DIR/overlays"
-
     val TEMP_CACHE_DIR = "$TEMP_OVERLAY_DIR/cache"
-
     val UNSIGNED_UNALIGNED_DIR = "$TEMP_OVERLAY_DIR/unsigned_unaligned"
-
     val UNSIGNED_DIR = "$TEMP_OVERLAY_DIR/unsigned"
-
     val SIGNED_DIR = "$TEMP_OVERLAY_DIR/signed"
 
     // File resources
     const val FRAMEWORK_DIR = "/system/framework/framework-res.apk"
-
-    // Xposed resource dir
-    val XPOSED_RESOURCE_TEMP_DIR = "${Environment.getExternalStorageDirectory()}/.iconify_files"
-
-    val LSCLOCK_FONT_DIR = "$XPOSED_RESOURCE_TEMP_DIR/lsclock_font.ttf"
-
-    val HEADER_CLOCK_FONT_DIR = "$XPOSED_RESOURCE_TEMP_DIR/headerclock_font.ttf"
-
-    val HEADER_IMAGE_DIR = "$XPOSED_RESOURCE_TEMP_DIR/header_image.png"
-
-    val DEPTH_WALL_FG_DIR = "$XPOSED_RESOURCE_TEMP_DIR/depth_wallpaper_fg.png"
-
-    val DEPTH_WALL_BG_DIR = "$XPOSED_RESOURCE_TEMP_DIR/depth_wallpaper_bg.png"
-
-    val LOCKSCREEN_WEATHER_FONT_DIR = "$XPOSED_RESOURCE_TEMP_DIR/lockscreen_weather_font.ttf"
 
     // Resource names
     const val HEADER_CLOCK_LAYOUT = "preview_header_clock_"
@@ -98,9 +64,6 @@ object Resources {
     // Database
     const val DYNAMIC_RESOURCE_DATABASE_NAME = "dynamic_resource_database"
     const val DYNAMIC_RESOURCE_TABLE = "dynamic_resource_table"
-
-    fun shouldShowRebootDialog() = (!getBoolean(FIRST_INSTALL) && getBoolean(UPDATE_DETECTED)) ||
-            folderExists("/data/adb/modules_update/Iconify")
 
     val searchConfiguration = SearchConfiguration()
 
@@ -168,6 +131,11 @@ object Resources {
             DualStatusbar()
         ),
         SearchPreferenceItem(
+            R.xml.xposed_statusbar_logo,
+            R.string.status_bar_logo_title,
+            StatusbarLogo()
+        ),
+        SearchPreferenceItem(
             R.xml.xposed_volume_panel,
             R.string.activity_title_volume_panel,
             VolumePanelParent()
@@ -207,11 +175,6 @@ object Resources {
             R.xml.xposed_lockscreen_album_art,
             R.string.activity_title_lockscreen_album_art,
             AlbumArt()
-        ),
-        SearchPreferenceItem(
-            R.xml.xposed_launcher,
-            R.string.activity_title_xposed_launcher,
-            Launcher()
         ),
         SearchPreferenceItem(
             R.xml.xposed_others,

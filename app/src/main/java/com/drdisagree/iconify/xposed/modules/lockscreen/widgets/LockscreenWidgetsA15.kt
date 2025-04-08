@@ -37,6 +37,7 @@ import com.drdisagree.iconify.data.common.Preferences.LOCKSCREEN_WIDGETS_DEVICE_
 import com.drdisagree.iconify.data.common.Preferences.LOCKSCREEN_WIDGETS_DEVICE_WIDGET_TEXT_COLOR
 import com.drdisagree.iconify.data.common.Preferences.LOCKSCREEN_WIDGETS_ENABLED
 import com.drdisagree.iconify.data.common.Preferences.LOCKSCREEN_WIDGETS_EXTRAS
+import com.drdisagree.iconify.data.common.Preferences.LOCKSCREEN_WIDGETS_ROUNDNESS
 import com.drdisagree.iconify.data.common.Preferences.LOCKSCREEN_WIDGETS_SCALE
 import com.drdisagree.iconify.data.common.Preferences.LOCKSCREEN_WIDGETS_SMALL_ACTIVE
 import com.drdisagree.iconify.data.common.Preferences.LOCKSCREEN_WIDGETS_SMALL_ICON_ACTIVE
@@ -47,6 +48,7 @@ import com.drdisagree.iconify.data.common.Preferences.LSCLOCK_SWITCH
 import com.drdisagree.iconify.data.common.Preferences.WEATHER_SWITCH
 import com.drdisagree.iconify.xposed.HookEntry.Companion.enqueueProxyCommand
 import com.drdisagree.iconify.xposed.ModPack
+import com.drdisagree.iconify.xposed.modules.extras.callbacks.DozeCallback
 import com.drdisagree.iconify.xposed.modules.extras.utils.MyConstraintSet.Companion.applyTo
 import com.drdisagree.iconify.xposed.modules.extras.utils.MyConstraintSet.Companion.clear
 import com.drdisagree.iconify.xposed.modules.extras.utils.MyConstraintSet.Companion.clone
@@ -71,8 +73,6 @@ import de.robv.android.xposed.callbacks.XC_LoadPackage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 class LockscreenWidgetsA15(context: Context) : ModPack(context) {
 
@@ -116,6 +116,7 @@ class LockscreenWidgetsA15(context: Context) : ModPack(context) {
     private var mExtraWidgets = ""
     private var mTopMargin = 0
     private var mBottomMargin = 0
+    private var mWidgetsRoundness = 100
     private var mWidgetsScale = 1.0f
     private var mDeviceWidgetStyle = 0
     private var dateSmartSpaceViewAvailable = false
@@ -166,6 +167,7 @@ class LockscreenWidgetsA15(context: Context) : ModPack(context) {
             mSmallIconInactiveColor = getInt(LOCKSCREEN_WIDGETS_SMALL_ICON_INACTIVE, Color.WHITE)
             mTopMargin = getSliderInt(LOCKSCREEN_WIDGETS_TOP_MARGIN, 0)
             mBottomMargin = getSliderInt(LOCKSCREEN_WIDGETS_BOTTOM_MARGIN, 0)
+            mWidgetsRoundness = getSliderInt(LOCKSCREEN_WIDGETS_ROUNDNESS, 100)
             mWidgetsScale = getSliderFloat(LOCKSCREEN_WIDGETS_SCALE, 1.0f)
             mDeviceWidgetStyle = getString(LOCKSCREEN_WIDGETS_DEVICE_WIDGET_STYLE, "0")!!.toInt()
 
@@ -213,6 +215,8 @@ class LockscreenWidgetsA15(context: Context) : ModPack(context) {
                 LOCKSCREEN_WIDGETS_TOP_MARGIN,
                 LOCKSCREEN_WIDGETS_BOTTOM_MARGIN
             ) -> updateMargins()
+
+            LOCKSCREEN_WIDGETS_ROUNDNESS -> updateLockscreenWidgetsRoundness()
 
             LOCKSCREEN_WIDGETS_SCALE -> updateLockscreenWidgetsScale()
         }
@@ -274,7 +278,10 @@ class LockscreenWidgetsA15(context: Context) : ModPack(context) {
 
         // Apparently ROMs like CrDroid doesn't even use AodBurnInLayer class
         // So we hook which ever is available
-        val keyguardStatusViewClass = findClass("com.android.keyguard.KeyguardStatusView")
+        val keyguardStatusViewClass = findClass(
+            "com.android.keyguard.KeyguardStatusView",
+            suppressError = Build.VERSION.SDK_INT >= 36
+        )
         var keyguardStatusViewHooked = false
 
         fun initializeLockscreenLayout(param: XC_MethodHook.MethodHookParam) {
@@ -451,7 +458,10 @@ class LockscreenWidgetsA15(context: Context) : ModPack(context) {
                 }
             }
 
-        val keyguardClockSwitchClass = findClass("com.android.keyguard.KeyguardClockSwitch")
+        val keyguardClockSwitchClass = findClass(
+            "com.android.keyguard.KeyguardClockSwitch",
+            suppressError = Build.VERSION.SDK_INT >= 36
+        )
 
         keyguardClockSwitchClass
             .hookMethod("updateClockViews")
@@ -461,82 +471,42 @@ class LockscreenWidgetsA15(context: Context) : ModPack(context) {
                 updateLockscreenWidgetsOnClock(param.args[0] as Boolean)
             }
 
-        fun onDozingChanged(isDozing: Boolean) {
-            updateDozingState(isDozing)
-            aodBurnInProtection?.setMovementEnabled(isDozing)
-        }
-
-        val collapsedStatusBarFragment = findClass(
-            "$SYSTEMUI_PACKAGE.statusbar.phone.CollapsedStatusBarFragment",
-            "$SYSTEMUI_PACKAGE.statusbar.phone.fragment.CollapsedStatusBarFragment"
-        )
-
-        collapsedStatusBarFragment
-            .hookMethod("onDozingChanged")
-            .runAfter { param -> onDozingChanged(param.args[0] as Boolean) }
-
-        val dozeScrimControllerClass =
-            findClass("$SYSTEMUI_PACKAGE.statusbar.phone.DozeScrimController")
-
-        dozeScrimControllerClass
-            .hookMethod("onDozingChanged")
-            .runAfter { param -> onDozingChanged(param.args[0] as Boolean) }
-
         // For unknown reason, rotating device makes the height of view to 0
         // This is a workaround to make sure the view is visible
-        fun updateLayoutParams() {
-            if (!mWidgetsEnabled) return
+        DozeCallback.getInstance().registerDozeChangeListener(
+            object : DozeCallback.DozeListener {
+                fun updateLayoutParams() {
+                    if (!mWidgetsEnabled || !::mWidgetsContainer.isInitialized) return
 
-            if (::mWidgetsContainer.isInitialized) {
-                (mLsItemsContainer ?: mWidgetsContainer).layoutParams?.apply {
-                    width = ViewGroup.LayoutParams.MATCH_PARENT
-                    height = ViewGroup.LayoutParams.WRAP_CONTENT
-                }
-            }
-        }
-
-        val statusBarKeyguardViewManagerClass =
-            findClass("$SYSTEMUI_PACKAGE.statusbar.phone.StatusBarKeyguardViewManager")
-
-        statusBarKeyguardViewManagerClass
-            .hookMethod("onStartedWakingUp")
-            .suppressError()
-            .runAfter { updateLayoutParams() }
-
-        val centralSurfacesImplClass = findClass(
-            "$SYSTEMUI_PACKAGE.statusbar.phone.CentralSurfacesImpl",
-            suppressError = true
-        )
-
-        centralSurfacesImplClass
-            .hookMethod("onStartedWakingUp")
-            .suppressError()
-            .runAfter { updateLayoutParams() }
-
-        centralSurfacesImplClass
-            .hookConstructor()
-            .runAfter { param ->
-                if (!mWidgetsEnabled) return@runAfter
-
-                val mWakefulnessObserver = param.thisObject.getFieldSilently("mWakefulnessObserver")
-
-                mWakefulnessObserver?.javaClass
-                    .hookMethod("onStartedWakingUp")
-                    .runAfter { updateLayoutParams() }
-            }
-
-        val dozeServiceClass = findClass("$SYSTEMUI_PACKAGE.doze.DozeService")
-
-        dozeServiceClass
-            .hookMethod("onDreamingStarted")
-            .runAfter {
-                coroutineScope.launch {
-                    repeat(5) {
-                        updateLayoutParams()
-                        delay(500L)
+                    if (::mWidgetsContainer.isInitialized) {
+                        if (mLsItemsContainer?.width == 0 || mLsItemsContainer?.height == 0) {
+                            mLsItemsContainer?.layoutParams?.apply {
+                                width = ViewGroup.LayoutParams.MATCH_PARENT
+                                height = ViewGroup.LayoutParams.WRAP_CONTENT
+                            }
+                        }
+                        if (mWidgetsContainer.width == 0 || mWidgetsContainer.height == 0) {
+                            mWidgetsContainer.layoutParams.apply {
+                                width = ViewGroup.LayoutParams.MATCH_PARENT
+                                height = ViewGroup.LayoutParams.WRAP_CONTENT
+                            }
+                        }
                     }
                 }
+
+                override fun onDozingStarted() {
+                    updateDozingState(true)
+                    aodBurnInProtection?.setMovementEnabled(true)
+                    updateLayoutParams()
+                }
+
+                override fun onDozingStopped() {
+                    updateDozingState(false)
+                    aodBurnInProtection?.setMovementEnabled(false)
+                    updateLayoutParams()
+                }
             }
+        )
     }
 
     private fun placeWidgetsView() {
@@ -551,13 +521,14 @@ class LockscreenWidgetsA15(context: Context) : ModPack(context) {
         if (widgetView.parent != mWidgetsContainer) {
             (mWidgetsContainer.parent as? ViewGroup)?.removeView(widgetView)
             mWidgetsContainer.addView(widgetView)
-        }
 
-        updateLockscreenWidgets()
-        updateLsDeviceWidget()
-        updateLockscreenWidgetsColors()
-        updateMargins()
-        updateLockscreenWidgetsScale()
+            updateLockscreenWidgets()
+            updateLsDeviceWidget()
+            updateLockscreenWidgetsColors()
+            updateMargins()
+            updateLockscreenWidgetsRoundness()
+            updateLockscreenWidgetsScale()
+        }
     }
 
     @SuppressLint("DiscouragedApi")
@@ -566,7 +537,7 @@ class LockscreenWidgetsA15(context: Context) : ModPack(context) {
 
         mLockscreenRootView.assignIdsToViews()
 
-        widgetView.getChildAt(0)?.layoutParams?.width = LinearLayout.LayoutParams.MATCH_PARENT
+        mLsItemsContainer?.layoutParams?.width = LinearLayout.LayoutParams.MATCH_PARENT
 
         val notificationContainerId = mContext.resources.getIdentifier(
             "nssl_placeholder",
@@ -725,6 +696,10 @@ class LockscreenWidgetsA15(context: Context) : ModPack(context) {
                 mBottomMargin
             )
         }
+    }
+
+    private fun updateLockscreenWidgetsRoundness() {
+        LockscreenWidgetsView.getInstance()?.setRoundness(mWidgetsRoundness)
     }
 
     private fun updateLockscreenWidgetsScale() {

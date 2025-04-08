@@ -9,8 +9,8 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.drawable.BitmapDrawable
-import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
+import android.graphics.drawable.LayerDrawable
 import android.os.Handler
 import android.os.Looper
 import android.view.View
@@ -18,7 +18,9 @@ import android.widget.LinearLayout
 import android.widget.RemoteViews
 import android.widget.TextView
 import androidx.core.graphics.ColorUtils
+import androidx.core.graphics.createBitmap
 import androidx.core.graphics.drawable.DrawableCompat
+import androidx.core.graphics.drawable.toDrawable
 import com.drdisagree.iconify.data.common.Const.FRAMEWORK_PACKAGE
 import com.drdisagree.iconify.data.common.Const.SYSTEMUI_PACKAGE
 import com.drdisagree.iconify.data.common.Preferences.COLORED_NOTIFICATION_ALTERNATIVE_SWITCH
@@ -38,7 +40,6 @@ import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.hookMethod
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.hookMethodMatchPattern
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.isMethodAvailable
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.setExtraField
-import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.setField
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.setFieldSilently
 import com.drdisagree.iconify.xposed.utils.XPrefs.Xprefs
 import de.robv.android.xposed.XposedHelpers.newInstance
@@ -85,7 +86,7 @@ class ColorizeNotificationView(context: Context) : ModPack(context) {
                     break
                 }
             }
-        } catch (ignore: Throwable) {
+        } catch (_: Throwable) {
             // A16B1 doesn't have the enum constants, but CONTENT exists
             schemeStyle = "CONTENT"
         }
@@ -113,8 +114,8 @@ class ColorizeNotificationView(context: Context) : ModPack(context) {
             val packageManager = packageContext.packageManager
             val notifyIcon = try {
                 packageManager.getApplicationIcon(pkgName)
-            } catch (ignored: Throwable) {
-                ColorDrawable(fallbackColor)
+            } catch (_: Throwable) {
+                fallbackColor.toDrawable()
             }
 
             builder.callMethod("makeNotificationGroupHeader")
@@ -133,7 +134,7 @@ class ColorizeNotificationView(context: Context) : ModPack(context) {
                 bitmap.getPixels(pixels, 0, width, 0, 0, width, height)
                 primaryColor = Score.score(QuantizerCelebi.quantize(pixels, 25)).firstOrNull()
                     ?: fallbackColor
-                wallpaperColors = WallpaperColors.fromDrawable(ColorDrawable(primaryColor))
+                wallpaperColors = WallpaperColors.fromDrawable(primaryColor.toDrawable())
             }
 
             if (Color.luminance(primaryColor) > 0.9) {
@@ -233,7 +234,7 @@ class ColorizeNotificationView(context: Context) : ModPack(context) {
                 "mTertiaryFixedDimAccentColor" to mTertiaryFixedDimAccentColor,
                 "mOnTertiaryFixedAccentTextColor" to mOnTertiaryFixedAccentTextColor
             ).forEach { (fieldName, value) ->
-                mColors.setField(fieldName, value)
+                mColors.setFieldSilently(fieldName, value)
 
                 if (fieldName == "mBackgroundColor") {
                     setExtraField("mNotifyBackgroundColor", value)
@@ -317,7 +318,7 @@ class ColorizeNotificationView(context: Context) : ModPack(context) {
                         "mTertiaryFixedDimAccentColor",
                         "mOnTertiaryFixedAccentTextColor"
                     ).forEach { fieldName ->
-                        mColors.setField(
+                        mColors.setFieldSilently(
                             fieldName,
                             notification.getExtraField(fieldName)
                         )
@@ -346,7 +347,7 @@ class ColorizeNotificationView(context: Context) : ModPack(context) {
                     var bgColor = mNotifyBackgroundColor as Int
                     val mCurrentBackgroundTint = try {
                         param.thisObject.callMethod("getCurrentBackgroundTint")
-                    } catch (ignore: Throwable) {
+                    } catch (_: Throwable) {
                         param.thisObject.getField("mCurrentBackgroundTint")
                     } as Int
 
@@ -368,8 +369,16 @@ class ColorizeNotificationView(context: Context) : ModPack(context) {
                         val bgDrawable = notificationBackgroundView.getFieldSilently(
                             "mBackground"
                         ) as? Drawable
+
                         if (bgDrawable != null) {
-                            DrawableCompat.setTint(bgDrawable, bgColor)
+                            // Blur drawable support
+                            if (bgDrawable is LayerDrawable && bgDrawable.numberOfLayers > 2 &&
+                                bgDrawable.getDrawable(2)::class.java.simpleName.contains("BackgroundBlurDrawable")
+                            ) {
+                                bgDrawable.getDrawable(2).callMethod("setColor", bgColor)
+                            } else {
+                                DrawableCompat.setTint(bgDrawable, bgColor)
+                            }
                         }
 
                         notificationBackgroundView.setFieldSilently("mTintColor", bgColor)
@@ -447,7 +456,7 @@ class ColorizeNotificationView(context: Context) : ModPack(context) {
 
                     val notification = builder.getField("mN") as Notification
 
-                    notification.initializeColors(builder!!, mContext!!)
+                    notification.initializeColors(builder, mContext)
                 }
                 .runAfter { param ->
                     if (!coloredNotificationView) return@runAfter
@@ -464,10 +473,10 @@ class ColorizeNotificationView(context: Context) : ModPack(context) {
 
                     if (builder == null || mContext == null) return@runAfter
 
-                    val notification: Notification = builder!!.notification
+                    val notification: Notification = builder.notification
                     val inflationProgress: Any = param.result
 
-                    notification.setTextColor(inflationProgress, mContext!!)
+                    notification.setTextColor(inflationProgress, mContext)
                 }
         }
     }
@@ -476,10 +485,9 @@ class ColorizeNotificationView(context: Context) : ModPack(context) {
         return if (this is BitmapDrawable && bitmap != null) {
             bitmap
         } else {
-            val bitmap = Bitmap.createBitmap(
+            val bitmap = createBitmap(
                 intrinsicWidth.coerceAtLeast(1),
-                intrinsicHeight.coerceAtLeast(1),
-                Bitmap.Config.ARGB_8888
+                intrinsicHeight.coerceAtLeast(1)
             )
             val canvas = Canvas(bitmap)
             setBounds(0, 0, canvas.width, canvas.height)

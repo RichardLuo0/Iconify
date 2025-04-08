@@ -1,5 +1,6 @@
 package com.drdisagree.iconify.xposed.modules.extras.utils
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.Bitmap
@@ -11,7 +12,9 @@ import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffColorFilter
+import android.graphics.PorterDuffXfermode
 import android.graphics.Rect
+import android.graphics.RectF
 import android.graphics.Typeface
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
@@ -28,14 +31,20 @@ import android.widget.RelativeLayout
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.graphics.ColorUtils
+import androidx.core.graphics.createBitmap
+import androidx.core.graphics.drawable.toBitmap
+import androidx.core.graphics.drawable.toDrawable
+import androidx.core.view.isVisible
 import com.drdisagree.iconify.data.common.Const.SYSTEMUI_PACKAGE
 import com.drdisagree.iconify.data.common.Preferences.DEPTH_WALLPAPER_SWITCH
 import com.drdisagree.iconify.data.common.Preferences.ICONIFY_DEPTH_WALLPAPER_FOREGROUND_TAG
 import com.drdisagree.iconify.data.common.Preferences.ICONIFY_LOCKSCREEN_CONTAINER_TAG
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.XposedHook.Companion.findClass
+import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.callMethod
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.callStaticMethod
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.isMethodAvailable
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.log
+import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.setField
 import com.drdisagree.iconify.xposed.utils.XPrefs.Xprefs
 
 object ViewHelper {
@@ -392,7 +401,7 @@ object ViewHelper {
 
         val blurredBitmap = drawableToBitmap().applyBlur(context, radius.coerceIn(1f, 25f))
 
-        return BitmapDrawable(context.resources, blurredBitmap)
+        return blurredBitmap.toDrawable(context.resources)
     }
 
     private fun Drawable.drawableToBitmap(): Bitmap {
@@ -400,11 +409,7 @@ object ViewHelper {
             return bitmap
         }
 
-        val bitmap = Bitmap.createBitmap(
-            intrinsicWidth,
-            intrinsicHeight,
-            Bitmap.Config.ARGB_8888
-        )
+        val bitmap = createBitmap(intrinsicWidth, intrinsicHeight)
 
         val canvas = Canvas(bitmap)
         setBounds(0, 0, canvas.width, canvas.height)
@@ -421,16 +426,17 @@ object ViewHelper {
 
         var tempImage = this
 
+        if (config == Bitmap.Config.HARDWARE) {
+            tempImage = copy(Bitmap.Config.ARGB_8888, true)
+        }
+
         try {
             tempImage = rgb565toArgb888()
         } catch (e: Exception) {
             e.printStackTrace()
         }
 
-        val bitmap = Bitmap.createBitmap(
-            tempImage.width, tempImage.height,
-            Bitmap.Config.ARGB_8888
-        )
+        val bitmap = createBitmap(tempImage.width, tempImage.height)
         val renderScript = android.renderscript.RenderScript.create(context)
         val blurInput = android.renderscript.Allocation.createFromBitmap(renderScript, tempImage)
         val blurOutput = android.renderscript.Allocation.createFromBitmap(renderScript, bitmap)
@@ -458,7 +464,7 @@ object ViewHelper {
         getPixels(pixels, 0, width, 0, 0, width, height)
 
         // Create a Bitmap of the appropriate format.
-        val result = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        val result = createBitmap(width, height)
 
         // Set RGB pixels.
         result.setPixels(pixels, 0, result.width, 0, 0, result.width, result.height)
@@ -471,7 +477,7 @@ object ViewHelper {
 
         fun makeInvisible() {
             apply {
-                if (visibility == View.VISIBLE) {
+                if (isVisible) {
                     visibility = View.INVISIBLE
                 }
             }
@@ -600,7 +606,27 @@ object ViewHelper {
         return if (expandableClass.isMethodAvailable("fromView", View::class.java)) {
             expandableClass!!.callStaticMethod("fromView", this)
         } else {
-            expandableCompanionFromViewClass!!.getConstructor(View::class.java).newInstance(this)
+            try {
+                expandableCompanionFromViewClass!!
+                    .getConstructor(View::class.java)
+                    .newInstance(this)
+            } catch (_: Throwable) {
+                val refObjectRefClass = findClass("kotlin.jvm.internal.Ref\$ObjectRef")
+
+                val refObject = refObjectRefClass!!
+                    .getConstructor()
+                    .newInstance()
+
+                try {
+                    refObject.setField("element", callMethod("getAnimatedView"))
+                } catch (_: Throwable) {
+                    refObject.setField("element", this)
+                }
+
+                expandableCompanionFromViewClass!!
+                    .getConstructor(refObjectRefClass)
+                    .newInstance(refObject)
+            }
         }
     }
 
@@ -608,7 +634,7 @@ object ViewHelper {
 
         val colorDrawable = this.getColoredBitmap(color)
 
-        return BitmapDrawable(context.resources, colorDrawable)
+        return colorDrawable?.toDrawable(context.resources) ?: this
     }
 
     private fun Drawable?.getColoredBitmap(color: Int): Bitmap? {
@@ -631,7 +657,7 @@ object ViewHelper {
         if (this == null) return null
 
         val colorBitmap = (this as BitmapDrawable).bitmap
-        val filteredBitmap = Bitmap.createBitmap(
+        val filteredBitmap = createBitmap(
             colorBitmap.width,
             colorBitmap.height,
             colorBitmap.config ?: Bitmap.Config.ARGB_8888
@@ -646,7 +672,7 @@ object ViewHelper {
     }
 
     fun Bitmap.toGrayscale(): Bitmap {
-        val grayscaleBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        val grayscaleBitmap = createBitmap(width, height)
         val canvas = Canvas(grayscaleBitmap)
         val paint = Paint().apply {
             isAntiAlias = true
@@ -659,12 +685,12 @@ object ViewHelper {
 
     fun Drawable.toGrayscale(context: Context): Drawable {
         val grayscaleBitmap = drawableToBitmap().toGrayscale()
-        return BitmapDrawable(context.resources, grayscaleBitmap)
+        return grayscaleBitmap.toDrawable(context.resources)
     }
 
     fun Drawable.getGrayscaleBlurredImage(context: Context, radius: Float): Drawable {
         val grayscaleBitmap = drawableToBitmap().getGrayscaleBlurredImage(context, radius)
-        return BitmapDrawable(context.resources, grayscaleBitmap)
+        return grayscaleBitmap.toDrawable(context.resources)
     }
 
     fun Bitmap.getGrayscaleBlurredImage(context: Context, radius: Float): Bitmap {
@@ -695,15 +721,48 @@ object ViewHelper {
         matrix.setScale(scale, scale)
         matrix.postTranslate(dx, dy)
 
-        val resultBitmap = Bitmap.createBitmap(
-            targetWidth,
-            targetHeight,
-            config ?: Bitmap.Config.ARGB_8888
-        )
+        val resultBitmap =
+            createBitmap(targetWidth, targetHeight, config ?: Bitmap.Config.ARGB_8888)
         val canvas = Canvas(resultBitmap)
         canvas.drawBitmap(this, matrix, Paint(Paint.FILTER_BITMAP_FLAG))
 
         return resultBitmap
     }
 
+    @SuppressLint("UseKtx")
+    fun Drawable.toCircularDrawable(context: Context): Drawable {
+        val bitmap = this.toBitmap()
+        val circularBitmap = bitmap.toCircularBitmap()
+        return BitmapDrawable(context.resources, circularBitmap)
+    }
+
+    fun Bitmap.toCircularBitmap(): Bitmap {
+        var tempImage = this
+
+        if (config == Bitmap.Config.HARDWARE) {
+            tempImage = copy(Bitmap.Config.ARGB_8888, true)
+        }
+
+        val width = tempImage.width
+        val height = tempImage.height
+        val diameter = width.coerceAtMost(height)
+        val output = createBitmap(diameter, diameter)
+
+        val paint = Paint()
+        paint.isAntiAlias = true
+
+        val canvas = Canvas(output)
+        val rect = Rect(0, 0, diameter, diameter)
+        val rectF = RectF(rect)
+
+        canvas.drawARGB(0, 0, 0, 0)
+        canvas.drawOval(rectF, paint)
+
+        paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_IN)
+        val left = (width - diameter) / 2
+        val top = (height - diameter) / 2
+        canvas.drawBitmap(tempImage, Rect(left, top, left + diameter, top + diameter), rect, paint)
+
+        return output
+    }
 }

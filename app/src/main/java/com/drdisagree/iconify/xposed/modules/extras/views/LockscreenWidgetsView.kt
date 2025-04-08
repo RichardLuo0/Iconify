@@ -9,6 +9,10 @@ import android.content.IntentFilter
 import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.graphics.drawable.Drawable
+import android.graphics.drawable.GradientDrawable
+import android.graphics.drawable.RippleDrawable
+import android.graphics.drawable.ShapeDrawable
+import android.graphics.drawable.shapes.RoundRectShape
 import android.hardware.camera2.CameraManager
 import android.media.AudioManager
 import android.media.MediaMetadata
@@ -46,10 +50,11 @@ import com.drdisagree.iconify.utils.OmniJawsClient
 import com.drdisagree.iconify.xposed.HookEntry.Companion.enqueueProxyCommand
 import com.drdisagree.iconify.xposed.HookRes.Companion.modRes
 import com.drdisagree.iconify.xposed.modules.extras.callbacks.ControllersProvider
-import com.drdisagree.iconify.xposed.modules.extras.callbacks.ThemeChange
+import com.drdisagree.iconify.xposed.modules.extras.callbacks.ThemeChangeCallback
 import com.drdisagree.iconify.xposed.modules.extras.utils.ActivityLauncherUtils
 import com.drdisagree.iconify.xposed.modules.extras.utils.DisplayUtils.isNightMode
 import com.drdisagree.iconify.xposed.modules.extras.utils.ViewHelper.getExpandableView
+import com.drdisagree.iconify.xposed.modules.extras.utils.ViewHelper.reAddView
 import com.drdisagree.iconify.xposed.modules.extras.utils.ViewHelper.toPx
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.callMethod
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.getField
@@ -62,7 +67,7 @@ import kotlin.math.abs
 import kotlin.math.min
 
 @SuppressLint("ViewConstructor")
-class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
+class LockscreenWidgetsView(private val context: Context, activityStarter: Any?) :
     LinearLayout(context), OmniJawsClient.OmniJawsObserver {
 
     private val mContext: Context
@@ -119,6 +124,7 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
     private var mWidgetMarginHorizontal = 0
     private var mWidgetMarginVertical = 0
     private var mWidgetIconPadding = 0
+    private var mWidgetsRoundness = 100
     private var mWidgetsScale = 1f
 
     private var mMainLockscreenWidgetsList: String? = null
@@ -234,8 +240,8 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
             }
         }
 
-    private val mThemeChangeCallback: ThemeChange.OnThemeChangedListener =
-        object : ThemeChange.OnThemeChangedListener {
+    private val mThemeChangeCallback: ThemeChangeCallback.OnThemeChangedListener =
+        object : ThemeChangeCallback.OnThemeChangedListener {
             override fun onThemeChanged() {
                 loadColors()
                 updateWidgetViews()
@@ -251,14 +257,11 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
                 ViewGroup.LayoutParams.WRAP_CONTENT
             )
 
-            if (mDeviceWidgetView == null) mDeviceWidgetView = DeviceWidgetView(context)
-
-            try {
-                (mDeviceWidgetView!!.parent as ViewGroup).removeView(mDeviceWidgetView)
-            } catch (ignored: Throwable) {
+            if (mDeviceWidgetView == null) mDeviceWidgetView = DeviceWidgetView(context).apply {
+                setScaling(mWidgetsScale)
             }
 
-            addView(mDeviceWidgetView)
+            reAddView(mDeviceWidgetView)
             setPadding(0, 0, 0, mContext.toPx(18))
         }
     }
@@ -296,9 +299,11 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
         return ExtendedFAB(context).apply {
             id = generateViewId()
             layoutParams = LayoutParams(
-                (mFabWidth * mWidgetsScale).toInt(),
-                (mFabHeight * mWidgetsScale).toInt()
+                0,
+                (mFabHeight * mWidgetsScale).toInt(),
+                1f
             ).apply {
+                minWidth = (mFabWidth * mWidgetsScale).toInt()
                 setMargins(
                     (mFabMarginStart * mWidgetsScale).toInt(),
                     0,
@@ -493,7 +498,7 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
             if (mWeatherClient == null || !mWeatherClient!!.isOmniJawsEnabled) return
 
             mWeatherClient!!.queryWeather()
-            mWeatherInfo = mWeatherClient!!.weatherInfo
+            mWeatherInfo = mWeatherClient!!.mCachedInfo
 
             if (mWeatherInfo != null) {
                 // OpenWeatherMap
@@ -649,9 +654,11 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
 
         val params: ViewGroup.LayoutParams = efab.layoutParams
         if (params is LayoutParams) {
-            if (efab.visibility == VISIBLE && mMainWidgetsList!!.size == 1) {
-                params.width = modRes.getDimensionPixelSize(R.dimen.kg_widget_main_width)
-                params.height = modRes.getDimensionPixelSize(R.dimen.kg_widget_main_height)
+            if (efab.visibility == VISIBLE &&
+                (mMainWidgetsList!!.size == 1 || mMainWidgetsList!!.contains("none"))
+            ) {
+                params.width = (mFabWidth * mWidgetsScale).toInt()
+                params.height = (mFabHeight * mWidgetsScale).toInt()
             } else {
                 params.width = 0
                 params.weight = 1f
@@ -663,11 +670,7 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
     private fun updateWidgetsResources(iv: ImageView?) {
         if (iv == null) return
 
-        iv.background = ResourcesCompat.getDrawable(
-            modRes,
-            R.drawable.lockscreen_widget_background_circle,
-            mContext.theme
-        )
+        iv.background = createWidgetBackgroundDrawable()
         setButtonActiveState(iv, null, false)
     }
 
@@ -751,11 +754,12 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
                     imageView = iv,
                     extendedFAB = efab,
                     clickListener = { toggleRingerMode() },
-                    icon = ResourcesCompat.getDrawable(
-                        modRes,
-                        R.drawable.ic_ringer_normal,
-                        mContext.theme
-                    ),
+                    icon = getDrawable(RING_VOLUME, SYSTEMUI_PACKAGE)
+                        ?: ResourcesCompat.getDrawable(
+                            modRes,
+                            R.drawable.ic_ringer_normal,
+                            mContext.theme
+                        ),
                     text = ringerText
                 )
             }
@@ -781,10 +785,7 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
                     imageView = iv,
                     extendedFAB = efab,
                     clickListener = { toggleBluetoothState() },
-                    icon = getDrawable(
-                        BT_ICON,
-                        SYSTEMUI_PACKAGE
-                    ),
+                    icon = getDrawable(BT_ICON, SYSTEMUI_PACKAGE),
                     text = getString(BT_LABEL, SYSTEMUI_PACKAGE)
                 )
             }
@@ -868,11 +869,12 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
                 setUpWidgetResources(
                     imageView = iv, extendedFAB = efab,
                     clickListener = { toggleMediaPlaybackState() },
-                    icon = ResourcesCompat.getDrawable(
-                        modRes,
-                        R.drawable.ic_play,
-                        mContext.theme
-                    ),
+                    icon = getDrawable(MEDIA_PLAY, SYSTEMUI_PACKAGE)
+                        ?: ResourcesCompat.getDrawable(
+                            modRes,
+                            R.drawable.ic_play,
+                            mContext.theme
+                        ),
                     text = getString(MEDIA_PLAY_LABEL, SYSTEMUI_PACKAGE)
                 )
             }
@@ -944,6 +946,9 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
             if (mediaButtonFab == this) {
                 attachSwipeGesture(this)
             }
+            iconSize =
+                ((mWidgetCircleSize * mWidgetsScale) - (mWidgetIconPadding * 2 * mWidgetsScale)).toInt()
+            textSize = 14f * mWidgetsScale
         }
 
         imageView?.apply {
@@ -1098,7 +1103,10 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
 
     private fun updateMediaPlaybackState() {
         val isPlaying = isMediaPlaying
-        val icon = ResourcesCompat.getDrawable(
+        val icon = getDrawable(
+            if (isPlaying) MEDIA_PAUSE else MEDIA_PLAY,
+            SYSTEMUI_PACKAGE
+        ) ?: ResourcesCompat.getDrawable(
             modRes,
             if (isPlaying) R.drawable.ic_pause else R.drawable.ic_play,
             mContext.theme
@@ -1325,10 +1333,12 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
     init {
         instance = this
 
-        this.layoutParams = LayoutParams(
+        layoutParams = LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.WRAP_CONTENT
         )
+        orientation = VERTICAL
+        gravity = Gravity.CENTER
 
         mContext = context
         mAudioManager = mContext.getSystemService(AudioManager::class.java)
@@ -1381,7 +1391,7 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
         ControllersProvider.getInstance().registerHotspotCallback(mHotspotCallback)
         ControllersProvider.getInstance().registerDozingCallback(mDozeCallback)
 
-        ThemeChange.getInstance().registerThemeChangedCallback(mThemeChangeCallback)
+        ThemeChangeCallback.getInstance().registerThemeChangedCallback(mThemeChangeCallback)
 
         // Add a Screen On Receiver so we can update the widgets state when the screen is turned on
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -1447,9 +1457,10 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
         val container = LinearLayout(mContext)
         container.orientation = VERTICAL
         container.layoutParams = LayoutParams(
-            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT,
             ViewGroup.LayoutParams.WRAP_CONTENT
         )
+        container.gravity = Gravity.CENTER
 
         // Device Widget Container
         mDeviceWidgetContainer = createDeviceWidgetContainer(mContext)
@@ -1762,12 +1773,22 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
         }
     }
 
+    fun setRoundness(roundness: Int) {
+        instance?.apply {
+            mWidgetsRoundness = roundness
+            removeAllViews()
+            drawUI()
+            updateWidgetViews()
+        }
+    }
+
     fun setScale(scale: Float) {
         instance?.apply {
             mWidgetsScale = scale
             removeAllViews()
             drawUI()
             updateWidgetViews()
+            mDeviceWidgetView?.setScaling(scale)
         }
     }
 
@@ -1836,16 +1857,21 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
 
     private val ringerDrawable: Drawable?
         get() {
-            val resName = when (mAudioManager!!.ringerMode) {
-                AudioManager.RINGER_MODE_NORMAL -> R.drawable.ic_ringer_normal
-                AudioManager.RINGER_MODE_VIBRATE -> R.drawable.ic_ringer_vibrate
-                AudioManager.RINGER_MODE_SILENT -> R.drawable.ic_ringer_mute
-                else -> throw IllegalStateException("Unexpected value: " + mAudioManager.ringerMode)
-            }
-
-            return ResourcesCompat.getDrawable(
+            return getDrawable(
+                when (mAudioManager!!.ringerMode) {
+                    AudioManager.RINGER_MODE_NORMAL -> RING_VOLUME
+                    AudioManager.RINGER_MODE_VIBRATE -> RING_VOLUME_VIBRATE
+                    AudioManager.RINGER_MODE_SILENT -> RING_VOLUME_MUTE
+                    else -> throw IllegalStateException("Unexpected value: " + mAudioManager.ringerMode)
+                }, SYSTEMUI_PACKAGE
+            ) ?: ResourcesCompat.getDrawable(
                 modRes,
-                resName,
+                when (mAudioManager.ringerMode) {
+                    AudioManager.RINGER_MODE_NORMAL -> R.drawable.ic_ringer_normal
+                    AudioManager.RINGER_MODE_VIBRATE -> R.drawable.ic_ringer_vibrate
+                    AudioManager.RINGER_MODE_SILENT -> R.drawable.ic_ringer_mute
+                    else -> throw IllegalStateException("Unexpected value: " + mAudioManager.ringerMode)
+                },
                 mContext.theme
             )
         }
@@ -1861,6 +1887,32 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
 
             return modRes.getString(resName)
         }
+
+    private fun createWidgetBackgroundDrawable(): RippleDrawable {
+        val rippleDrawable = ResourcesCompat.getDrawable(
+            modRes,
+            R.drawable.lockscreen_widget_background_circle,
+            mContext.theme
+        ) as RippleDrawable
+        val cornerRadiusPx = mWidgetsRoundness.toFloat()
+        val radii = FloatArray(8) { cornerRadiusPx }
+
+        val backgroundDrawable = rippleDrawable.findDrawableByLayerId(android.R.id.background)
+        if (backgroundDrawable is GradientDrawable) {
+            backgroundDrawable.cornerRadius = cornerRadiusPx
+        } else if (backgroundDrawable is ShapeDrawable) {
+            backgroundDrawable.shape = RoundRectShape(radii, null, null)
+        }
+
+        val maskDrawable = rippleDrawable.findDrawableByLayerId(android.R.id.mask)
+        if (maskDrawable is GradientDrawable) {
+            maskDrawable.cornerRadius = cornerRadiusPx
+        } else if (maskDrawable is ShapeDrawable) {
+            maskDrawable.shape = RoundRectShape(radii, null, null)
+        }
+
+        return rippleDrawable
+    }
 
     /**
      * Vibrate the device
@@ -1891,6 +1943,11 @@ class LockscreenWidgetsView(context: Context, activityStarter: Any?) :
         const val WALLET_ICON: String = "ic_wallet_lockscreen"
         const val HOTSPOT_ACTIVE: String = "qs_hotspot_icon_on"
         const val HOTSPOT_INACTIVE: String = "qs_hotspot_icon_off"
+        const val RING_VOLUME: String = "ic_volume_ringer"
+        const val RING_VOLUME_MUTE: String = "ic_volume_ringer_mute"
+        const val RING_VOLUME_VIBRATE: String = "ic_volume_ringer_vibrate"
+        const val MEDIA_PLAY: String = "ic_media_play"
+        const val MEDIA_PAUSE: String = "ic_media_pause"
 
         // A12 icons
         const val HOTSPOT_A12: String = "ic_hotspot"

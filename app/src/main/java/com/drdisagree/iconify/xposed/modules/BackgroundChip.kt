@@ -20,6 +20,7 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.ConstraintSet
 import com.drdisagree.iconify.data.common.Const.SYSTEMUI_PACKAGE
 import com.drdisagree.iconify.data.common.Preferences.CHIP_STATUSBAR_CLOCK_ACCENT
+import com.drdisagree.iconify.data.common.Preferences.CHIP_STATUSBAR_CLOCK_CLICKABLE_SWITCH
 import com.drdisagree.iconify.data.common.Preferences.CHIP_STATUSBAR_CLOCK_END_COLOR
 import com.drdisagree.iconify.data.common.Preferences.CHIP_STATUSBAR_CLOCK_GRADIENT_DIRECTION
 import com.drdisagree.iconify.data.common.Preferences.CHIP_STATUSBAR_CLOCK_PADDING_BOTTOM
@@ -87,6 +88,7 @@ import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.hookMethod
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.log
 import com.drdisagree.iconify.xposed.modules.extras.views.ChipDrawable
 import com.drdisagree.iconify.xposed.modules.extras.views.ChipDrawable.GradientDirection.Companion.toIndex
+import com.drdisagree.iconify.xposed.modules.statusbar.StatusbarMisc.Companion.setClockChipClickable
 import com.drdisagree.iconify.xposed.utils.XPrefs.Xprefs
 import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam
 
@@ -123,7 +125,6 @@ class BackgroundChip(context: Context) : ModPack(context) {
     private var dashedBorderEnabled: Boolean = false
     private var strokeDashWidth: Int = 4
     private var strokeDashGap: Int = 4
-    private var cornerRadii: FloatArray = floatArrayOf(28f, 28f, 28f, 28f, 28f, 28f, 28f, 28f)
     private var accentFillEnabled2: Boolean = true
     private var startColor2: Int = Color.RED
     private var endColor2: Int = Color.BLUE
@@ -148,13 +149,12 @@ class BackgroundChip(context: Context) : ModPack(context) {
             accentFillEnabled = getBoolean(CHIP_STATUSBAR_CLOCK_ACCENT, true)
             startColor = getInt(CHIP_STATUSBAR_CLOCK_START_COLOR, Color.RED)
             endColor = getInt(CHIP_STATUSBAR_CLOCK_END_COLOR, Color.BLUE)
-            gradientDirection =
-                ChipDrawable.GradientDirection.fromIndex(
-                    getInt(
-                        CHIP_STATUSBAR_CLOCK_GRADIENT_DIRECTION,
-                        ChipDrawable.GradientDirection.LEFT_RIGHT.toIndex()
-                    )
+            gradientDirection = ChipDrawable.GradientDirection.fromIndex(
+                getInt(
+                    CHIP_STATUSBAR_CLOCK_GRADIENT_DIRECTION,
+                    ChipDrawable.GradientDirection.LEFT_RIGHT.toIndex()
                 )
+            )
             padding = intArrayOf(
                 getInt(CHIP_STATUSBAR_CLOCK_PADDING_LEFT, 8),
                 getInt(CHIP_STATUSBAR_CLOCK_PADDING_TOP, 4),
@@ -223,28 +223,32 @@ class BackgroundChip(context: Context) : ModPack(context) {
             sideMarginStatusIcons = getSliderInt(FIXED_STATUS_ICONS_SIDEMARGIN, 0)
         }
 
-        if (key.isNotEmpty()) {
-            if (key[0] == CHIP_STATUSBAR_CLOCK_SWITCH ||
-                key[0] == CHIP_STATUSBAR_CLOCK_STYLE_CHANGED
-            ) {
-                updateStatusBarClock(true)
-            }
+        when (key.firstOrNull()) {
+            in setOf(
+                CHIP_STATUSBAR_CLOCK_SWITCH,
+                CHIP_STATUSBAR_CLOCK_STYLE_CHANGED,
+                CHIP_STATUSBAR_CLOCK_CLICKABLE_SWITCH
+            ) -> updateStatusBarClock(true)
 
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-                if (key[0] == CHIP_STATUS_ICONS_SWITCH ||
-                    key[0] == CHIP_STATUS_ICONS_STYLE_CHANGED ||
-                    key[0] == HEADER_CLOCK_SWITCH ||
-                    key[0] == HIDE_STATUS_ICONS_SWITCH ||
-                    key[0] == FIXED_STATUS_ICONS_SWITCH
-                ) {
+            in setOf(
+                CHIP_STATUS_ICONS_SWITCH,
+                CHIP_STATUS_ICONS_STYLE_CHANGED,
+                HEADER_CLOCK_SWITCH,
+                HIDE_STATUS_ICONS_SWITCH,
+                FIXED_STATUS_ICONS_SWITCH
+            ) -> {
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
                     setQSStatusIconsBgA12()
                 }
+            }
 
-                if (key[0] == CHIP_STATUS_ICONS_SWITCH ||
-                    key[0] == CHIP_STATUS_ICONS_STYLE_CHANGED ||
-                    key[0] == FIXED_STATUS_ICONS_TOPMARGIN ||
-                    key[0] == FIXED_STATUS_ICONS_SIDEMARGIN
-                ) {
+            in setOf(
+                CHIP_STATUS_ICONS_SWITCH,
+                CHIP_STATUS_ICONS_STYLE_CHANGED,
+                FIXED_STATUS_ICONS_TOPMARGIN,
+                FIXED_STATUS_ICONS_SIDEMARGIN
+            ) -> {
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
                     updateStatusIcons()
                 }
             }
@@ -520,12 +524,12 @@ class BackgroundChip(context: Context) : ModPack(context) {
 
         when (statusBarClockColorOption) {
             0 -> {
-                (clockView as TextView).paint.setXfermode(null)
+                (clockView as TextView).paint.xfermode = null
                 try {
                     dependencyClass
                         .callStaticMethod("get", darkIconDispatcherClass)
                         .callMethod("addDarkReceiver", clockView)
-                } catch (ignored: Throwable) {
+                } catch (_: Throwable) {
                     dependencyClass
                         .getStaticField("sDependency")
                         .callMethod("getDependencyInner", darkIconDispatcherClass)
@@ -534,16 +538,16 @@ class BackgroundChip(context: Context) : ModPack(context) {
             }
 
             1 -> {
-                (clockView as TextView).paint.setXfermode(PorterDuffXfermode(PorterDuff.Mode.DST_OUT))
+                (clockView as TextView).paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.DST_OUT)
             }
 
             2 -> {
-                (clockView as TextView).paint.setXfermode(null)
+                (clockView as TextView).paint.xfermode = null
                 try {
                     dependencyClass
                         .callStaticMethod("get", darkIconDispatcherClass)
                         .callMethod("removeDarkReceiver", clockView)
-                } catch (ignored: Throwable) {
+                } catch (_: Throwable) {
                     dependencyClass
                         .getStaticField("sDependency")
                         .callMethod("getDependencyInner", darkIconDispatcherClass)
@@ -554,6 +558,7 @@ class BackgroundChip(context: Context) : ModPack(context) {
         }
 
         setClockGravity(clockView, gravity)
+        setClockChipClickable(mContext, clockView, cornerRadii)
     }
 
     private fun setQSStatusIconsBgA12() {
@@ -797,5 +802,9 @@ class BackgroundChip(context: Context) : ModPack(context) {
                     updateStatusIcons()
                 }
         }
+    }
+
+    companion object {
+        var cornerRadii: FloatArray = floatArrayOf(28f, 28f, 28f, 28f, 28f, 28f, 28f, 28f)
     }
 }

@@ -29,6 +29,8 @@ import com.drdisagree.iconify.data.common.Preferences.BATTERY_STYLE_LANDSCAPE_BA
 import com.drdisagree.iconify.data.common.Preferences.BATTERY_STYLE_LANDSCAPE_BATTERYO
 import com.drdisagree.iconify.data.common.Preferences.BATTERY_STYLE_LANDSCAPE_IOS_16
 import com.drdisagree.iconify.data.common.Preferences.BATTERY_STYLE_LANDSCAPE_KIM
+import com.drdisagree.iconify.data.common.Preferences.BLUR_MEDIA_PLAYER_ARTWORK
+import com.drdisagree.iconify.data.common.Preferences.BLUR_MEDIA_PLAYER_ARTWORK_RADIUS
 import com.drdisagree.iconify.data.common.Preferences.BLUR_RADIUS_VALUE
 import com.drdisagree.iconify.data.common.Preferences.CHIP_STATUS_ICONS_SWITCH
 import com.drdisagree.iconify.data.common.Preferences.COLORED_NOTIFICATION_ALTERNATIVE_SWITCH
@@ -61,6 +63,7 @@ import com.drdisagree.iconify.data.common.Preferences.CUSTOM_BATTERY_STYLE
 import com.drdisagree.iconify.data.common.Preferences.CUSTOM_BATTERY_SWAP_PERCENTAGE
 import com.drdisagree.iconify.data.common.Preferences.CUSTOM_BATTERY_WIDTH
 import com.drdisagree.iconify.data.common.Preferences.CUSTOM_DEPTH_WALLPAPER_SWITCH
+import com.drdisagree.iconify.data.common.Preferences.CUSTOM_QS_MARGIN
 import com.drdisagree.iconify.data.common.Preferences.CUSTOM_QS_TEXT_COLOR
 import com.drdisagree.iconify.data.common.Preferences.DEPTH_WALLPAPER_AI_MODE
 import com.drdisagree.iconify.data.common.Preferences.DEPTH_WALLPAPER_AI_STATUS
@@ -70,6 +73,7 @@ import com.drdisagree.iconify.data.common.Preferences.DEPTH_WALLPAPER_FOREGROUND
 import com.drdisagree.iconify.data.common.Preferences.DEPTH_WALLPAPER_ON_AOD
 import com.drdisagree.iconify.data.common.Preferences.DEPTH_WALLPAPER_PARALLAX_EFFECT
 import com.drdisagree.iconify.data.common.Preferences.DUALTONE_QSPANEL
+import com.drdisagree.iconify.data.common.Preferences.FIRST_INSTALL
 import com.drdisagree.iconify.data.common.Preferences.FIXED_STATUS_ICONS_SIDEMARGIN
 import com.drdisagree.iconify.data.common.Preferences.FIXED_STATUS_ICONS_SWITCH
 import com.drdisagree.iconify.data.common.Preferences.FIXED_STATUS_ICONS_TOPMARGIN
@@ -87,9 +91,10 @@ import com.drdisagree.iconify.data.common.Preferences.HEADER_CLOCK_COLOR_CODE_TE
 import com.drdisagree.iconify.data.common.Preferences.HEADER_CLOCK_COLOR_CODE_TEXT2
 import com.drdisagree.iconify.data.common.Preferences.HEADER_CLOCK_COLOR_SWITCH
 import com.drdisagree.iconify.data.common.Preferences.HEADER_CLOCK_EXPANSION_Y
+import com.drdisagree.iconify.data.common.Preferences.HEADER_CLOCK_FONT_PICKER
+import com.drdisagree.iconify.data.common.Preferences.HEADER_CLOCK_FONT_SWITCH
 import com.drdisagree.iconify.data.common.Preferences.HEADER_CLOCK_LANDSCAPE_SWITCH
 import com.drdisagree.iconify.data.common.Preferences.HIDE_QSLABEL_SWITCH
-import com.drdisagree.iconify.data.common.Preferences.HIDE_QS_ON_LOCKSCREEN
 import com.drdisagree.iconify.data.common.Preferences.LIGHT_QSPANEL
 import com.drdisagree.iconify.data.common.Preferences.LOCKSCREEN_SHADE_SWITCH
 import com.drdisagree.iconify.data.common.Preferences.LOCKSCREEN_WALLPAPER_BLUR
@@ -119,17 +124,25 @@ import com.drdisagree.iconify.data.common.Preferences.LSCLOCK_COLOR_CODE_TEXT2
 import com.drdisagree.iconify.data.common.Preferences.LSCLOCK_COLOR_SWITCH
 import com.drdisagree.iconify.data.common.Preferences.LSCLOCK_DEVICENAME
 import com.drdisagree.iconify.data.common.Preferences.LSCLOCK_FONT_LINEHEIGHT
+import com.drdisagree.iconify.data.common.Preferences.LSCLOCK_FONT_PICKER
 import com.drdisagree.iconify.data.common.Preferences.LSCLOCK_FONT_SWITCH
 import com.drdisagree.iconify.data.common.Preferences.LSCLOCK_FONT_TEXT_SCALING
+import com.drdisagree.iconify.data.common.Preferences.LSCLOCK_IMAGE_PICKER1
+import com.drdisagree.iconify.data.common.Preferences.LSCLOCK_IMAGE_PICKER2
+import com.drdisagree.iconify.data.common.Preferences.LSCLOCK_IMAGE_SWITCH
 import com.drdisagree.iconify.data.common.Preferences.LSCLOCK_MOVE_NOTIFICATION_ICONS
 import com.drdisagree.iconify.data.common.Preferences.LSCLOCK_STYLE
 import com.drdisagree.iconify.data.common.Preferences.LSCLOCK_SWITCH
 import com.drdisagree.iconify.data.common.Preferences.LSCLOCK_TOPMARGIN
 import com.drdisagree.iconify.data.common.Preferences.LSCLOCK_USERNAME
 import com.drdisagree.iconify.data.common.Preferences.NEW_UPDATE_FOUND
+import com.drdisagree.iconify.data.common.Preferences.NOTIFICATION_HEADSUP_BLUR
+import com.drdisagree.iconify.data.common.Preferences.NOTIFICATION_HEADSUP_BLUR_RADIUS
+import com.drdisagree.iconify.data.common.Preferences.NOTIFICATION_HEADSUP_TRANSPARENCY
 import com.drdisagree.iconify.data.common.Preferences.NOTIF_TRANSPARENCY_SWITCH
 import com.drdisagree.iconify.data.common.Preferences.OP_QS_HEADER_BLUR_LEVEL
 import com.drdisagree.iconify.data.common.Preferences.OP_QS_HEADER_SHOW_ARTWORK
+import com.drdisagree.iconify.data.common.Preferences.OP_QS_HEADER_SWITCH
 import com.drdisagree.iconify.data.common.Preferences.PREF_KEY_UPDATE_STATUS
 import com.drdisagree.iconify.data.common.Preferences.QSALPHA_LEVEL
 import com.drdisagree.iconify.data.common.Preferences.QSPANEL_BLUR_SWITCH
@@ -138,7 +151,10 @@ import com.drdisagree.iconify.data.common.Preferences.SB_CLOCK_SIZE
 import com.drdisagree.iconify.data.common.Preferences.SB_CLOCK_SIZE_SWITCH
 import com.drdisagree.iconify.data.common.Preferences.SELECTED_QS_TEXT_COLOR
 import com.drdisagree.iconify.data.common.Preferences.SHOW_HOME_CARD
+import com.drdisagree.iconify.data.common.Preferences.STATUSBAR_LOGO_STYLE
+import com.drdisagree.iconify.data.common.Preferences.STATUSBAR_LOGO_TINT
 import com.drdisagree.iconify.data.common.Preferences.UNZOOM_DEPTH_WALLPAPER
+import com.drdisagree.iconify.data.common.Preferences.UPDATE_DETECTED
 import com.drdisagree.iconify.data.common.Preferences.UPDATE_OVER_WIFI
 import com.drdisagree.iconify.data.common.Preferences.VERTICAL_QSTILE_SWITCH
 import com.drdisagree.iconify.data.common.Preferences.WEATHER_CUSTOM_LOCATION
@@ -152,26 +168,29 @@ import com.drdisagree.iconify.data.common.Preferences.WEATHER_UNITS
 import com.drdisagree.iconify.data.common.Preferences.WEATHER_UPDATE_INTERVAL
 import com.drdisagree.iconify.data.common.Preferences.WEATHER_YANDEX_KEY
 import com.drdisagree.iconify.data.common.Preferences.XPOSED_HOOK_CHECK
-import com.drdisagree.iconify.data.common.Resources.shouldShowRebootDialog
 import com.drdisagree.iconify.data.config.RPrefs.getBoolean
 import com.drdisagree.iconify.data.config.RPrefs.getInt
 import com.drdisagree.iconify.data.config.RPrefs.getSliderFloat
 import com.drdisagree.iconify.data.config.RPrefs.getString
 import com.drdisagree.iconify.data.config.RPrefs.getStringSet
 import com.drdisagree.iconify.ui.preferences.TwoTargetSwitchPreference
+import com.drdisagree.iconify.utils.RootUtils.folderExists
 import com.drdisagree.iconify.utils.weather.WeatherConfig
 
 object PrefsHelper {
 
     fun isVisible(key: String?): Boolean {
         val lockscreenClockStyle = getInt(LSCLOCK_STYLE, 0)
+        val lockscreenClockWithImage1 = lockscreenClockStyle in setOf(26, 27, 30, 39, 40, 42, 53)
+        val lockscreenClockWithImage2 = lockscreenClockStyle in setOf(26)
 
         return when (key) {
             UPDATE_OVER_WIFI -> getBoolean(AUTO_UPDATE, true)
 
             "iconifyHomeCard" -> getBoolean(SHOW_HOME_CARD, true)
 
-            "rebootReminder" -> shouldShowRebootDialog()
+            "rebootReminder" -> (!getBoolean(FIRST_INSTALL) && getBoolean(UPDATE_DETECTED)) ||
+                    folderExists("/data/adb/modules_update/Iconify")
 
             "newUpdate" -> getBoolean(NEW_UPDATE_FOUND)
 
@@ -199,6 +218,7 @@ object PrefsHelper {
 
             // Weather Common
             WEATHER_OWM_KEY -> getString(WEATHER_PROVIDER, "0") == "1"
+            WEATHER_YANDEX_KEY -> getString(WEATHER_PROVIDER, "0") == "2"
             WEATHER_CUSTOM_LOCATION_PICKER -> getBoolean(WEATHER_CUSTOM_LOCATION)
 
             // Lockscreen Weather
@@ -326,8 +346,6 @@ object PrefsHelper {
 
             LSCLOCK_MOVE_NOTIFICATION_ICONS -> Build.VERSION.SDK_INT < Build.VERSION_CODES.VANILLA_ICE_CREAM
 
-            HIDE_QS_ON_LOCKSCREEN -> Build.VERSION.SDK_INT <= Build.VERSION_CODES.UPSIDE_DOWN_CAKE
-
             ALBUM_ART_ON_LOCKSCREEN_BLUR -> getString(
                 ALBUM_ART_ON_LOCKSCREEN_FILTER,
                 "0"
@@ -338,6 +356,28 @@ object PrefsHelper {
             LOCKSCREEN_WIDGETS_DEVICE_WIDGET_STYLE -> getBoolean(LOCKSCREEN_WIDGETS_DEVICE_WIDGET)
 
             BLUR_RADIUS_VALUE -> getBoolean(QSPANEL_BLUR_SWITCH)
+
+            HEADER_CLOCK_FONT_PICKER -> getBoolean(HEADER_CLOCK_FONT_SWITCH)
+
+            LSCLOCK_FONT_PICKER -> getBoolean(LSCLOCK_FONT_SWITCH)
+
+            LSCLOCK_IMAGE_SWITCH -> lockscreenClockWithImage1
+
+            LSCLOCK_IMAGE_PICKER1 -> getBoolean(LSCLOCK_IMAGE_SWITCH) && lockscreenClockWithImage1
+
+            LSCLOCK_IMAGE_PICKER2 -> getBoolean(LSCLOCK_IMAGE_SWITCH) && lockscreenClockWithImage2
+
+            BLUR_MEDIA_PLAYER_ARTWORK_RADIUS -> getBoolean(BLUR_MEDIA_PLAYER_ARTWORK)
+
+            NOTIFICATION_HEADSUP_BLUR_RADIUS,
+            NOTIFICATION_HEADSUP_TRANSPARENCY -> getBoolean(NOTIFICATION_HEADSUP_BLUR)
+
+            STATUSBAR_LOGO_TINT -> {
+                listOf<String>(
+                    *appContext.resources.getStringArray(R.array.status_bar_logo_style_entries)
+                )[getString(STATUSBAR_LOGO_STYLE, "0")!!.toInt()] ==
+                        appContext.resources.getString(R.string.status_bar_logo_style_custom)
+            }
 
             else -> true
         }
@@ -444,7 +484,9 @@ object PrefsHelper {
             CUSTOM_BATTERY_HEIGHT -> getString(CUSTOM_BATTERY_STYLE, 0.toString())!!.toInt() != 0
 
             LSCLOCK_FONT_SWITCH,
-            "xposed_lockscreenclockfontpicker",
+            LSCLOCK_FONT_PICKER,
+            LSCLOCK_IMAGE_PICKER1,
+            LSCLOCK_IMAGE_PICKER2,
             LSCLOCK_STYLE,
             LSCLOCK_TOPMARGIN,
             LSCLOCK_BOTTOMMARGIN,
@@ -458,6 +500,8 @@ object PrefsHelper {
             LSCLOCK_FONT_TEXT_SCALING,
             LSCLOCK_USERNAME,
             LSCLOCK_DEVICENAME -> getBoolean(LSCLOCK_SWITCH)
+
+            CUSTOM_QS_MARGIN -> !getBoolean(OP_QS_HEADER_SWITCH)
 
             else -> true
         }
@@ -522,7 +566,7 @@ object PrefsHelper {
                     val switchPreference: TwoTargetSwitchPreference = thisPreference
                     switchPreference.isChecked = getBoolean(switchPreference.key)
                 }
-            } catch (ignored: Throwable) {
+            } catch (_: Throwable) {
                 break
             }
 
@@ -540,7 +584,7 @@ object PrefsHelper {
             getSummary(preference.context, key)?.let {
                 preference.summary = it
             }
-        } catch (ignored: Throwable) {
+        } catch (_: Throwable) {
         }
     }
 }

@@ -13,8 +13,6 @@ import android.view.ViewTreeObserver
 import android.widget.CompoundButton
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.content.ContextCompat
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import com.drdisagree.iconify.R
 import com.drdisagree.iconify.data.common.Preferences.CHIP_STATUSBAR_CLOCK_ACCENT
 import com.drdisagree.iconify.data.common.Preferences.CHIP_STATUSBAR_CLOCK_END_COLOR
@@ -110,23 +108,13 @@ class ClockChip : BaseFragment() {
             override fun onGlobalLayout() {
                 binding.header.appBarLayout.viewTreeObserver.removeOnGlobalLayoutListener(this)
 
-                val windowInsetsCompat = ViewCompat.getRootWindowInsets(binding.root)
-                val statusBarHeight =
-                    windowInsetsCompat?.isVisible(WindowInsetsCompat.Type.statusBars())?.let {
-                        windowInsetsCompat.getInsets(WindowInsetsCompat.Type.statusBars()).top
-                    } ?: 0
-
-                val headerHeight = binding.header.appBarLayout.height
-
                 val params = binding.blurView.layoutParams as CoordinatorLayout.LayoutParams
-                params.topMargin = headerHeight
+                params.topMargin = binding.header.appBarLayout.height
                 binding.blurView.layoutParams = params
-
-                val blurViewHeight = binding.header.appBarLayout.height
 
                 binding.linearLayout.setPadding(
                     binding.linearLayout.paddingLeft,
-                    blurViewHeight - statusBarHeight,
+                    binding.blurView.height,
                     binding.linearLayout.paddingRight,
                     binding.linearLayout.paddingBottom
                 )

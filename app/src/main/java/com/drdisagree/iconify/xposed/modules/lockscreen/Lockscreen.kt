@@ -3,8 +3,13 @@ package com.drdisagree.iconify.xposed.modules.lockscreen
 import android.annotation.SuppressLint
 import android.app.WallpaperManager
 import android.content.Context
+import android.content.res.Resources
 import android.content.res.XResources
+import android.content.res.XResources.DrawableLoader
 import android.graphics.Bitmap
+import android.graphics.Color
+import android.graphics.drawable.Drawable
+import android.graphics.drawable.GradientDrawable
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
@@ -13,6 +18,7 @@ import android.view.View.OnAttachStateChangeListener
 import android.view.ViewGroup
 import com.drdisagree.iconify.data.common.Const.SYSTEMUI_PACKAGE
 import com.drdisagree.iconify.data.common.Preferences.HIDE_LOCKSCREEN_LOCK_ICON
+import com.drdisagree.iconify.data.common.Preferences.HIDE_QS_ON_LOCKSCREEN
 import com.drdisagree.iconify.data.common.Preferences.LOCKSCREEN_WALLPAPER_BLUR
 import com.drdisagree.iconify.data.common.Preferences.LOCKSCREEN_WALLPAPER_BLUR_RADIUS
 import com.drdisagree.iconify.xposed.HookRes.Companion.resParams
@@ -23,6 +29,8 @@ import com.drdisagree.iconify.xposed.modules.extras.utils.ViewHelper.hideView
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.XposedHook.Companion.findClass
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.callMethod
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.callMethodSilently
+import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.getField
+import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.getFieldSilently
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.hookConstructor
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.hookLayout
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.hookMethod
@@ -36,12 +44,15 @@ class Lockscreen(context: Context) : ModPack(context) {
     private var wallpaperBlurEnabled = false
     private var wallpaperBlurRadius = 6.25f
     private var hideLockscreenLockIcon = false
+    private var hideQsOnLockscreen = false
+    private var mKeyguardStateController: Any? = null
 
     override fun updatePrefs(vararg key: String) {
         Xprefs.apply {
             wallpaperBlurEnabled = getBoolean(LOCKSCREEN_WALLPAPER_BLUR, false)
             wallpaperBlurRadius = getSliderInt(LOCKSCREEN_WALLPAPER_BLUR_RADIUS, 25) / 100f * 25f
             hideLockscreenLockIcon = getBoolean(HIDE_LOCKSCREEN_LOCK_ICON, false)
+            hideQsOnLockscreen = getBoolean(HIDE_QS_ON_LOCKSCREEN, false)
         }
 
         when (key.firstOrNull()) {
@@ -52,6 +63,7 @@ class Lockscreen(context: Context) : ModPack(context) {
     override fun handleLoadPackage(loadPackageParam: LoadPackageParam) {
         blurredWallpaper()
         hideLockscreenLockIcon()
+        disableQsOnSecureLockScreen()
     }
 
     private fun blurredWallpaper() {
@@ -183,9 +195,196 @@ class Lockscreen(context: Context) : ModPack(context) {
                     hideLockIcon(param)
                 }
         }
+
+        if (!hideLockscreenLockIcon) return
+
+        val xResources: XResources = resParams[SYSTEMUI_PACKAGE]?.res ?: return
+
+        listOf(
+            "ic_device_lock_off",
+            "ic_device_lock_on",
+            "ic_kg_fingerprint",
+            "ic_lock",
+            "ic_lock_24dp",
+            "ic_lock_aod",
+            "ic_lock_face",
+            "ic_lock_lock",
+            "ic_lock_locked",
+            "ic_lock_open",
+            "ic_lock_open_24dp",
+            "ic_unlock",
+            "ic_unlocked",
+            "ic_unlocked_aod"
+        ).forEach { drawableResource ->
+            try {
+                xResources.setReplacement(
+                    SYSTEMUI_PACKAGE,
+                    "drawable",
+                    drawableResource,
+                    object : DrawableLoader() {
+                        override fun newDrawable(res: XResources, id: Int): Drawable? {
+                            return GradientDrawable().apply {
+                                shape = GradientDrawable.OVAL
+                                setColor(Color.TRANSPARENT)
+                            }.constantState?.newDrawable()
+                        }
+                    }
+                )
+            } catch (ignored: Resources.NotFoundException) {
+            }
+        }
+    }
+
+    private fun disableQsOnSecureLockScreen() {
+        val phoneStatusBarPolicyClass =
+            findClass("$SYSTEMUI_PACKAGE.statusbar.phone.PhoneStatusBarPolicy")
+        val scrimManagerClass = findClass(
+            "$SYSTEMUI_PACKAGE.ambient.touch.scrim.ScrimManager",
+            "$SYSTEMUI_PACKAGE.dreams.touch.scrim.ScrimManager"
+        )
+        val getKeyguardStateController = object : XC_MethodHook() {
+            override fun afterHookedMethod(param: MethodHookParam) {
+                param.thisObject.getFieldSilently("mKeyguardStateController")?.let {
+                    mKeyguardStateController = it
+                }
+            }
+        }
+
+        phoneStatusBarPolicyClass
+            .hookConstructor()
+            .run(getKeyguardStateController)
+
+        scrimManagerClass
+            .hookConstructor()
+            .run(getKeyguardStateController)
+
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            val remoteInputQuickSettingsDisablerClass =
+                findClass("$SYSTEMUI_PACKAGE.statusbar.policy.RemoteInputQuickSettingsDisabler")
+
+            remoteInputQuickSettingsDisablerClass
+                .hookMethod("adjustDisableFlags")
+                .runBefore { param ->
+                    if (!hideQsOnLockscreen || mKeyguardStateController == null) return@runBefore
+
+                    val isUnlocked = try {
+                        !(mKeyguardStateController.getField("mShowing") as Boolean) ||
+                                mKeyguardStateController.getField("mCanDismissLockScreen") as Boolean
+                    } catch (ignored: Throwable) {
+                        mKeyguardStateController.callMethod("isUnlocked") as Boolean
+                    }
+
+                    param.result = if (hideQsOnLockscreen && !isUnlocked) {
+                        param.args[0] as Int or DISABLE2_QUICK_SETTINGS
+                    } else {
+                        param.args[0]
+                    }
+                }
+        } else {
+            var mActivityStarter: Any? = null
+
+            val keyguardQuickAffordanceInteractorClass =
+                findClass("$SYSTEMUI_PACKAGE.keyguard.domain.interactor.KeyguardQuickAffordanceInteractor")
+
+            keyguardQuickAffordanceInteractorClass
+                .hookConstructor()
+                .runAfter { param ->
+                    mActivityStarter = param.thisObject.getFieldSilently("activityStarter")
+                }
+
+            val qsTiles = listOf(
+                "$SYSTEMUI_PACKAGE.qs.tiles.AirplaneModeTile",
+                "$SYSTEMUI_PACKAGE.qs.tiles.AlarmTile",
+                "$SYSTEMUI_PACKAGE.qs.tiles.BatterySaverTile",
+                "$SYSTEMUI_PACKAGE.qs.tiles.BluetoothTile",
+                "$SYSTEMUI_PACKAGE.qs.tiles.CameraToggleTile",
+                "$SYSTEMUI_PACKAGE.qs.tiles.CastTile",
+                "$SYSTEMUI_PACKAGE.qs.tiles.ColorCorrectionTile",
+                "$SYSTEMUI_PACKAGE.qs.tiles.ColorInversionTile",
+                "$SYSTEMUI_PACKAGE.qs.tiles.DataSaverTile",
+                "$SYSTEMUI_PACKAGE.qs.tiles.DeviceControlsTile",
+                "$SYSTEMUI_PACKAGE.qs.tiles.DndTile",
+                "$SYSTEMUI_PACKAGE.qs.tiles.DreamTile",
+                "$SYSTEMUI_PACKAGE.qs.tiles.FontScalingTile",
+                "$SYSTEMUI_PACKAGE.qs.tiles.HearingDevicesTile",
+                "$SYSTEMUI_PACKAGE.qs.tiles.HotspotTile",
+                "$SYSTEMUI_PACKAGE.qs.tiles.InternetTile",
+                "$SYSTEMUI_PACKAGE.qs.tiles.InternetTileNewImpl",
+                "$SYSTEMUI_PACKAGE.qs.tiles.LocationTile",
+                "$SYSTEMUI_PACKAGE.qs.tiles.MicrophoneToggleTile",
+                "$SYSTEMUI_PACKAGE.qs.tiles.ModesTile",
+                "$SYSTEMUI_PACKAGE.qs.tiles.NfcTile",
+                "$SYSTEMUI_PACKAGE.qs.tiles.NightDisplayTile",
+                "$SYSTEMUI_PACKAGE.qs.tiles.OneHandedModeTile",
+                "$SYSTEMUI_PACKAGE.qs.tiles.QRCodeScannerTile",
+                "$SYSTEMUI_PACKAGE.qs.tiles.QuickAccessWalletTile",
+                "$SYSTEMUI_PACKAGE.qs.tiles.RecordIssueTile",
+                "$SYSTEMUI_PACKAGE.qs.tiles.ReduceBrightColorsTile",
+                "$SYSTEMUI_PACKAGE.qs.tiles.RotationLockTile",
+                "$SYSTEMUI_PACKAGE.qs.tiles.ScreenRecordTile",
+                "$SYSTEMUI_PACKAGE.qs.tiles.SensorPrivacyToggleTile",
+                "$SYSTEMUI_PACKAGE.qs.tiles.UiModeNightTile",
+                "$SYSTEMUI_PACKAGE.qs.tiles.WorkModeTile"
+            )
+
+            fun handleTileClick(
+                mActivityStarter: Any?,
+                param: XC_MethodHook.MethodHookParam,
+                methodName: String
+            ) {
+                val isUnlocked = try {
+                    !(mKeyguardStateController.getField("mShowing") as Boolean) ||
+                            mKeyguardStateController.getField("mCanDismissLockScreen") as Boolean
+                } catch (ignored: Throwable) {
+                    mKeyguardStateController.callMethod("isUnlocked") as Boolean
+                }
+
+                if (!isUnlocked && hideQsOnLockscreen) {
+                    mActivityStarter.callMethod(
+                        "postQSRunnableDismissingKeyguard",
+                        Runnable {
+                            Handler(Looper.getMainLooper()).postDelayed({
+                                param.thisObject.callMethod(
+                                    methodName,
+                                    param.args[0]
+                                )
+                            }, 800)
+                        }
+                    )
+                    param.result = null
+                }
+            }
+
+            qsTiles.forEach { tileClassName ->
+                val tileClass = findClass(tileClassName, suppressError = true)
+
+                tileClass.hookMethod("handleClick")
+                    .runBefore { param ->
+                        handleTileClick(
+                            mActivityStarter,
+                            param,
+                            "handleClick"
+                        )
+                    }
+
+                tileClass.hookMethod("handleSecondaryClick")
+                    .runBefore { param ->
+                        handleTileClick(
+                            mActivityStarter,
+                            param,
+                            "handleSecondaryClick"
+                        )
+                    }
+            }
+        }
     }
 
     companion object {
+        /*
+         * Source: frameworks/base/core/java/android/app/StatusBarManager.java
+         */
+        private const val DISABLE2_QUICK_SETTINGS = 1
+
         val isComposeLockscreen: Boolean = run {
             val hasAodBurnInLayer = findClass(
                 "$SYSTEMUI_PACKAGE.keyguard.ui.view.layout.sections.AodBurnInLayer",

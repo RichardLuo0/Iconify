@@ -1,6 +1,6 @@
 package com.drdisagree.iconify.data.common
 
-import com.drdisagree.iconify.SplashActivity
+import com.drdisagree.iconify.BaseSplashActivity
 import com.drdisagree.iconify.data.config.RPrefs.getBoolean
 
 object Preferences {
@@ -36,6 +36,7 @@ object Preferences {
     const val CHIP_STATUSBAR_CLOCK_RADIUS_BOTTOM_RIGHT =
         "xposed_chipstatusbarclockradiusbottomright"
     const val CHIP_STATUSBAR_CLOCK_RADIUS_BOTTOM_LEFT = "xposed_chipstatusbarclockradiusbottomleft"
+    const val CHIP_STATUSBAR_CLOCK_CLICKABLE_SWITCH = "xposed_chipstatusbarclockclickable"
     const val CHIP_STATUS_ICONS_SWITCH = "xposed_chipstatusicons"
     const val CHIP_STATUS_ICONS_STYLE_CHANGED = "xposed_chipstatusiconsstylechanged"
     const val CHIP_STATUS_ICONS_ACCENT = "xposed_chipstatusiconsaccent"
@@ -77,6 +78,7 @@ object Preferences {
     const val HEADER_CLOCK_LANDSCAPE_SWITCH = "xposed_headerclocklandscape"
     const val HEADER_CLOCK_STYLE = "xposed_headerclockstyle"
     const val HEADER_CLOCK_FONT_SWITCH = "xposed_headerclockfont"
+    const val HEADER_CLOCK_FONT_PICKER = "xposed_headerclockfontpicker"
     const val HEADER_CLOCK_COLOR_SWITCH = "xposed_headerclockcolor"
     const val HEADER_CLOCK_COLOR_CODE_ACCENT1 = "xposed_headerclockcolorcodeaccent1"
     const val HEADER_CLOCK_COLOR_CODE_ACCENT2 = "xposed_headerclockcolorcodeaccent2"
@@ -97,6 +99,10 @@ object Preferences {
     const val LSCLOCK_COLOR_CODE_TEXT1 = "xposed_lockscreenclockcolorcodetext1"
     const val LSCLOCK_COLOR_CODE_TEXT2 = "xposed_lockscreenclockcolorcodetext2"
     const val LSCLOCK_FONT_SWITCH = "xposed_lockscreenclockfont"
+    const val LSCLOCK_FONT_PICKER = "xposed_lockscreenclockfontpicker"
+    const val LSCLOCK_IMAGE_SWITCH = "xposed_lockscreenclockimage"
+    const val LSCLOCK_IMAGE_PICKER1 = "xposed_lockscreenclockimagepicker1"
+    const val LSCLOCK_IMAGE_PICKER2 = "xposed_lockscreenclockimagepicker2"
     const val LSCLOCK_FONT_LINEHEIGHT = "xposed_lockscreenclockfontlineheight"
     const val LSCLOCK_FONT_TEXT_SCALING = "xposed_lockscreenclocktextscaling"
     const val LSCLOCK_USERNAME = "xposed_lockscreenclockcustomusername"
@@ -108,6 +114,8 @@ object Preferences {
     const val LOCKSCREEN_WALLPAPER_BLUR = "xposed_lockscreenwallpaperblur"
     const val LOCKSCREEN_WALLPAPER_BLUR_RADIUS = "xposed_lockscreenwallpaperblurradius"
     const val COMPACT_MEDIA_PLAYER = "xposed_compactmediaplayer"
+    const val BLUR_MEDIA_PLAYER_ARTWORK = "xposed_blurmediaplayerartwork"
+    const val BLUR_MEDIA_PLAYER_ARTWORK_RADIUS = "xposed_blurmediaplayerartworkradius"
 
     // LS Widgets
     const val LOCKSCREEN_WIDGETS_ENABLED = "lockscreen_widgets_enabled"
@@ -140,6 +148,7 @@ object Preferences {
     const val LOCKSCREEN_WIDGETS_SMALL_ICON_INACTIVE = "lockscreen_widgets_small_icon_inactive"
     const val LOCKSCREEN_WIDGETS_TOP_MARGIN = "lockscreen_widgets_top_margin"
     const val LOCKSCREEN_WIDGETS_BOTTOM_MARGIN = "lockscreen_widgets_bottom_margin"
+    const val LOCKSCREEN_WIDGETS_ROUNDNESS = "lockscreen_widgets_roundness"
     const val LOCKSCREEN_WIDGETS_SCALE = "lockscreen_widgets_scale"
     const val FIXED_STATUS_ICONS_SWITCH = "xposed_fixedstatusicons"
     const val FIXED_STATUS_ICONS_SIDEMARGIN = "xposed_fixedstatusiconssidemargin"
@@ -147,7 +156,14 @@ object Preferences {
     const val HIDE_LOCKSCREEN_STATUSBAR = "xposed_hidelockscreenstatusbar"
     const val STATUSBAR_SWAP_WIFI_CELLULAR = "xposed_statusbarswapwificellular"
     const val STATUSBAR_SWAP_CELLULAR_NETWORK_TYPE = "xposed_statusbarswapcellularnetworktype"
-    const val SHOW_CLOCK_ON_RIGHT_SIDE = "xposed_showclockonrightside"
+    const val ONGOING_ACTION_CHIP_SWITCH = "xposed_ongoingactionchip"
+    const val STATUSBAR_LOGO_SWITCH = "xposed_statusbarlogo"
+    const val STATUSBAR_LOGO_POSITION = "xposed_statusbarlogoposition"
+    const val STATUSBAR_LOGO_STYLE = "xposed_statusbarlogostyle"
+    const val STATUSBAR_LOGO_SIZE = "xposed_statusbarlogosize"
+    const val STATUSBAR_LOGO_CUSTOM = "xposed_statusbarlogocustom"
+    const val STATUSBAR_LOGO_TINT = "xposed_statusbarlogotint"
+    const val STATUSBAR_CLOCK_POSITION = "xposed_statusbarclockposition"
     const val SHOW_4G_INSTEAD_OF_LTE = "xposed_show4ginsteadoflte"
     const val NOTIFICATION_ICONS_LIMIT = "xposed_notificationiconslimit"
     const val DUAL_STATUSBAR = "xposed_dualstatusbar"
@@ -251,10 +267,18 @@ object Preferences {
     const val RECENTS_BACKGROUND_OPACITY = "xposed_recentsbackgroundopacity"
     const val DISABLE_RECENTS_LIVE_TILE = "xposed_disablerecentslivetile"
     const val DOUBLE_TAP_TO_SLEEP = "xposed_doubletaptosleep"
+    const val LAUNCHER_HIDE_STATUSBAR = "xposed_launcherhidestatusbar"
+    const val LAUNCHER_HIDE_TOP_SHADOW = "xposed_launcherhidetopshadow"
     const val DESKTOP_ICON_LABELS = "xposed_desktopiconlabels"
     const val APP_DRAWER_ICON_LABELS = "xposed_appdrawericonlabels"
+    const val HIDE_AT_A_GLANCE = "xposed_hideataglance"
     const val DESKTOP_SEARCH_BAR = "xposed_desktopsearchbar"
     const val DESKTOP_DOCK_SPACING = "xposed_desktopdockspacing"
+    const val LAUNCHER_ICON_SIZE = "xposed_launchericonsize"
+    const val LAUNCHER_TEXT_SIZE = "xposed_launchertextsize"
+    const val NOTIFICATION_HEADSUP_BLUR = "xposed_notificationsheadsupblur"
+    const val NOTIFICATION_HEADSUP_BLUR_RADIUS = "xposed_notificationsheadsupblurradius"
+    const val NOTIFICATION_HEADSUP_TRANSPARENCY = "xposed_notificationsheadsuptransparency"
 
     // Xposed view tags
     const val ICONIFY_HEADER_CLOCK_TAG = "iconify_header_clock"
@@ -268,6 +292,7 @@ object Preferences {
     const val ICONIFY_CHARGING_ICON_TAG = "iconify_charging_icon"
     const val ICONIFY_QS_HEADER_CONTAINER_TAG = "iconify_qs_header_container"
     const val ICONIFY_QS_HEADER_CONTAINER_SHADE_TAG = "iconify_qs_header_container_shade"
+    const val ICONIFY_SB_CENTER_CLOCK_CONTAINER_TAG = "iconify_sb_center_clock_container"
 
     // Battery styles
     const val BATTERY_STYLE_DEFAULT = 0
@@ -410,7 +435,7 @@ object Preferences {
     const val NEW_UPDATE_FOUND = "newUpdateFound"
 
     var isXposedOnlyMode = getBoolean(XPOSED_ONLY_MODE, true) &&
-            !SplashActivity.SKIP_TO_HOMEPAGE_FOR_TESTING
+            !BaseSplashActivity.SKIP_TO_HOMEPAGE_FOR_TESTING
 
     // Others
     const val BOOT_ID = "boot_id"

@@ -16,9 +16,7 @@ object XPrefs {
     @SuppressLint("StaticFieldLeak")
     lateinit var Xprefs: ExtendedRemotePreferences
     private val listener = OnSharedPreferenceChangeListener { _: SharedPreferences?, key: String? ->
-        loadEverything(
-            key
-        )
+        loadEverything(key)
     }
 
     val XprefsIsInitialized: Boolean
@@ -35,11 +33,10 @@ object XPrefs {
     }
 
     private fun loadEverything(vararg key: String?) {
-        if (key.isEmpty() || key[0].isNullOrEmpty() || PREF_UPDATE_EXCLUSIONS.any { exclusion ->
-                key[0]?.equals(exclusion) == true
-            }) {
-            return
-        }
+        if (key.isEmpty() ||
+            key[0].isNullOrEmpty() ||
+            PREF_UPDATE_EXCLUSIONS.any { exclusion -> key[0]?.equals(exclusion) == true }
+        ) return
 
         HookEntry.runningMods.forEach { thisMod ->
             try {

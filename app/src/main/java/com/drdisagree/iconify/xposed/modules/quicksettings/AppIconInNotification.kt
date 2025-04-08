@@ -3,8 +3,10 @@ package com.drdisagree.iconify.xposed.modules.quicksettings
 import android.annotation.SuppressLint
 import android.app.Notification
 import android.content.Context
+import android.graphics.Color
 import android.graphics.drawable.Drawable
 import android.widget.ImageView
+import androidx.core.graphics.drawable.toDrawable
 import com.drdisagree.iconify.data.common.Const.SYSTEMUI_PACKAGE
 import com.drdisagree.iconify.data.common.Preferences.COLORED_NOTIFICATION_ICON_SWITCH
 import com.drdisagree.iconify.xposed.ModPack
@@ -74,6 +76,20 @@ class AppIconInNotification(context: Context) : ModPack(context) {
                     )
                 }
                 mIcon.setTag(mImageTransformStateIconTag, notification.smallIcon);
+            }
+
+        val notificationRowIconViewClass =
+            findClass("com.android.internal.widget.NotificationRowIconView")
+
+        notificationRowIconViewClass
+            .hookMethod("onFinishInflate", "setImageIcon", "setImageIconAsync")
+            .runAfter { param ->
+                if (!coloredNotificationIcon) return@runAfter
+
+                val iconView = param.thisObject as ImageView
+
+                iconView.setPadding(0, 0, 0, 0)
+                iconView.background = Color.TRANSPARENT.toDrawable()
             }
     }
 }

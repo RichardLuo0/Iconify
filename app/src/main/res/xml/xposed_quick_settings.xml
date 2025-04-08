@@ -126,6 +126,42 @@
     </com.drdisagree.iconify.ui.preferences.PreferenceCategory>
 
     <com.drdisagree.iconify.ui.preferences.PreferenceCategory
+        android:key="xposedQuickSettingsHeadsUp"
+        android:title="@string/section_headsup_title"
+        app:iconSpaceReserved="false"
+        search:ignore="true">
+
+        <com.drdisagree.iconify.ui.preferences.SwitchPreference
+            android:key="xposed_notificationsheadsupblur"
+            android:summary="@string/notification_headsup_blur_desc"
+            android:title="@string/notification_headsup_blur_title"
+            app:iconSpaceReserved="false" />
+
+        <com.drdisagree.iconify.ui.preferences.SliderPreference
+            android:dependency="xposed_notificationsheadsupblur"
+            android:key="xposed_notificationsheadsupblurradius"
+            android:title="@string/notification_headsup_blur_intensity_title"
+            app:defaultValue="48"
+            app:iconSpaceReserved="false"
+            app:maxVal="100"
+            app:minVal="0"
+            app:tickInterval="1"
+            app:valueFormat="%" />
+
+        <com.drdisagree.iconify.ui.preferences.SliderPreference
+            android:dependency="xposed_notificationsheadsupblur"
+            android:key="xposed_notificationsheadsuptransparency"
+            android:title="@string/notification_headsup_blur_transparency_title"
+            app:defaultValue="70"
+            app:iconSpaceReserved="false"
+            app:maxVal="100"
+            app:minVal="0"
+            app:tickInterval="1"
+            app:valueFormat="%" />
+
+    </com.drdisagree.iconify.ui.preferences.PreferenceCategory>
+
+    <com.drdisagree.iconify.ui.preferences.PreferenceCategory
         android:key="xposedQuickSettingsMediaPlayer"
         android:title="@string/section_title_media_player"
         app:iconSpaceReserved="false"
@@ -136,6 +172,23 @@
             android:summary="@string/compact_media_player_desc"
             android:title="@string/compact_media_player_title"
             app:iconSpaceReserved="false" />
+
+        <com.drdisagree.iconify.ui.preferences.SwitchPreference
+            android:key="xposed_blurmediaplayerartwork"
+            android:summary="@string/media_player_artwork_blur_desc"
+            android:title="@string/media_player_artwork_blur_title"
+            app:iconSpaceReserved="false" />
+
+        <com.drdisagree.iconify.ui.preferences.SliderPreference
+            android:dependency="xposed_blurmediaplayerartwork"
+            android:key="xposed_blurmediaplayerartworkradius"
+            android:title="@string/media_player_artwork_blur_radius_title"
+            app:defaultValue="60"
+            app:iconSpaceReserved="false"
+            app:maxVal="100"
+            app:minVal="0"
+            app:tickInterval="1"
+            app:valueFormat="%" />
 
     </com.drdisagree.iconify.ui.preferences.PreferenceCategory>
 
