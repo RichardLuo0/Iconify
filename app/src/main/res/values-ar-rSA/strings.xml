@@ -413,6 +413,9 @@
     <string name="accent_privacy_chip_desc">جعل رقاقة الخصوصية ملونة بلون التمييز</string>
     <string name="disable_progress_wave_title">تعطيل موجة التقدم</string>
     <string name="disable_progress_wave_desc">تعطيل حركة موجة شريط التقدم</string>
+    <string name="section_title_settings_theme">Settings Theme</string>
+    <string name="enable_expressive_theme_title">Enable Expressive Theme</string>
+    <string name="enable_expressive_theme_desc">Enable the new settings expressive theme on Android 15 QPR2+</string>
     <!-- Xposed Menu -->
     <string name="lsposed_warn">قبل تفعيل Iconify في اضافات LSposed, اضغط لفترة طويلة على Iconify وانقر على إعادة التحسين. بعد ذلك، قم بتمكين Iconify وأعد تشغيل واجهتك. هذا ضروري لتجربة أكثر سلاسة..</string>
     <string name="lsposed_bootloop_warn">One of the features you enabled is not compatible with your ROM. Please disable it and restart your SystemUI.</string>
@@ -675,6 +678,7 @@
     <string name="battery_dotted_circle">بطارية دائرة منقطة</string>
     <string name="battery_filled_circle">بطارية دائرية منقطة</string>
     <string name="battery_landscape_kim">Landscape Kim</string>
+    <string name="battery_landscape_oneui7">Landscape OneUI 7</string>
     <!-- Xposed Volume Panel -->
     <string name="volume_percentage_title">حجم الصوت</string>
     <string name="volume_percentage_desc">إظهار النسبة المئوية فوق شريط تمرير الصوت</string>
@@ -898,6 +902,8 @@
     <string name="status_bar_logo_style_mint">Linux Mint</string>
     <string name="status_bar_logo_style_amogus">Amogus</string>
     <string name="status_bar_logo_style_custom">Custom Image</string>
+    <string name="status_bar_logo_tint_title">Follow Statusbar Tint</string>
+    <string name="status_bar_logo_tint_desc">Switch to a light/dark background to update tint</string>
     <!-- Xposed Dual Statusbar -->
     <string name="dsb_title">Dual Row Statusbar</string>
     <string name="dsb_portrait_only_title">Portrait Only</string>

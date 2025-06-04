@@ -238,7 +238,7 @@
     <string name="activity_title_monet_engine">Mesin Monet</string>
     <string name="activity_desc_monet_engine">Ganti palet warna monet</string>
     <string name="section_title_stock_colors">Warna Stok</string>
-    <string name="apply_monet_accent_title">Monet Accent</string>
+    <string name="apply_monet_accent_title">Indone</string>
     <string name="apply_monet_accent_desc">Gunakan monet sistem sebagai accent</string>
     <string name="apply_monet_gradient_title">Gradiasi Monet</string>
     <string name="apply_monet_gradient_desc">Gunakan monet sistem sebagai gradient</string>
@@ -263,7 +263,7 @@
     <string name="monet_style_title">Gaya Monet</string>
     <string name="monet_neutral">Netral</string>
     <string name="monet_monochrome">Satu warna</string>
-    <string name="monet_tonalspot">Tonal Spot</string>
+    <string name="monet_tonalspot"></string>
     <string name="monet_vibrant">Cerah</string>
     <string name="monet_rainbow">Pelangi</string>
     <string name="monet_expressive">Ekspresif</string>
@@ -275,8 +275,8 @@
     <string name="monet_background_saturation_title">Saturasi latar belakang</string>
     <string name="monet_background_lightness_title">Kecerahan Latar Belakang</string>
     <!-- UI Roundness -->
-    <string name="corner_radius_title">Corner Radius</string>
-    <string name="qstile_btn1_title">Internet</string>
+    <string name="corner_radius_title"></string>
+    <string name="qstile_btn1_title"></string>
     <string name="qstile_btn1_desc">Rungkad</string>
     <string name="qstile_btn2_title">Airplane</string>
     <string name="qstile_btn2_desc">Mati</string>
@@ -413,6 +413,9 @@
     <string name="accent_privacy_chip_desc">Make privacy chip accent colored</string>
     <string name="disable_progress_wave_title">Disable Progress Wave</string>
     <string name="disable_progress_wave_desc">Disable progress bar wave animation</string>
+    <string name="section_title_settings_theme">Settings Theme</string>
+    <string name="enable_expressive_theme_title">Enable Expressive Theme</string>
+    <string name="enable_expressive_theme_desc">Enable the new settings expressive theme on Android 15 QPR2+</string>
     <!-- Xposed Menu -->
     <string name="lsposed_warn">Sebelum mengaktifkan Iconify dari modul LSPosed, tekan lama pada Iconify dan klik Optimalkan ulang. Setelah itu aktifkan Iconify dan restart SystemUI Anda. Ini diperlukan untuk pengalaman yang lebih lancar.</string>
     <string name="lsposed_bootloop_warn">One of the features you enabled is not compatible with your ROM. Please disable it and restart your SystemUI.</string>
@@ -675,6 +678,7 @@
     <string name="battery_dotted_circle">Dotted Circle Battery</string>
     <string name="battery_filled_circle">Filled Circle Battery</string>
     <string name="battery_landscape_kim">Landscape Kim</string>
+    <string name="battery_landscape_oneui7">Landscape OneUI 7</string>
     <!-- Xposed Volume Panel -->
     <string name="volume_percentage_title">Volume Percentage</string>
     <string name="volume_percentage_desc">Show percentage above volume slider</string>
@@ -898,6 +902,8 @@
     <string name="status_bar_logo_style_mint">Linux Mint</string>
     <string name="status_bar_logo_style_amogus">Amogus</string>
     <string name="status_bar_logo_style_custom">Custom Image</string>
+    <string name="status_bar_logo_tint_title">Follow Statusbar Tint</string>
+    <string name="status_bar_logo_tint_desc">Switch to a light/dark background to update tint</string>
     <!-- Xposed Dual Statusbar -->
     <string name="dsb_title">Dual Row Statusbar</string>
     <string name="dsb_portrait_only_title">Portrait Only</string>

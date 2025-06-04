@@ -413,6 +413,9 @@
     <string name="accent_privacy_chip_desc">讓Privacy chip强調著色</string>
     <string name="disable_progress_wave_title">禁用進度波</string>
     <string name="disable_progress_wave_desc">禁用進度指示器波形動畫</string>
+    <string name="section_title_settings_theme">Settings Theme</string>
+    <string name="enable_expressive_theme_title">Enable Expressive Theme</string>
+    <string name="enable_expressive_theme_desc">Enable the new settings expressive theme on Android 15 QPR2+</string>
     <!-- Xposed Menu -->
     <string name="lsposed_warn">在從 LSPosed 模組啟用 Iconify 之前，長按 Iconify 並按一下重新優化。之後，啟用 Iconify 並重新啟動 SystemUI。這對於更流暢的體驗是必要的。</string>
     <string name="lsposed_bootloop_warn">One of the features you enabled is not compatible with your ROM. Please disable it and restart your SystemUI.</string>
@@ -675,6 +678,7 @@
     <string name="battery_dotted_circle">點狀圓圈電池</string>
     <string name="battery_filled_circle">Filled Circle Battery</string>
     <string name="battery_landscape_kim">Landscape Kim</string>
+    <string name="battery_landscape_oneui7">Landscape OneUI 7</string>
     <!-- Xposed Volume Panel -->
     <string name="volume_percentage_title">Volume Percentage</string>
     <string name="volume_percentage_desc">Show percentage above volume slider</string>
@@ -898,6 +902,8 @@
     <string name="status_bar_logo_style_mint">Linux Mint</string>
     <string name="status_bar_logo_style_amogus">Amogus</string>
     <string name="status_bar_logo_style_custom">Custom Image</string>
+    <string name="status_bar_logo_tint_title">Follow Statusbar Tint</string>
+    <string name="status_bar_logo_tint_desc">Switch to a light/dark background to update tint</string>
     <!-- Xposed Dual Statusbar -->
     <string name="dsb_title">Dual Row Statusbar</string>
     <string name="dsb_portrait_only_title">Portrait Only</string>

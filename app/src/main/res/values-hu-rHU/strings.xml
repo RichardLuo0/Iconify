@@ -413,6 +413,9 @@
     <string name="accent_privacy_chip_desc">Kiemelőszinnel színezi ki a háttérlapot</string>
     <string name="disable_progress_wave_title">Eltünteti a haladási hullámot</string>
     <string name="disable_progress_wave_desc">Letiltja a haladási hullám animációját</string>
+    <string name="section_title_settings_theme">Beállítási téma</string>
+    <string name="enable_expressive_theme_title">A „Kifejező téma” engedélyezése</string>
+    <string name="enable_expressive_theme_desc">Engedélyezi a beállítások új \'Kifejező témáját\' Android 15 QPR2+ rendszeren</string>
     <!-- Xposed Menu -->
     <string name="lsposed_warn">Mielőtt engedélyezné az Iconify-t az LSPosed modulban, nyomjon hosszan az Iconify-ra és klikkeljen az Újra-Optimalizálás-ra. Ezután engedélyezze az Iconify-t, majd indítsa újra a rendszerfelületet. Ez elengedhetetlen a gördülékeny működéshez.</string>
     <string name="lsposed_bootloop_warn">Az egyik engedélyezett szolgáltatás nem kompatibilis a ROM-mal. Kérjük, tiltsa le, és indítsa újra a rendszerfelületet.</string>
@@ -675,6 +678,7 @@
     <string name="battery_dotted_circle">Pontozott kör akkumulátor</string>
     <string name="battery_filled_circle">Kitöltött kör akkumulátor</string>
     <string name="battery_landscape_kim">Fekvő Kim</string>
+    <string name="battery_landscape_oneui7">Fekvő OneUI 7</string>
     <!-- Xposed Volume Panel -->
     <string name="volume_percentage_title">Százalékos hangerő</string>
     <string name="volume_percentage_desc">Megjeleníti a százalékértéket a hangerőcsúszka felett</string>
@@ -844,11 +848,11 @@
     <string name="sb_swap_wifi_cellular_desc">Wifi és Mobiladat kapcsolóikon</string>
     <string name="sb_swap_cellular_network_type_title">Mobiladat és Hálózattípus cseréje</string>
     <string name="sb_swap_cellular_network_type_desc">Cserélje le a mobiladat és a hálózat ikonjait (3G 4G LTE stb.)</string>
-    <string name="sb_clock_position_title">Clock Position</string>
-    <string name="section_title_clock">Clock</string>
-    <string name="sb_clock_position_left">Left (Default)</string>
-    <string name="sb_clock_position_center">Center</string>
-    <string name="sb_clock_position_right">Right</string>
+    <string name="sb_clock_position_title">Az óra helyzete</string>
+    <string name="section_title_clock">Óra</string>
+    <string name="sb_clock_position_left">Bal oldalon (alapértelmezett)</string>
+    <string name="sb_clock_position_center">Középen</string>
+    <string name="sb_clock_position_right">Jobb oldalon</string>
     <string name="ongoing_action_chip_title">Folyamatban lévők kijelzője</string>
     <string name="ongoing_action_chip_desc">Épp zajló műveletek, például letöltések kijelzőjének megjelenítése az állapotsoron</string>
     <string name="sb_show_4g_icon_title">4G-ikon</string>
@@ -898,6 +902,8 @@
     <string name="status_bar_logo_style_mint">Linux Mint</string>
     <string name="status_bar_logo_style_amogus">Amogus</string>
     <string name="status_bar_logo_style_custom">Egyéni kép</string>
+    <string name="status_bar_logo_tint_title">Kövesse az Állpotsor kitöltőszínét</string>
+    <string name="status_bar_logo_tint_desc">A világos/sötét háttér kapcsolója a kitöltés frissítéséhez</string>
     <!-- Xposed Dual Statusbar -->
     <string name="dsb_title">Kétsoros Állapotsor</string>
     <string name="dsb_portrait_only_title">Csak protrémódban</string>

@@ -413,6 +413,9 @@
     <string name="accent_privacy_chip_desc">Torne o chip de privacidade em destaque colorido</string>
     <string name="disable_progress_wave_title">Desativar onda de progresso</string>
     <string name="disable_progress_wave_desc">Desative a animação de onda da barra de progresso</string>
+    <string name="section_title_settings_theme">Tema das Configurações</string>
+    <string name="enable_expressive_theme_title">Ativar tema expressivo</string>
+    <string name="enable_expressive_theme_desc">Ative o novo tema expressivo das Configurações no Android 15 QPR2+</string>
     <!-- Xposed Menu -->
     <string name="lsposed_warn">Antes de ativar o Iconify no LSPosed, mantenha pressionado o Iconify e clique em Re-otimizar. Depois disso, ative o Iconify e reinicie sua Interface do sistema. Isso é necessário para uma experiência mais tranquila.</string>
     <string name="lsposed_bootloop_warn">Um dos recursos que você ativou não é compatível com sua ROM. Desative-o e reinicie sua Interface do sistema.</string>
@@ -675,6 +678,7 @@
     <string name="battery_dotted_circle">Bateria circular pontilhada</string>
     <string name="battery_filled_circle">Bateria de círculo preenchido</string>
     <string name="battery_landscape_kim">Paisagem Kim</string>
+    <string name="battery_landscape_oneui7">Paisagem One UI 7</string>
     <!-- Xposed Volume Panel -->
     <string name="volume_percentage_title">Porcentagem do volume</string>
     <string name="volume_percentage_desc">Mostrar porcentagem acima do controle deslizante de volume</string>
@@ -845,7 +849,7 @@
     <string name="sb_swap_cellular_network_type_title">Trocar tipo de celular e rede</string>
     <string name="sb_swap_cellular_network_type_desc">Troque os ícones de celular e tipo de rede (3G, 4G, LTE, etc.)</string>
     <string name="sb_clock_position_title">Posição do relógio</string>
-    <string name="section_title_clock">Clock</string>
+    <string name="section_title_clock">Relógio</string>
     <string name="sb_clock_position_left">Esquerdo (Padrão)</string>
     <string name="sb_clock_position_center">Centro</string>
     <string name="sb_clock_position_right">Direito</string>
@@ -898,6 +902,8 @@
     <string name="status_bar_logo_style_mint">Linux Mint</string>
     <string name="status_bar_logo_style_amogus">Amogus</string>
     <string name="status_bar_logo_style_custom">Imagem personalizada</string>
+    <string name="status_bar_logo_tint_title">Seguir tonalidade da barra de status</string>
+    <string name="status_bar_logo_tint_desc">Alterne para um fundo claro/escuro para atualizar a tonalidade</string>
     <!-- Xposed Dual Statusbar -->
     <string name="dsb_title">Barra de status de linha dupla</string>
     <string name="dsb_portrait_only_title">Somente retrato</string>

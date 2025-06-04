@@ -413,6 +413,9 @@
     <string name="accent_privacy_chip_desc">Зробити колір індикатора приватності як в акценту</string>
     <string name="disable_progress_wave_title">Вимкнути хвилю прогресу</string>
     <string name="disable_progress_wave_desc">Вимкнути анімацію хвилі прогресу</string>
+    <string name="section_title_settings_theme">Settings Theme</string>
+    <string name="enable_expressive_theme_title">Enable Expressive Theme</string>
+    <string name="enable_expressive_theme_desc">Enable the new settings expressive theme on Android 15 QPR2+</string>
     <!-- Xposed Menu -->
     <string name="lsposed_warn">Перш ніж увімкнути Iconify з модулями LSPosed, натисніть і утримуйте кнопку Iconify, а потім натисніть «Re-optimize». Після цього увімкніть Iconify і перезапустіть SystemUI. Це необхідно для більш плавної роботи.</string>
     <string name="lsposed_bootloop_warn">One of the features you enabled is not compatible with your ROM. Please disable it and restart your SystemUI.</string>
@@ -675,6 +678,7 @@
     <string name="battery_dotted_circle">Пунктирне коло батареї</string>
     <string name="battery_filled_circle">Заповнене коло батареї</string>
     <string name="battery_landscape_kim">Горизонтальна Kim</string>
+    <string name="battery_landscape_oneui7">Landscape OneUI 7</string>
     <!-- Xposed Volume Panel -->
     <string name="volume_percentage_title">Відсотки гучності</string>
     <string name="volume_percentage_desc">Показати відсотки над повзунком гучності</string>
@@ -898,6 +902,8 @@
     <string name="status_bar_logo_style_mint">Linux Mint</string>
     <string name="status_bar_logo_style_amogus">Amogus</string>
     <string name="status_bar_logo_style_custom">Custom Image</string>
+    <string name="status_bar_logo_tint_title">Follow Statusbar Tint</string>
+    <string name="status_bar_logo_tint_desc">Switch to a light/dark background to update tint</string>
     <!-- Xposed Dual Statusbar -->
     <string name="dsb_title">Dual Row Statusbar</string>
     <string name="dsb_portrait_only_title">Portrait Only</string>

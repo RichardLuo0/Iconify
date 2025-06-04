@@ -42,6 +42,7 @@ import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.isMethodAvaila
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.setExtraField
 import com.drdisagree.iconify.xposed.modules.extras.utils.toolkit.setFieldSilently
 import com.drdisagree.iconify.xposed.utils.XPrefs.Xprefs
+import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XposedHelpers.newInstance
 import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam
 
@@ -176,12 +177,21 @@ class ColorizeNotificationView(context: Context) : ModPack(context) {
                                 6 // CONTENT style is converted to 6 in A16B1
                             )
                         }.getOrElse {
-                            // Android 13
-                            newInstance(
-                                colorSchemeClass,
-                                wallpaperColors,
-                                schemeStyle
-                            )
+                            runCatching {
+                                // Android 13
+                                newInstance(
+                                    colorSchemeClass,
+                                    wallpaperColors,
+                                    schemeStyle
+                                )
+                            }.getOrElse {
+                                // Android 13
+                                newInstance(
+                                    colorSchemeClass,
+                                    wallpaperColors,
+                                    6
+                                )
+                            }
                         }
                     }
                 }
@@ -308,6 +318,7 @@ class ColorizeNotificationView(context: Context) : ModPack(context) {
                     val mColors = builder.getField("mColors")
 
                     listOf(
+                        "mBackgroundColor",
                         "mProtectionColor",
                         "mPrimaryTextColor",
                         "mSecondaryTextColor",
@@ -318,77 +329,116 @@ class ColorizeNotificationView(context: Context) : ModPack(context) {
                         "mTertiaryFixedDimAccentColor",
                         "mOnTertiaryFixedAccentTextColor"
                     ).forEach { fieldName ->
-                        mColors.setFieldSilently(
-                            fieldName,
-                            notification.getExtraField(fieldName)
-                        )
-                    }
-                }
-            }
-
-        expandableNotificationRowClass
-            .hookMethod("onNotificationUpdated")
-            .runAfter { param ->
-                if (!coloredNotificationView) return@runAfter
-
-                val mEntry = param.thisObject.getFieldSilently("mEntry") ?: return@runAfter
-
-                val mSbn = mEntry.getField("mSbn")
-                val notification = mSbn.callMethod("getNotification") as Notification
-
-                val overflowColor = notification.getExtraFieldSilently("mSecondaryTextColor")
-                if (overflowColor != null) {
-                    param.thisObject.setFieldSilently("mNotificationColor", overflowColor)
-                }
-
-                val mNotifyBackgroundColor =
-                    notification.getExtraFieldSilently("mNotifyBackgroundColor")
-                if (mNotifyBackgroundColor != null) {
-                    var bgColor = mNotifyBackgroundColor as Int
-                    val mCurrentBackgroundTint = try {
-                        param.thisObject.callMethod("getCurrentBackgroundTint")
-                    } catch (_: Throwable) {
-                        param.thisObject.getField("mCurrentBackgroundTint")
-                    } as Int
-
-                    if (mCurrentBackgroundTint != bgColor) {
-                        bgColor = Color.argb(
-                            255,
-                            Color.red(bgColor),
-                            Color.green(bgColor),
-                            Color.blue(bgColor)
-                        )
-                        param.thisObject.callMethod("setBackgroundTintColor", bgColor)
-
-                        param.thisObject.setFieldSilently("mCurrentBackgroundTint", bgColor)
-
-                        val notificationBackgroundView = param.thisObject.getField(
-                            "mBackgroundNormal"
-                        ) as View
-
-                        val bgDrawable = notificationBackgroundView.getFieldSilently(
-                            "mBackground"
-                        ) as? Drawable
-
-                        if (bgDrawable != null) {
-                            // Blur drawable support
-                            if (bgDrawable is LayerDrawable && bgDrawable.numberOfLayers > 2 &&
-                                bgDrawable.getDrawable(2)::class.java.simpleName.contains("BackgroundBlurDrawable")
-                            ) {
-                                bgDrawable.getDrawable(2).callMethod("setColor", bgColor)
-                            } else {
-                                DrawableCompat.setTint(bgDrawable, bgColor)
-                            }
-                        }
-
-                        notificationBackgroundView.setFieldSilently("mTintColor", bgColor)
-
-                        Handler(Looper.getMainLooper()).post {
-                            notificationBackgroundView.invalidate()
+                        if (fieldName == "mBackgroundColor") {
+                            mColors.setFieldSilently(
+                                fieldName,
+                                notification.getExtraField("mNotifyBackgroundColor")
+                            )
+                        } else {
+                            mColors.setFieldSilently(
+                                fieldName,
+                                notification.getExtraField(fieldName)
+                            )
                         }
                     }
                 }
             }
+
+        fun runAfterOnNotificationUpdated(mEntry: Any, param: XC_MethodHook.MethodHookParam) {
+            val mSbn = mEntry.getField("mSbn")
+            val notification = mSbn.callMethod("getNotification") as Notification
+
+            val overflowColor = notification.getExtraFieldSilently("mSecondaryTextColor")
+            if (overflowColor != null) {
+                param.thisObject.setFieldSilently("mNotificationColor", overflowColor)
+            }
+
+            val mNotifyBackgroundColor =
+                notification.getExtraFieldSilently("mNotifyBackgroundColor")
+            if (mNotifyBackgroundColor != null) {
+                var bgColor = mNotifyBackgroundColor as Int
+                val mCurrentBackgroundTint = try {
+                    param.thisObject.callMethod("getCurrentBackgroundTint")
+                } catch (_: Throwable) {
+                    param.thisObject.getField("mCurrentBackgroundTint")
+                } as Int
+
+                if (mCurrentBackgroundTint != bgColor) {
+                    bgColor = Color.argb(
+                        255,
+                        Color.red(bgColor),
+                        Color.green(bgColor),
+                        Color.blue(bgColor)
+                    )
+                    param.thisObject.callMethod("setBackgroundTintColor", bgColor)
+
+                    param.thisObject.setFieldSilently("mCurrentBackgroundTint", bgColor)
+
+                    val notificationBackgroundView = param.thisObject.getField(
+                        "mBackgroundNormal"
+                    ) as View
+
+                    val bgDrawable = notificationBackgroundView.getFieldSilently(
+                        "mBackground"
+                    ) as? Drawable
+
+                    if (bgDrawable != null) {
+                        // Blur drawable support
+                        if (bgDrawable is LayerDrawable && bgDrawable.numberOfLayers > 2 &&
+                            bgDrawable.getDrawable(2)::class.java.simpleName.contains("BackgroundBlurDrawable")
+                        ) {
+                            bgDrawable.getDrawable(2).callMethod("setColor", bgColor)
+                        } else {
+                            DrawableCompat.setTint(bgDrawable, bgColor)
+                        }
+                    }
+
+                    notificationBackgroundView.setFieldSilently("mTintColor", bgColor)
+
+                    Handler(Looper.getMainLooper()).post {
+                        notificationBackgroundView.invalidate()
+                    }
+                }
+            }
+        }
+
+        try {
+            expandableNotificationRowClass
+                .hookMethod("onNotificationUpdated")
+                .throwError()
+                .runAfter { param ->
+                    if (!coloredNotificationView) return@runAfter
+
+                    val mEntry = param.thisObject.getFieldSilently("mEntry") ?: return@runAfter
+
+                    runAfterOnNotificationUpdated(mEntry, param)
+                }
+        } catch (_: Throwable) {
+            val rowContentBindStageClass =
+                findClass("$SYSTEMUI_PACKAGE.statusbar.notification.row.RowContentBindStage")
+            val inflationCallbackInterfaceClass =
+                findClass("$SYSTEMUI_PACKAGE.statusbar.notification.row.NotificationRowContentBinder\$InflationCallback")
+            val notificationEntryClass =
+                findClass("$SYSTEMUI_PACKAGE.statusbar.notification.collection.NotificationEntry")
+
+            val innerClasses = rowContentBindStageClass!!.classes.toList()
+                .union(rowContentBindStageClass.declaredClasses.toList())
+
+            val targetClass = innerClasses.firstOrNull { innerClass ->
+                inflationCallbackInterfaceClass!!.isAssignableFrom(innerClass)
+            }
+
+            targetClass
+                .hookMethod("onAsyncInflationFinished")
+                .parameters(notificationEntryClass)
+                .runAfter { param ->
+                    if (!coloredNotificationView) return@runAfter
+
+                    val mEntry = param.args[0] ?: return@runAfter
+
+                    runAfterOnNotificationUpdated(mEntry, param)
+                }
+        }
 
         notificationBackgroundViewClass
             .hookMethod("setTint")
